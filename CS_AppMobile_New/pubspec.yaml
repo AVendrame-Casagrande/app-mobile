@@ -1,0 +1,63 @@
+name: cs_appmobile
+description: "Applicazione Mobile Casagrande - porting Flutter dell'app Cordova."
+publish_to: 'none'
+version: 2.0.16+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management (rimpiazza l'oggetto globale 'applicazione')
+  provider: ^6.1.2
+
+  # Networking verso il backend PHP
+  http: ^1.2.2
+
+  # Persistenza locale (rimpiazza localStorage)
+  shared_preferences: ^2.3.2
+
+  # Date / orari (rimpiazza moment.js)
+  intl: ^0.19.0
+
+  # Apertura URL esterni (download APK aggiornamento, link InAppBrowser)
+  url_launcher: ^6.3.0
+
+  # Scanner barcode/QR (rimpiazza il plugin Cordova barcodeScanner / "occhio")
+  mobile_scanner: ^5.2.3
+
+  # Camera / Galleria (rimpiazza cordova-plugin-camera per Foto Arm e Chat)
+  image_picker: ^1.1.2
+  gal: ^2.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/img/
+    - assets/audio/
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Black.ttf
+          weight: 900
+    - family: Beon
+      fonts:
+        - asset: assets/fonts/Beon-Regular.otf

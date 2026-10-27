@@ -1,0 +1,40 @@
+{
+    "configuration": {
+        "isTest": false,
+        "verboseLogs": false,
+        "runDailyJob": false,
+        "NumberOfThreads": 4,
+        "HeavyBaseUrl": ""
+    },
+    "mobile": {
+        "Diapason": {
+            "SocketHost": "10.8.198.6",
+            "SocketPortProd": 7788,
+            "SocketPortTest": 7799,
+            "SocketTimeoutSeconds": 120,
+            "CheckUserExePath": "",
+            "CheckUserUrl": "http://10.0.2.1/applicazioni/diapason/CheckUserDiap.php",
+            "SosacpnExePath": "",
+            "SosacpnUrl": "http://10.0.2.1/applicazioni/produzione/UpdateSOSACPN.php"
+        },
+        "Storage": {
+            "WebRoot": "",
+            "MaxUploadMb": 20,
+            "PublicBaseUrl": "http://app.casagrandegroup.local"
+        },
+        "Smtp": {
+            "Host": "",
+            "Port": 25,
+            "EnableSsl": false,
+            "User": "",
+            "Password": "",
+            "From": "",
+            "FromName": "App Mobile Casagrande"
+        },
+        "FotoArm": {
+            "Host": "10.0.2.111",
+            "User": "arm",
+            "Password": "ArmPhotoUpload"
+        }
+    }
+}

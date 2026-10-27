@@ -1,0 +1,2477 @@
+[
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.LoginRequestModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AuthController",
+    "Method": "GetUtente",
+    "RelativePath": "api/auth/utente",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "AddInfoAvvisoSpeciale",
+    "RelativePath": "api/avvisi/addInfoAvvisoSpeciale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddInfoAvvisoSpecialeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "CompletaAvviso",
+    "RelativePath": "api/avvisi/completaAvviso",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CompletaAvvisoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "CompletaAvvisoSpeciale",
+    "RelativePath": "api/avvisi/completaAvvisoSpeciale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CompletaAvvisoSpecialeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "EliminaAvviso",
+    "RelativePath": "api/avvisi/eliminaAvviso",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.EliminaAvvisoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "GetAttivitaKeysFromImpegnoOdl",
+    "RelativePath": "api/avvisi/getAttivitaKeysFromImpegnoOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetAttivitaKeysFromImpegnoOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "GetMancantiCC",
+    "RelativePath": "api/avvisi/getMancantiCC",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "GetMaterialeInArrivo",
+    "RelativePath": "api/avvisi/getMaterialeInArrivo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "ModificaAvviso",
+    "RelativePath": "api/avvisi/modificaAvviso",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ModificaAvvisoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "SelectAllAvvisi",
+    "RelativePath": "api/avvisi/selectAllAvvisi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectAllAvvisiRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "SelectAllAvvisiSpeciali",
+    "RelativePath": "api/avvisi/selectAllAvvisiSpeciali",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "SelectSingoloAvviso",
+    "RelativePath": "api/avvisi/selectSingoloAvviso",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectSingoloAvvisoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "StartScriptCompletaAvviso0027Mgaut01",
+    "RelativePath": "api/avvisi/startScriptCompletaAvviso0027Mgaut01",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.StartScriptCompletaAvviso0027Mgaut01Request",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "UploadAvviso",
+    "RelativePath": "api/avvisi/uploadAvviso",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UploadAvvisoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.AvvisiController",
+    "Method": "WriteAttivitaSezione",
+    "RelativePath": "api/avvisi/writeAttivitaSezione",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteAttivitaSezioneRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "ChatStream",
+    "RelativePath": "api/chat/ChatStream",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "DeleteMessage",
+    "RelativePath": "api/chat/deleteMessage",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ChatIdRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "GetAllChats",
+    "RelativePath": "api/chat/getAllChats",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetAllChatsRequest",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "GetElencoGruppiChat",
+    "RelativePath": "api/chat/getElencoGruppiChat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetElencoGruppiChatRequest",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "GetUsersList",
+    "RelativePath": "api/chat/getUsersList",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "GetUsersListGroup",
+    "RelativePath": "api/chat/getUsersListGroup",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetUsersListGroupRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "GetUtentiLetturaMessaggioGruppo",
+    "RelativePath": "api/chat/getUtentiLetturaMessaggioGruppo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetUtentiLetturaMessaggioGruppoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "HideMessage",
+    "RelativePath": "api/chat/hideMessage",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.HideMessageRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "SetEmailChatReminder",
+    "RelativePath": "api/chat/setEmailChatReminder",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SetEmailChatReminderRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "UpdateMessagesRead",
+    "RelativePath": "api/chat/updateMessagesRead",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateMessagesReadRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "UpdateMessagesReadGruppo",
+    "RelativePath": "api/chat/updateMessagesReadGruppo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateMessagesReadGruppoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "UploadFoto",
+    "RelativePath": "api/chat/upload_foto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ChatController",
+    "Method": "WriteMessage",
+    "RelativePath": "api/chat/writeMessage",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteMessageRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.DapiwsController",
+    "Method": "UpdateArticolo",
+    "RelativePath": "api/dapiws/UpdateArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateArticoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "CheckVersion",
+    "RelativePath": "api/generale/checkVersion",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "CheckVersion",
+    "RelativePath": "api/generale/checkVersion",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "DeleteFoto",
+    "RelativePath": "api/generale/deleteFoto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.DeleteFotoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "GetSituazioneOdv",
+    "RelativePath": "api/generale/getSituazioneOdv",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetSituazioneOdvRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "Log",
+    "RelativePath": "api/generale/log",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.LogRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "RimuoviFotoProfilo",
+    "RelativePath": "api/generale/rimuoviFotoProfilo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "UploadFoto",
+    "RelativePath": "api/generale/uploadFoto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "UploadFotoArm",
+    "RelativePath": "api/generale/uploadFotoArm",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GeneraleController",
+    "Method": "UploadFotoProfilo",
+    "RelativePath": "api/generale/uploadFotoProfilo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "AccettazioneGetPrecarico",
+    "RelativePath": "api/giacenze/accettazione_get_precarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "AddInfoCostoGiacenzaInventario",
+    "RelativePath": "api/giacenze/addInfoCostoGiacenzaInventario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtAddInfoCostoGiacenzaInventarioRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "AddInfoOdlStampaVern",
+    "RelativePath": "api/giacenze/addInfoOdlStampaVern",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddInfoOdlStampaVernRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "AddInfoOdlStampaVernLibera",
+    "RelativePath": "api/giacenze/addInfoOdlStampaVernLibera",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddInfoOdlStampaVernLiberaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "AddInfoPadreStampaVernLibera",
+    "RelativePath": "api/giacenze/addInfoPadreStampaVernLibera",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddInfoPadreStampaVernLiberaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "AddPadreDescrizioneFixToMovimento",
+    "RelativePath": "api/giacenze/addPadreDescrizioneFixToMovimento",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddPadreDescrizioneFixToMovimentoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "CambiaStatoLista",
+    "RelativePath": "api/giacenze/cambiaStatoLista",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CambiaStatoListaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "CheckMagazzinoExists",
+    "RelativePath": "api/giacenze/checkMagazzinoExists",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "CheckMagazzinoExistsAndCheckVani",
+    "RelativePath": "api/giacenze/checkMagazzinoExistsAndCheckVani",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "CheckOdlListaPrelievoMgautAndGetFasi",
+    "RelativePath": "api/giacenze/checkOdlListaPrelievoMgautAndGetFasi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckOdlListaPrelievoMgautAndGetFasiRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "CheckOdvListaPrelievoMgaut",
+    "RelativePath": "api/giacenze/checkOdvListaPrelievoMgaut",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckOdvListaPrelievoMgautRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "CountMancantiSearchPage",
+    "RelativePath": "api/giacenze/countMancantiSearchPage",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "SendInventoryEmail",
+    "RelativePath": "api/giacenze/csusa/send_inventory_email",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtSendInventoryEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "UploadInventoryImage",
+    "RelativePath": "api/giacenze/csusa/upload_inventory_image",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "WriteInventoryExcel",
+    "RelativePath": "api/giacenze/csusa/write_inventory_excel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtWriteInventoryExcelRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "DeleteListaPrelievo",
+    "RelativePath": "api/giacenze/deleteListaPrelievo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.DeleteListaPrelievoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "EliminaRiga",
+    "RelativePath": "api/giacenze/eliminaRiga",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.EliminaRigaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetElencoListe",
+    "RelativePath": "api/giacenze/getElencoListe",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetInventarioFullQuery",
+    "RelativePath": "api/giacenze/getInventarioFullQuery",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetInventarioFullQueryRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetLatestDtrunHrrun",
+    "RelativePath": "api/giacenze/getLatestDtrunHrrun",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetListaDistinte",
+    "RelativePath": "api/giacenze/getListaDistinte",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetListaDistinteRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetListaMgaut02",
+    "RelativePath": "api/giacenze/getListaMgaut02",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetListaPrelievi0027FromAttivitaCheckScript",
+    "RelativePath": "api/giacenze/getListaPrelievi0027FromAttivitaCheckScript",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetListaPrelievi0027FromAttivitaCheckScriptRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetListaTrasferimentiMgis001",
+    "RelativePath": "api/giacenze/getListaTrasferimentiMgis001",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetMagazziniVaniPerModificaPrelievi",
+    "RelativePath": "api/giacenze/getMagazziniVaniPerModificaPrelievi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetMagazziniVaniPerModificaPrelieviRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetMgricamVanoPreferenziale",
+    "RelativePath": "api/giacenze/getMgricamVanoPreferenziale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetMgricamVanoPreferenzialeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetOdlListFromMagDest",
+    "RelativePath": "api/giacenze/getOdlListFromMagDest",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetOdlListFromMagDestRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetPdfList",
+    "RelativePath": "api/giacenze/getPdfList",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetPdfListRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetStoriaMovimento",
+    "RelativePath": "api/giacenze/getStoriaMovimento",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetStoriaMovimentoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetStoriaMovimentoOggi",
+    "RelativePath": "api/giacenze/getStoriaMovimentoOggi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetStoriaMovimentoOggiRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "GetStoriaPrelieviMgis001",
+    "RelativePath": "api/giacenze/getStoriaPrelieviMgis001",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetStoriaPrelieviMgis001Request",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "GetVaniMovimentoSingolo",
+    "RelativePath": "api/giacenze/getVaniMovimentoSingolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtGetVaniMovimentoSingoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelImmediatoGetOdvFromPrebolla",
+    "RelativePath": "api/giacenze/mgaut_prel_immediato_get_odv_from_prebolla",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelImmediatoGetOdvFromPrebollaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelImmediatoGetRigheFromOdv",
+    "RelativePath": "api/giacenze/mgaut_prel_immediato_get_righe_from_odv",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelImmediatoGetRigheFromOdvRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdlGetArticoli",
+    "RelativePath": "api/giacenze/mgaut_prel_odl_get_articoli",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdlGetArticoliRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdlGetMagazzini",
+    "RelativePath": "api/giacenze/mgaut_prel_odl_get_magazzini",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdlGetMagazziniRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdlGetOdl",
+    "RelativePath": "api/giacenze/mgaut_prel_odl_get_odl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdlGetOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdvGetArticoli",
+    "RelativePath": "api/giacenze/mgaut_prel_odv_get_articoli",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdvGetArticoliRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdvGetMagazzini",
+    "RelativePath": "api/giacenze/mgaut_prel_odv_get_magazzini",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdvGetMagazziniRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "MgautPrelOdvGetOdv",
+    "RelativePath": "api/giacenze/mgaut_prel_odv_get_odv",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.MgautPrelOdvGetOdvRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "SelectAccettazioni",
+    "RelativePath": "api/giacenze/selectAccettazioni",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectAccettazioniRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "SelectArticoloLike",
+    "RelativePath": "api/giacenze/selectArticoloLike",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "SelectArticoloMagazzini",
+    "RelativePath": "api/giacenze/selectArticoloMagazzini",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "SelectCambioOdl",
+    "RelativePath": "api/giacenze/selectCambioOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectCambioOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "SelectGiacenzeInventario",
+    "RelativePath": "api/giacenze/selectGiacenzeInventario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtSelectGiacenzeInventarioRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "SelectMancantiDaMag",
+    "RelativePath": "api/giacenze/selectMancantiDaMag",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectMancantiDaMagRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "SelectRientri",
+    "RelativePath": "api/giacenze/selectRientri",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectRientriRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "SelectSingoloArticolo",
+    "RelativePath": "api/giacenze/selectSingoloArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "UpdateAutomhaTrasferito",
+    "RelativePath": "api/giacenze/updateAutomhaTrasferito",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateAutomhaTrasferitoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "UpdateRigaInventario",
+    "RelativePath": "api/giacenze/updateRigaInventario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GiacArtUpdateRigaInventarioRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "UpdateStatoStoriaMovimento",
+    "RelativePath": "api/giacenze/updateStatoStoriaMovimento",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateStatoStoriaMovimentoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "UploadFotoArxivar",
+    "RelativePath": "api/giacenze/uploadFotoArxivar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "UploadFotoInventario",
+    "RelativePath": "api/giacenze/uploadFotoInventario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "ValidateOdlSelectFasi",
+    "RelativePath": "api/giacenze/validateOdlSelectFasi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ValidateOdlSelectFasiRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "WriteLista",
+    "RelativePath": "api/giacenze/writeLista",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteListaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "WriteRigaLista",
+    "RelativePath": "api/giacenze/writeRigaLista",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteRigaListaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
+    "Method": "WriteStoriaMovMgis001",
+    "RelativePath": "api/giacenze/writeStoriaMovMgis001",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteStoriaMovMgis001Request",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetAllArticoli",
+    "RelativePath": "api/Item/getAllArticoli",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetArticoli",
+    "RelativePath": "api/Item/getArticoli",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetArticoloComponentiUsura",
+    "RelativePath": "api/Item/getArticoloComponentiUsura",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetArticoloMatricoleRilevate",
+    "RelativePath": "api/Item/getArticoloMatricoleRilevate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetDescArticolo",
+    "RelativePath": "api/Item/getDescArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ItemESRequestModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetEsplosioneScalare",
+    "RelativePath": "api/Item/getEsplosioneScalare",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ItemESRequestModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetEsplosioneScalareR",
+    "RelativePath": "api/Item/getEsplosioneScalareR",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ItemESRequestModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetFotoArticolo",
+    "RelativePath": "api/Item/getFotoArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetInfoArticolo",
+    "RelativePath": "api/Item/getInfoArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ItemESRequestModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetItemsFMInfo",
+    "RelativePath": "api/Item/getItemsFMInfo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetItemsTranslation",
+    "RelativePath": "api/Item/getItemsTranslation",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetMacchine",
+    "RelativePath": "api/Item/getMacchine",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetMatricole",
+    "RelativePath": "api/Item/getMatricole",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetNations",
+    "RelativePath": "api/Item/getNations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetPrezzoArticolo",
+    "RelativePath": "api/Item/getPrezzoArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "GetTabellaSconti",
+    "RelativePath": "api/Item/getTabellaSconti",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ItemController",
+    "Method": "SavePriorFm",
+    "RelativePath": "api/Item/savePriorFm",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.Dictionary\u00602[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "AddArticoloScaffale",
+    "RelativePath": "api/kanban/addArticoloScaffale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddArticoloScaffaleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "AddElencoScaffaliToArticolo",
+    "RelativePath": "api/kanban/addElencoScaffaliToArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddElencoScaffaliToArticoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "CheckKanbanGiacenzeMgaut",
+    "RelativePath": "api/kanban/checkKanbanGiacenzeMgaut",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckKanbanGiacenzeMgautRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "DeleteArticoloScaffale",
+    "RelativePath": "api/kanban/deleteArticoloScaffale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.DeleteArticoloScaffaleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SelectAllScaffali",
+    "RelativePath": "api/kanban/selectAllScaffali",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SelectAllScaffali",
+    "RelativePath": "api/kanban/selectAllScaffali",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SelectArticoliScaffale",
+    "RelativePath": "api/kanban/selectArticoliScaffale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectArticoliScaffaleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SelectSingoloArticolo",
+    "RelativePath": "api/kanban/selectSingoloArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectSingoloArticoloKanbanRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SelectSingoloScaffale",
+    "RelativePath": "api/kanban/selectSingoloScaffale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectSingoloScaffaleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "SendRipristinoScorteEmail",
+    "RelativePath": "api/kanban/sendRipristinoScorteEmail",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SendRipristinoScorteEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.KanbanController",
+    "Method": "WriteOrdineRifornimento",
+    "RelativePath": "api/kanban/writeOrdineRifornimento",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteOrdineRifornimentoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.MovimentiController",
+    "Method": "APIMovMagMobileApp",
+    "RelativePath": "api/movimenti/APIMovMagMobileApp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.APIMovMagMobileAppRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.MovimentiController",
+    "Method": "DBGetARMListMobile",
+    "RelativePath": "api/movimenti/DBGetARMListMobile",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.MovimentiController",
+    "Method": "MovimentiMagazzinoSSE",
+    "RelativePath": "api/movimenti/MovimentiMagazzinoSSE",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.MovimentiController",
+    "Method": "WriteListaMagazzinoAutomatico",
+    "RelativePath": "api/movimenti/WriteListaMagazzinoAutomatico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteListaMagazzinoAutomaticoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.MovimentiController",
+    "Method": "WriteMovimentiMultipliAPI",
+    "RelativePath": "api/movimenti/WriteMovimentiMultipliAPI",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.WriteMovimentiMultipliAPIRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "AddArticoliImpegnoOdl",
+    "RelativePath": "api/produzione/addArticoliImpegnoOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.AddArticoliImpegnoOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "CheckImpegnoGiacenzaArticolo",
+    "RelativePath": "api/produzione/checkImpegnoGiacenzaArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckImpegnoGiacenzaArticoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "CheckPermessiSezioniProduzione",
+    "RelativePath": "api/produzione/checkPermessiSezioniProduzione",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "ConfirmDeleteQualita",
+    "RelativePath": "api/produzione/confirmDeleteQualita",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ConfirmDeleteQualitaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "DeleteInserimentoFase0027",
+    "RelativePath": "api/produzione/deleteInserimentoFase0027",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.InserimentoFase0027Request",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "EliminaListaPrecarico",
+    "RelativePath": "api/produzione/eliminaListaPrecarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ListaPrecaricoKeyRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetListaNonni",
+    "RelativePath": "api/produzione/getListaNonni",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetListaNonniRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetMagazziniPrestazioniSelect",
+    "RelativePath": "api/produzione/getMagazziniPrestazioniSelect",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetPrestazioniMagazzino",
+    "RelativePath": "api/produzione/getPrestazioniMagazzino",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetPrestazioniMagazzinoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetQualita",
+    "RelativePath": "api/produzione/getQualita",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetQualitaArrivi",
+    "RelativePath": "api/produzione/getQualitaArrivi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetQualitaArriviRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetStoriaPrecarico",
+    "RelativePath": "api/produzione/getStoriaPrecarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetStoriaPrecaricoRequest",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "GetTipoArticolo",
+    "RelativePath": "api/produzione/getTipoArticolo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.GetTipoArticoloRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "ModifyListaPrecarico",
+    "RelativePath": "api/produzione/modifyListaPrecarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ModifyListaPrecaricoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "ReturnMagazzinoFromImpegnoOdl",
+    "RelativePath": "api/produzione/returnMagazzinoFromImpegnoOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ReturnMagazzinoFromImpegnoOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "SelectImpegniOdl",
+    "RelativePath": "api/produzione/selectImpegniOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectImpegniOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "SelectSituazioneCheckOdl",
+    "RelativePath": "api/produzione/selectSituazioneCheckOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectSituazioneCheckOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "SelectSituazioneOdl",
+    "RelativePath": "api/produzione/selectSituazioneOdl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SelectSituazioneOdlRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "SendImpegniEmail",
+    "RelativePath": "api/produzione/sendImpegniEmail",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.SendImpegniEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UpdateListaPrecarico",
+    "RelativePath": "api/produzione/updateListaPrecarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateListaPrecaricoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UpdateListaPrecaricoSegnaComeRevisionata",
+    "RelativePath": "api/produzione/updateListaPrecaricoSegnaComeRevisionata",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateListaPrecaricoSegnaComeRevisionataRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UpdateSOSACPN",
+    "RelativePath": "api/produzione/updateSOSACPN",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UpdateSosacpnRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UploadFotoPallinatura",
+    "RelativePath": "api/produzione/uploadFotoPallinatura",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "nome_utente",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UploadFotoQualita",
+    "RelativePath": "api/produzione/uploadFotoQualita",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "UploadListaPrecarico",
+    "RelativePath": "api/produzione/uploadListaPrecarico",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.UploadListaPrecaricoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.ProduzioneController",
+    "Method": "WriteInserimentoFase0027",
+    "RelativePath": "api/produzione/writeInserimentoFase0027",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.InserimentoFase0027Request",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.QueryDesktopController",
+    "Method": "CheckMagazzinoExists",
+    "RelativePath": "api/queryDesktop/giacenze/checkMagazzinoExists",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckMagazzinoExistsRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.QueryDesktopController",
+    "Method": "CheckVanoExists",
+    "RelativePath": "api/queryDesktop/giacenze/checkVanoExists",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CheckVanoExistsRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.QueryDesktopController",
+    "Method": "ConvertPdf",
+    "RelativePath": "api/queryDesktop/giacenze/convertPDF",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.ConvertPdfRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.QueryDesktopController",
+    "Method": "CreatePdf",
+    "RelativePath": "api/queryDesktop/modifiche_tecniche/createPDF",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CG.MobileAPI.Models.CreatePdfRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

@@ -1,0 +1,330 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\models\\authmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\models\\authmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\config.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\config.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\mydbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\mydbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\mobileconnections.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\mobileconnections.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\cg.mobileapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\cg.mobileapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\tools\\tokentool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\tools\\tokentool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\controllers\\itemcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\tools\\arxhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\tools\\arxhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\models\\resultinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\models\\resultinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\models\\itemmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\models\\itemmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\dbhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\dbhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\configurationloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\configurationloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\serviceerrorcodes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\serviceerrorcodes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\data\\cgutility.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\data\\cgutility.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|c:\\users\\a.vendrame\\desktop\\av\\009 - app mobile\\cg.mobileapi.refactoring\\cg.mobileapi\\exceptionmodels\\arxexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{15BD5C35-D53C-49CB-9394-FDCD293B3FC4}|CG.MobileAPI\\CG.MobileAPI.csproj|solutionrelative:cg.mobileapi\\exceptionmodels\\arxexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:254354193:0:{71f361cc-493f-47c0-923f-f2570b6f8618}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AuthModel.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\AuthModel.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Models\\AuthModel.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\AuthModel.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Models\\AuthModel.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAArwGMAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T14:50:04.412Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MobileConnections.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\MobileConnections.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\MobileConnections.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\MobileConnections.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\MobileConnections.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAD4vxkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T14:43:44.883Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAASwDcAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T14:38:11.993Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "config.json",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\config.json",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\config.json",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\config.json",
+              "RelativeToolTip": "CG.MobileAPI\\config.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-26T12:41:52.605Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "TokenTool.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Tools\\TokenTool.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Tools\\TokenTool.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Tools\\TokenTool.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Tools\\TokenTool.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:37:51.884Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Program.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Program.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Program.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Program.cs",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAgwJIAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:05:55.807Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ArxHelper.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Tools\\ArxHelper.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Tools\\ArxHelper.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Tools\\ArxHelper.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Tools\\ArxHelper.cs",
+              "ViewState": "AgIAAMEAAAAAAAAAAAAgwA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:00:01.607Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ResultInfo.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\ResultInfo.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Models\\ResultInfo.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\ResultInfo.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Models\\ResultInfo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:58:00.892Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ItemController.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Controllers\\ItemController.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Controllers\\ItemController.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Controllers\\ItemController.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Controllers\\ItemController.cs",
+              "ViewState": "AgIAAFQBAAAAAAAAAAAAAHABAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:56:29.926Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ItemModel.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\ItemModel.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Models\\ItemModel.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Models\\ItemModel.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Models\\ItemModel.cs",
+              "ViewState": "AgIAADQDAAAAAAAAAAAqwD4DAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:44:26.821Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Properties\\launchSettings.json",
+              "RelativeToolTip": "CG.MobileAPI\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-26T08:41:09.242Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "ArxException.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\ExceptionModels\\ArxException.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\ExceptionModels\\ArxException.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\ExceptionModels\\ArxException.cs",
+              "RelativeToolTip": "CG.MobileAPI\\ExceptionModels\\ArxException.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:39:46.511Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "ServiceErrorCodes.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\ServiceErrorCodes.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\ServiceErrorCodes.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\ServiceErrorCodes.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\ServiceErrorCodes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:38:57.751Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MyDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\MyDbContext.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\MyDbContext.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\MyDbContext.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\MyDbContext.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAASwCYAAABiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:38:57.627Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "DbHelper.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\DbHelper.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\DbHelper.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\DbHelper.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\DbHelper.cs",
+              "ViewState": "AgIAAPIAAAAAAAAAAAAAwAEAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:38:57.5Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "ConfigurationLoader.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\ConfigurationLoader.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\ConfigurationLoader.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\ConfigurationLoader.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\ConfigurationLoader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:38:57.385Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "CGUtility.cs",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\CGUtility.cs",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\Data\\CGUtility.cs",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\Data\\CGUtility.cs",
+              "RelativeToolTip": "CG.MobileAPI\\Data\\CGUtility.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T08:38:57.243Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CG.MobileAPI.http",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\CG.MobileAPI.http",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\CG.MobileAPI.http",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\CG.MobileAPI.http",
+              "RelativeToolTip": "CG.MobileAPI\\CG.MobileAPI.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2026-10-26T08:37:59.28Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\appsettings.json",
+              "RelativeDocumentMoniker": "CG.MobileAPI\\appsettings.json",
+              "ToolTip": "C:\\Users\\a.vendrame\\Desktop\\AV\\009 - APP MOBILE\\CG.MobileAPI.Refactoring\\CG.MobileAPI\\appsettings.json",
+              "RelativeToolTip": "CG.MobileAPI\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-10-26T08:37:51.251Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
