@@ -840,6 +840,32 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "Disegno",
+    "RelativePath": "api/giacenze/disegno/{nomeFile}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "nomeFile",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "exp",
+        "Type": "System.Int64",
+        "IsRequired": false
+      },
+      {
+        "Name": "sig",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CG.MobileAPI.Controllers.GiacenzeListeController",
     "Method": "EliminaRiga",
     "RelativePath": "api/giacenze/eliminaRiga",
@@ -851,6 +877,27 @@
         "Name": "request",
         "Type": "CG.MobileAPI.Models.EliminaRigaRequest",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CG.MobileAPI.Controllers.GiacenzeArticoliController",
+    "Method": "FotoArxivar",
+    "RelativePath": "api/giacenze/fotoArxivar/{docNumber}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "docNumber",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "articolo",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

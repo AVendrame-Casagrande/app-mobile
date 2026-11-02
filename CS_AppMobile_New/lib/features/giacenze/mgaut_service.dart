@@ -98,7 +98,7 @@ class MgautService {
     return MovimentoApi(
       idApi: idApi,
       causale: causale,
-      societa: 'CSPRO',
+      societa: AuthToken.societa,
       utente: utente,
       articolo: r.articolo,
       qta: r.qta,
@@ -129,13 +129,13 @@ class MgautService {
       res is List ? res.map((e) => e.toString()).toList() : [];
 
   /// Articolo con listaMagazzini. null se non esiste (HTTP 404 o risposta vuota).
-  /// POST /giacenze/selectSingoloArticolo.php {codiceArticolo, societa:'CSPRO', needCompleteInfo:false}
+  /// POST /giacenze/selectSingoloArticolo.php {codiceArticolo, societa, needCompleteInfo:false}
   Future<ArticoloAut?> getArticolo(String codice) async {
     dynamic res;
     try {
       res = await _api.postJson('$_g/selectSingoloArticolo', data: {
         'codiceArticolo': codice,
-        'societa': 'CSPRO',
+        'societa': AuthToken.societa,
         'needCompleteInfo': false,
       });
     } on ApiException catch (e) {
@@ -261,7 +261,6 @@ class MgautService {
     final res = await _api.postText(
       '${AppConfig.movimentiUrl}/WriteListaMagazzinoAutomatico',
       data: {
-        'ambiente': 'PRODUZIONE',
         'utente': utente,
         'magazzino_origine': magazzinoOrigine,
         'magazzino_destinazione': magazzinoDestinazione,

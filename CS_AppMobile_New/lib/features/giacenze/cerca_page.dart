@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config.dart';
+import '../../core/network/api_client.dart';
 import '../../core/storage/last_searched.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/articolo_giacenze.dart';
@@ -10,6 +12,10 @@ import '../../state/app_state.dart';
 import '../../widgets/last_searched_list.dart';
 import '../scanner/barcode_scanner_page.dart';
 import 'cerca_service.dart';
+import 'inventario_dialogs.dart';
+import 'mgaut_aggiunta.dart';
+import 'mgaut_page.dart';
+import 'mgaut_service.dart';
 import 'movimento_page.dart';
 
 /// Pagina Giacenze → Cerca — porting di
@@ -192,9 +198,15 @@ class _CercaPageState extends State<CercaPage> {
     }
     if (_articolo != null) {
       return _ArticoloDettaglio(
+        key: ValueKey(_articolo!.codice),
         articolo: _articolo!,
         service: _service,
         societa: _societa,
+        // Link articolo dalla distinta: apre la scheda dell'articolo scelto.
+        onApriArticolo: (codice) {
+          _controller.text = codice;
+          _caricaArticolo(codice);
+        },
       );
     }
     if (_risultati.isNotEmpty) {
@@ -260,24 +272,42 @@ class _CercaPageState extends State<CercaPage> {
 /// Dettaglio articolo con 5 tab.
 class _ArticoloDettaglio extends StatefulWidget {
   const _ArticoloDettaglio({
+    super.key,
     required this.articolo,
     required this.service,
     required this.societa,
+    required this.onApriArticolo,
   });
 
   final ArticoloGiacenze articolo;
   final CercaService service;
   final String societa;
 
+  /// Apre la scheda di un altro articolo (link dalla distinta).
+  final ValueChanged<String> onApriArticolo;
+
   @override
   State<_ArticoloDettaglio> createState() => _ArticoloDettaglioState();
 }
 
 class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
-  List<DistintaArticolo>? _distintaEspl;
-  List<DistintaArticolo>? _distintaImpl;
+  // Distinta: per ciascun tipo ('esplosione' / 'implosione') l'articolo di cui
+  // si sta visualizzando la distinta, la pila degli articoli precedenti (per
+  // il pulsante "indietro", come esplosioniPrecedenti/implosioniPrecedenti
+  // di Cordova) e la lista caricata.
+  final Map<String, String> _codiceDistinta = {};
+  final Map<String, List<String>> _distintePrecedenti = {
+    'esplosione': [],
+    'implosione': [],
+  };
+  final Map<String, List<DistintaArticolo>?> _distinte = {};
   bool _loadingDistinta = false;
   String _tipoDistinta = 'esplosione';
+
+  // Filtri del tab movimenti: statici come giacenze.filtroCercaMov di Cordova
+  // (restano validi per tutta la sessione, anche cambiando articolo).
+  static final Set<String> _filtroCausali = {};
+  static final Set<String> _filtroMagazzini = {};
 
   ArticoloGiacenze get a => widget.articolo;
 
@@ -286,32 +316,80 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
     return v.toString();
   }
 
-  Future<void> _caricaDistinta(String tipo) async {
-    final gia = tipo == 'esplosione' ? _distintaEspl : _distintaImpl;
-    if (gia != null || _loadingDistinta) return;
+  String _codiceCorrenteDistinta(String tipo) => _codiceDistinta[tipo] ?? a.codice;
+
+  /// Carica la distinta [tipo] di [codice] (default: articolo corrente della
+  /// distinta). Senza [forza] non ricarica una distinta già presente.
+  Future<void> _caricaDistinta(String tipo,
+      {String? codice, bool forza = false}) async {
+    if (_loadingDistinta) return;
+    if (!forza && _distinte[tipo] != null) return;
+    final cod = codice ?? _codiceCorrenteDistinta(tipo);
     setState(() => _loadingDistinta = true);
+    List<DistintaArticolo> lista;
     try {
-      final lista =
-          await widget.service.getListaDistinte(a.codice, tipoDistinta: tipo);
-      if (!mounted) return;
-      setState(() {
-        if (tipo == 'esplosione') {
-          _distintaEspl = lista;
-        } else {
-          _distintaImpl = lista;
-        }
-        _loadingDistinta = false;
-      });
+      lista = await widget.service.getListaDistinte(cod, tipoDistinta: tipo);
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        if (tipo == 'esplosione') {
-          _distintaEspl = [];
-        } else {
-          _distintaImpl = [];
-        }
-        _loadingDistinta = false;
-      });
+      lista = [];
+      if (mounted) invToast(context, 'Errore di Rete o del Server');
+    }
+    if (!mounted) return;
+    setState(() {
+      _codiceDistinta[tipo] = cod;
+      _distinte[tipo] = lista;
+      _loadingDistinta = false;
+    });
+  }
+
+  /// Scende nella distinta di un componente/assieme (pulsante "cerca" di
+  /// Cordova: #distintaEsplSearch / #distintaImplSearch).
+  Future<void> _scendiDistinta(String tipo, String codice) async {
+    if (_loadingDistinta) return;
+    _distintePrecedenti[tipo]!.add(_codiceCorrenteDistinta(tipo));
+    await _caricaDistinta(tipo, codice: codice, forza: true);
+  }
+
+  /// Torna alla distinta precedente (#distintaEsplBack / #distintaImplBack).
+  Future<void> _risaliDistinta(String tipo) async {
+    final pila = _distintePrecedenti[tipo]!;
+    if (pila.isEmpty || _loadingDistinta) return;
+    final codice = pila.removeLast();
+    await _caricaDistinta(tipo, codice: codice, forza: true);
+  }
+
+  /// Torna alla distinta dell'articolo della scheda.
+  Future<void> _distintaRadice(String tipo) async {
+    if (_loadingDistinta) return;
+    _distintePrecedenti[tipo]!.clear();
+    await _caricaDistinta(tipo, codice: a.codice, forza: true);
+  }
+
+  /// Tap su una riga di distinta: popup con dati riga, disegni (solo se
+  /// presenti), link alla scheda articolo e discesa nella sua distinta
+  /// (solo se l'articolo ha a sua volta una distinta).
+  Future<void> _apriRigaDistinta(DistintaArticolo r) async {
+    final tipo = _tipoDistinta;
+    final codice = tipo == 'esplosione' ? r.componente : r.assieme;
+    final azione = await showDialog<_AzioneDistinta>(
+      context: context,
+      builder: (_) => _RigaDistintaDialog(
+        riga: r,
+        tipo: tipo,
+        service: widget.service,
+      ),
+    );
+    if (azione == null || !mounted) return;
+    switch (azione) {
+      case _AzioneDistinta.scendi:
+        await _scendiDistinta(tipo, codice);
+      case _AzioneDistinta.apriArticolo:
+        final scelta = await invChoice(
+          context,
+          'LINK ARTICOLO $codice',
+          "Vuoi effettuare la Ricerca dell'Articolo $codice?",
+          ['Cerca', 'Chiudi'],
+        );
+        if (scelta == 0 && mounted) widget.onApriArticolo(codice);
     }
   }
 
@@ -486,11 +564,14 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
         itemBuilder: (_, i) {
           final url = a.arrayImmagini[i];
           return GestureDetector(
-            onTap: () => _apriUrl(url),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => _FotoPage(foto: a.arrayImmagini, iniziale: i),
+            )),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
                 url,
+                headers: _headersFoto(url),
                 width: 160,
                 height: 160,
                 fit: BoxFit.cover,
@@ -524,6 +605,39 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
     );
   }
 
+  /// Icona MGAUT00/MGAUT10: aggiunge l'articolo alla lista prelievi di quel
+  /// magazzino automatico — porting del click su .goToMgaut (Cerca/EventHandlers.js).
+  Future<void> _aggiungiAMgaut(String codiceArticolo, String magazzino) async {
+    final utente = context.read<AppState>().utenteLoggato;
+    if (utente.isEnglish) {
+      await invAlert(context, 'Accesso Negato', 'The MGAUT section is only available for CSPRO users');
+      return;
+    }
+    if (utente.accountType == 'Utente Standard' || utente.isOspite) {
+      await invAlert(context, 'Accesso Negato', 'Non sei abilitato ad accedere alla sezione MGAUT');
+      return;
+    }
+    final aggiunto = await MgautAggiunta(
+      context: context,
+      service: MgautService(context.read<AppState>().api),
+      magazzinoOrigine: magazzino,
+      nomePortale: utente.nomePortale,
+      articoloIniziale: codiceArticolo,
+    ).avvia();
+    if (!aggiunto || !mounted) return;
+    final scelta = await invChoice(
+      context,
+      '$codiceArticolo Aggiunto',
+      'Articolo $codiceArticolo aggiunto alla Lista $magazzino\n\n'
+          'Vuoi aprire e visualizzare la Lista $magazzino?',
+      ['Visualizza', 'Chiudi'],
+    );
+    if (scelta != 0 || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => MgautPage(magazzinoIniziale: magazzino)),
+    );
+  }
+
   Widget _magazzinoTile(MagazzinoArticolo m) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 3),
@@ -547,8 +661,12 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
                 ),
               )
             : m.isAutomatico
-                ? const Icon(Icons.precision_manufacturing_outlined,
-                    color: Color(0xFFEF6C00))
+                ? IconButton(
+                    icon: const Icon(Icons.precision_manufacturing_outlined,
+                        color: Color(0xFFEF6C00)),
+                    tooltip: 'Aggiungi alla Lista ${m.codice}',
+                    onPressed: () => _aggiungiAMgaut(a.codice, m.codice),
+                  )
                 : null,
       ),
     );
@@ -591,8 +709,10 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
   // TAB DIST
   // --------------------------------------------------------------------------
   Widget _tabDistinta() {
-    final isEspl = _tipoDistinta == 'esplosione';
-    final d = isEspl ? _distintaEspl : _distintaImpl;
+    final tipo = _tipoDistinta;
+    final d = _distinte[tipo];
+    final codiceCorrente = _codiceCorrenteDistinta(tipo);
+    final pila = _distintePrecedenti[tipo]!;
     return Column(
       children: [
         Padding(
@@ -609,13 +729,40 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
             },
           ),
         ),
+        // Navigazione nella distinta (indietro / torna all'articolo).
+        if (pila.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Distinta precedente',
+                  onPressed:
+                      _loadingDistinta ? null : () => _risaliDistinta(tipo),
+                ),
+                Expanded(
+                  child: Text(
+                    '${tipo == 'esplosione' ? 'Esplosione' : 'Implosione'} di $codiceCorrente',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.home_outlined),
+                  tooltip: 'Torna a ${a.codice}',
+                  onPressed:
+                      _loadingDistinta ? null : () => _distintaRadice(tipo),
+                ),
+              ],
+            ),
+          ),
         Expanded(child: _distintaLista(d)),
       ],
     );
   }
 
   Widget _distintaLista(List<DistintaArticolo>? d) {
-    if (_loadingDistinta && d == null) {
+    if (_loadingDistinta) {
       return const Center(
           child: CircularProgressIndicator(color: AppColors.spinner));
     }
@@ -660,6 +807,7 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
           isThreeLine: descr.isNotEmpty && r.disegno.isNotEmpty,
           trailing: Text('${r.qta} ${r.mutms}',
               style: const TextStyle(fontWeight: FontWeight.bold)),
+          onTap: () => _apriRigaDistinta(r),
         );
       },
     );
@@ -668,21 +816,224 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
   // --------------------------------------------------------------------------
   // TAB MOV
   // --------------------------------------------------------------------------
+  bool get _filtriMovAttivi =>
+      _filtroCausali.isNotEmpty || _filtroMagazzini.isNotEmpty;
+
+  /// Movimenti filtrati per causale ("causale-valore") e magazzino, come
+  /// drawInnerPageMovimenti di Cordova (OR dentro il gruppo, AND tra gruppi).
+  List<MovimentoArticolo> get _movimentiFiltrati => a.listaMovimenti
+      .where((m) =>
+          (_filtroMagazzini.isEmpty || _filtroMagazzini.contains(m.magazzino)) &&
+          (_filtroCausali.isEmpty || _filtroCausali.contains(m.chiaveCausale)))
+      .toList();
+
+  /// Etichetta di una causale del filtro ("VE-" → "VE").
+  static String _etichettaCausale(String c) =>
+      c.endsWith('-') ? c.substring(0, c.length - 1) : c;
+
+  void _azzeraFiltriMovimenti() {
+    setState(() {
+      _filtroCausali.clear();
+      _filtroMagazzini.clear();
+    });
+  }
+
+  /// Selettore filtri (select multipla #filterMovimento di Cordova):
+  /// "Filtri causali" e "Filtri magazzini" + "Azzera filtri".
+  Future<void> _apriFiltriMovimenti() async {
+    final causali = {
+      ...a.listaMovimenti.map((m) => m.chiaveCausale),
+      ..._filtroCausali,
+    }.toList()
+      ..sort();
+    final magazzini = {
+      ...a.listaMovimenti.map((m) => m.magazzino),
+      ..._filtroMagazzini,
+    }.toList()
+      ..sort();
+    final selCausali = {..._filtroCausali};
+    final selMagazzini = {..._filtroMagazzini};
+
+    Widget gruppo(String titolo, List<String> valori, Set<String> sel,
+        StateSetter setD, String Function(String) etichetta) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(titolo, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              for (final v in valori)
+                FilterChip(
+                  label: Text(v.isEmpty ? '(vuoto)' : etichetta(v)),
+                  selected: sel.contains(v),
+                  onSelected: (on) => setD(() {
+                    if (on) {
+                      sel.add(v);
+                    } else {
+                      sel.remove(v);
+                    }
+                  }),
+                ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setD) => AlertDialog(
+          title: const Text('Filtri movimenti'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  gruppo('Filtri causali', causali, selCausali, setD,
+                      _etichettaCausale),
+                  const SizedBox(height: 16),
+                  gruppo('Filtri magazzini', magazzini, selMagazzini, setD,
+                      (v) => v),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                selCausali.clear();
+                selMagazzini.clear();
+                Navigator.of(ctx).pop(true);
+              },
+              child: const Text('Azzera filtri'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Annulla'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Applica'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() {
+      _filtroCausali
+        ..clear()
+        ..addAll(selCausali);
+      _filtroMagazzini
+        ..clear()
+        ..addAll(selMagazzini);
+    });
+  }
+
+  /// Dettaglio movimento (openPopupMovimento di Cordova).
+  Future<void> _apriDettaglioMovimento(MovimentoArticolo m) {
+    final utente = context.read<AppState>().utenteLoggato;
+    return showDialog<void>(
+      context: context,
+      builder: (_) => _MovimentoDialog(
+        movimento: m,
+        service: widget.service,
+        // Il recupero del padre dell'ODL è solo per CSPRO (lingua 'I').
+        recuperaPadre: utente.language == 'I',
+      ),
+    );
+  }
+
   Widget _tabMovimenti() {
     if (a.listaMovimenti.isEmpty) return _empty('Nessun movimento');
     final oggiInt = dataIntFromRaw(DateFormat('yyyyMMdd').format(DateTime.now()));
+    final lista = _movimentiFiltrati;
+    final filtri = _filtriMovAttivi;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 4, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Ultimi 2 anni: ${lista.length}'
+                  '${filtri ? ' di ${a.listaMovimenti.length}' : ''} movimenti',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (filtri)
+                TextButton(
+                  onPressed: _azzeraFiltriMovimenti,
+                  child: const Text('Azzera'),
+                ),
+              IconButton(
+                icon: Icon(
+                  filtri ? Icons.filter_alt : Icons.filter_alt_outlined,
+                  color: filtri ? AppColors.casagrandeDark : Colors.black45,
+                ),
+                tooltip: 'Filtri',
+                onPressed: _apriFiltriMovimenti,
+              ),
+            ],
+          ),
+        ),
+        if (filtri)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  for (final c in _filtroCausali)
+                    InputChip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text('Causale ${_etichettaCausale(c)}'),
+                      onDeleted: () =>
+                          setState(() => _filtroCausali.remove(c)),
+                    ),
+                  for (final mag in _filtroMagazzini)
+                    InputChip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text('Mag $mag'),
+                      onDeleted: () =>
+                          setState(() => _filtroMagazzini.remove(mag)),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        Expanded(
+          child: lista.isEmpty
+              ? _empty('Nessun movimento con i filtri selezionati')
+              : _listaMovimenti(lista, oggiInt),
+        ),
+      ],
+    );
+  }
+
+  Widget _listaMovimenti(List<MovimentoArticolo> lista, int oggiInt) {
     return ListView.separated(
       padding: const EdgeInsets.all(8),
-      itemCount: a.listaMovimenti.length,
+      itemCount: lista.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, i) {
-        final m = a.listaMovimenti[i];
+        final m = lista[i];
         final causale =
             '${m.movCausale}${m.movValore.isNotEmpty ? ' -${m.movValore}' : ''}'
             '${m.movStorno.isNotEmpty ? ' -${m.movStorno}' : ''}';
         final dataDisp = m.dataDisplay(oggiInt);
         return ListTile(
           dense: true,
+          onTap: () => _apriDettaglioMovimento(m),
           title: Row(
             children: [
               Expanded(
@@ -721,6 +1072,7 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
                 margin: const EdgeInsets.symmetric(vertical: 3),
                 child: ListTile(
                   dense: true,
+                  onTap: () => _apriDettaglioOda(o),
                   title: Text(
                       o.numeroOrdine + (o.pos.isNotEmpty ? '/${o.pos}' : ''),
                       style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -740,6 +1092,7 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
                 margin: const EdgeInsets.symmetric(vertical: 3),
                 child: ListTile(
                   dense: true,
+                  onTap: () => _apriDettaglioOdl(o),
                   title: Text(
                       o.codiceOrdine +
                           (o.statoOrdine.isNotEmpty ? '  ·  S.${o.statoOrdine}' : ''),
@@ -749,9 +1102,14 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
                         (o.responsabileOrdine.isNotEmpty
                             ? '  ·  ${o.responsabileOrdine}'
                             : ''),
-                    if (o.dataConsegna.isNotEmpty) 'Consegna ${o.dataConsegna}',
-                  ].join('\n')),
-                  isThreeLine: o.dataConsegna.isNotEmpty,
+                    [
+                      if (o.dataInizio.isNotEmpty) 'Inizio ${o.dataInizio}',
+                      if (o.dataConsegna.isNotEmpty)
+                        'Consegna ${o.dataConsegna}',
+                    ].join('  ·  '),
+                  ].where((s) => s.isNotEmpty).join('\n')),
+                  isThreeLine:
+                      o.dataInizio.isNotEmpty || o.dataConsegna.isNotEmpty,
                   trailing: Text(o.qta,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
@@ -778,12 +1136,18 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
           _sectionTitle('Da Ordini di Lavoro (${a.listaImpegniOdl.length})'),
           ...a.listaImpegniOdl.map((i) => Card(
                 margin: const EdgeInsets.symmetric(vertical: 3),
+                // Stato > 10 = fa impegno → verde (come Cordova).
+                color: (int.tryParse(i.stato) ?? 0) > 10
+                    ? const Color(0xFFE8F5E9)
+                    : null,
                 child: ListTile(
                   dense: true,
+                  onTap: () => _apriDettaglioImpegnoOdl(i),
                   title: Text(
                       i.odl + (i.fase.isNotEmpty ? '  ·  fase ${i.fase}' : ''),
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text([
+                    if (i.padre.isNotEmpty) 'Padre ${i.padre}',
                     if (i.descrizione.isNotEmpty) i.descrizione.toLowerCase(),
                     i.magazzino +
                         (i.stato.isNotEmpty ? '  ·  S.${i.stato}' : '') +
@@ -856,46 +1220,563 @@ class _ArticoloDettaglioState extends State<_ArticoloDettaglio> {
   }
 
   // --------------------------------------------------------------------------
+  // POPUP DETTAGLIO (ORD / IMP)
+  // --------------------------------------------------------------------------
+
+  /// Ordine di acquisto: date e quantità confermate dal fornitore
+  /// (openPopupOrdineOda di Cordova: Q.tà | Data Conf | Note).
+  Future<void> _apriDettaglioOda(OrdineAcquisto o) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(o.numeroOrdine + (o.pos.isNotEmpty ? '/${o.pos}' : '')),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _rigaKv('Fornitore', o.azienda.toLowerCase()),
+                _rigaKv('Q.tà in ordine', o.qtaInOrdine),
+                _rigaKv('Data consegna', o.dataConsegna),
+                const Divider(height: 20),
+                const Text('Conferme fornitore',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                if (o.dettagliOrdine.isEmpty)
+                  const Text('Nessuna conferma',
+                      style: TextStyle(color: Colors.black54))
+                else ...[
+                  const _RigaTabella(
+                    ['Q.tà', 'Data Conf', 'Note'],
+                    grassetto: true,
+                  ),
+                  for (final d in o.dettagliOrdine)
+                    _RigaTabella([
+                      d.qtaConfermata.isEmpty ? '-' : d.qtaConfermata,
+                      d.dataConfermata.isEmpty ? '-' : d.dataConfermata,
+                      d.note.toLowerCase(),
+                    ]),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Chiudi')),
+        ],
+      ),
+    );
+  }
+
+  /// Ordine di lavoro (openPopupOrdineOdl di Cordova: Magazzino,
+  /// Responsabile Ordine, Data Inizio).
+  Future<void> _apriDettaglioOdl(OrdineLavoro o) {
+    return _dialogDettaglio(o.codiceOrdine, [
+      ('Magazzino', o.magazzino),
+      ('Responsabile Ordine', o.responsabileOrdine),
+      ('Data Inizio', o.dataInizio),
+      ('Data Consegna', o.dataConsegna),
+      ('Stato', o.statoOrdine),
+      ('Q.tà', o.qta),
+    ]);
+  }
+
+  /// Impegno da ODL (openPopupImpegniOdl di Cordova: descrizione, Copertura,
+  /// Fase, Stato, Tipologia).
+  Future<void> _apriDettaglioImpegnoOdl(ImpegnoOdl i) {
+    return _dialogDettaglio(
+      i.odl,
+      [
+        ('Padre', i.padre),
+        ('Magazzino', i.magazzino),
+        ('Impegnato', _n(i.impegnato)),
+        ('Data fabbisogno', i.data),
+        ('Copertura', i.copertura),
+        ('Fase', i.fase),
+        ('Stato', i.stato),
+        ('Tipologia', i.tipologia),
+      ],
+      sottotitolo: i.descrizione.toLowerCase(),
+    );
+  }
+
+  Future<void> _dialogDettaglio(String titolo, List<(String, String)> righe,
+      {String sottotitolo = ''}) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(titolo),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (sottotitolo.isNotEmpty) ...[
+                Text(sottotitolo,
+                    style: const TextStyle(color: Colors.black54)),
+                const SizedBox(height: 8),
+              ],
+              for (final r in righe) _rigaKv(r.$1, r.$2),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Chiudi')),
+        ],
+      ),
+    );
+  }
+
+  // --------------------------------------------------------------------------
   Widget _sectionTitle(String t) => Padding(
         padding: const EdgeInsets.only(bottom: 6, left: 4),
         child: Text(t,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       );
 
-  Widget _kv(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(k, style: const TextStyle(color: Colors.black54)),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(v,
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.w500)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _kv(String k, String v) => _rigaKv(k, v);
 
   Widget _empty(String text) => Center(
         child: Text(text, style: const TextStyle(color: Colors.black54)),
       );
 
-  Future<void> _apriUrl(String url) async {
-    if (url.isEmpty) return;
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aprire il file')),
-      );
+  Future<void> _apriUrl(String url) => _apriUrlEsterno(context, url);
+}
+
+// ----------------------------------------------------------------------------
+// WIDGET / FUNZIONI CONDIVISE DAI POPUP
+// ----------------------------------------------------------------------------
+
+/// Riga "etichetta: valore" (valore vuoto → "-").
+Widget _rigaKv(String k, String v) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(k, style: const TextStyle(color: Colors.black54)),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(v.trim().isEmpty ? '-' : v,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w500)),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Apre un URL (PDF/foto) nell'app esterna, come cordova.InAppBrowser '_system'.
+Future<void> _apriUrlEsterno(BuildContext context, String url) async {
+  if (url.isEmpty) return;
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+  final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!ok && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impossibile aprire il file')),
+    );
+  }
+}
+
+/// Riga di una tabellina a 3 colonne (Q.tà | Data Conf | Note).
+class _RigaTabella extends StatelessWidget {
+  const _RigaTabella(this.celle, {this.grassetto = false});
+
+  final List<String> celle;
+  final bool grassetto;
+
+  @override
+  Widget build(BuildContext context) {
+    final stile = TextStyle(
+        fontWeight: grassetto ? FontWeight.bold : FontWeight.normal);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 2, child: Text(celle[0], style: stile)),
+          Expanded(flex: 3, child: Text(celle[1], style: stile)),
+          Expanded(flex: 5, child: Text(celle[2], style: stile)),
+        ],
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// POPUP RIGA DISTINTA
+// ----------------------------------------------------------------------------
+
+enum _AzioneDistinta { apriArticolo, scendi }
+
+/// Popup di una riga di distinta (click su .singolaEsplosione /
+/// .singolaImplosione di Cordova): codice e descrizione, POS | EM, link
+/// all'articolo, icone PDF dei disegni (solo se getPdfList ne restituisce) e
+/// discesa nella distinta dell'articolo (solo se ne ha una).
+/// Ritorna l'azione scelta (null = chiuso).
+class _RigaDistintaDialog extends StatefulWidget {
+  const _RigaDistintaDialog({
+    required this.riga,
+    required this.tipo,
+    required this.service,
+  });
+
+  final DistintaArticolo riga;
+  final String tipo;
+  final CercaService service;
+
+  @override
+  State<_RigaDistintaDialog> createState() => _RigaDistintaDialogState();
+}
+
+class _RigaDistintaDialogState extends State<_RigaDistintaDialog> {
+  List<PdfFileArticolo>? _pdf;
+  bool _haDistinta = false;
+
+  bool get _isEspl => widget.tipo == 'esplosione';
+  DistintaArticolo get r => widget.riga;
+
+  /// Articolo collegato: il componente nell'esplosione, l'assieme
+  /// nell'implosione.
+  String get _codice => _isEspl ? r.componente : r.assieme;
+  String get _descrizione =>
+      _isEspl ? r.descrizioneComponente : r.descrizioneAssieme;
+
+  @override
+  void initState() {
+    super.initState();
+    _caricaPdf();
+    _controllaDistinta();
+  }
+
+  Future<void> _caricaPdf() async {
+    List<PdfFileArticolo> lista;
+    try {
+      lista = await widget.service.getPdfList(_codice, r.disegno);
+    } catch (_) {
+      lista = const [];
     }
+    if (mounted) setState(() => _pdf = lista);
+  }
+
+  Future<void> _controllaDistinta() async {
+    bool ha;
+    try {
+      ha = await widget.service.haDistinta(_codice, widget.tipo);
+    } catch (_) {
+      ha = false;
+    }
+    if (mounted) setState(() => _haDistinta = ha);
+  }
+
+  String _etichettaPdf(PdfFileArticolo p) {
+    final parti = [
+      if (p.tipoPdf.isNotEmpty) p.tipoPdf,
+      if (p.numeroFoglioPdfDisplay.isNotEmpty)
+        'Foglio ${p.numeroFoglioPdfDisplay}',
+    ];
+    return parti.isEmpty ? 'Disegno' : parti.join('  ·  ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pdf = _pdf;
+    return AlertDialog(
+      title: Text(_codice),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_descrizione.isNotEmpty) ...[
+                Text(_descrizione.toLowerCase(),
+                    style: const TextStyle(color: Colors.black54)),
+                const SizedBox(height: 8),
+              ],
+              _rigaKv(_isEspl ? 'Assieme' : 'Componente',
+                  _isEspl ? r.assieme : r.componente),
+              _rigaKv('POS | EM', '${r.pos} | ${r.em}'),
+              _rigaKv('Q.tà', '${r.qta} ${r.mutms}'.trim()),
+              if (r.disegno.isNotEmpty) _rigaKv('Disegno', r.disegno),
+              if (pdf == null)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: LinearProgressIndicator(color: AppColors.spinner),
+                )
+              else if (pdf.isNotEmpty) ...[
+                const Divider(height: 20),
+                const Text('Disegni',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                for (final p in pdf)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.picture_as_pdf,
+                        color: Color(0xFFC62828)),
+                    title: Text(_etichettaPdf(p)),
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    onTap: () => _apriUrlEsterno(context, p.url),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        if (_haDistinta)
+          TextButton.icon(
+            icon: const Icon(Icons.account_tree_outlined),
+            label: Text(_isEspl ? 'Esplodi' : 'Implodi'),
+            onPressed: () =>
+                Navigator.of(context).pop(_AzioneDistinta.scendi),
+          ),
+        TextButton.icon(
+          icon: const Icon(Icons.link),
+          label: const Text('Scheda'),
+          onPressed: () =>
+              Navigator.of(context).pop(_AzioneDistinta.apriArticolo),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Chiudi'),
+        ),
+      ],
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// POPUP DETTAGLIO MOVIMENTO
+// ----------------------------------------------------------------------------
+
+/// Dettaglio di un movimento (openPopupMovimento di Cordova): Fornitore,
+/// Padre + descrizione, Utente Movimento, Vano, Nota, Comm | Bolla.
+/// Se il riferimento è un ODL e manca il padre, lo recupera dal server
+/// (addPadreDescrizioneFixToMovimento, solo CSPRO).
+class _MovimentoDialog extends StatefulWidget {
+  const _MovimentoDialog({
+    required this.movimento,
+    required this.service,
+    required this.recuperaPadre,
+  });
+
+  final MovimentoArticolo movimento;
+  final CercaService service;
+  final bool recuperaPadre;
+
+  @override
+  State<_MovimentoDialog> createState() => _MovimentoDialogState();
+}
+
+class _MovimentoDialogState extends State<_MovimentoDialog> {
+  late String _codicePadre;
+  late String _descrizionePadre;
+  bool _loadingPadre = false;
+
+  MovimentoArticolo get m => widget.movimento;
+
+  @override
+  void initState() {
+    super.initState();
+    _codicePadre = m.codicePadre;
+    _descrizionePadre = m.descrizionePadre;
+    final rif = m.riferimento.trim();
+    if (widget.recuperaPadre &&
+        rif.isNotEmpty &&
+        num.tryParse(rif) != null &&
+        _codicePadre.isEmpty) {
+      _loadingPadre = true;
+      _caricaPadre(rif);
+    }
+  }
+
+  Future<void> _caricaPadre(String odl) async {
+    var codice = '';
+    var descrizione = '';
+    try {
+      (codice, descrizione) = await widget.service.getPadreOdl(odl);
+    } catch (_) {
+      // In caso di errore mostra comunque il popup senza padre.
+    }
+    if (!mounted) return;
+    setState(() {
+      _codicePadre = codice.isEmpty ? '-' : codice;
+      _descrizionePadre = descrizione.isEmpty ? '-' : descrizione;
+      _loadingPadre = false;
+    });
+  }
+
+  /// Visualizzazione bolla da Arxivar: in Cordova non è ancora disponibile
+  /// (applicazione.query.downloadArxivarBolla mostra solo un avviso).
+  void _apriBolla() {
+    invAlert(context, m.bolla,
+        'Visualizzazione ( da Arxivar ) della Bolla ${m.bolla} non ancora disponibile');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final causale = [m.movCausale, m.movValore, m.movStorno]
+        .where((s) => s.isNotEmpty)
+        .join(' - ');
+    final data = [m.data, m.ora].where((s) => s.isNotEmpty).join(' ');
+    final fornitore = [
+      m.codiceFornitore,
+      m.descrizioneFornitore.toLowerCase(),
+    ].where((s) => s.trim().isNotEmpty).join(' | ');
+    return AlertDialog(
+      title: Text(m.riferimento.isEmpty ? 'Movimento' : m.riferimento),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _rigaKv('Magazzino', m.magazzino),
+              _rigaKv('Causale', causale),
+              _rigaKv('Q.tà', m.quantita),
+              _rigaKv('Data', data),
+              const Divider(height: 20),
+              _rigaKv('Fornitore', fornitore),
+              if (_loadingPadre)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6),
+                  child: LinearProgressIndicator(color: AppColors.spinner),
+                )
+              else ...[
+                _rigaKv('Padre', _codicePadre),
+                if (_descrizionePadre.isNotEmpty && _descrizionePadre != '-')
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Text(_descrizionePadre.toLowerCase(),
+                        style: const TextStyle(color: Colors.black54)),
+                  ),
+              ],
+              _rigaKv('Utente Movimento', m.responsabile),
+              _rigaKv('Vano', m.vano),
+              _rigaKv('Nota', m.nota.toLowerCase()),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(
+                      flex: 2,
+                      child: Text('Comm | Bolla',
+                          style: TextStyle(color: Colors.black54)),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Wrap(
+                        alignment: WrapAlignment.end,
+                        children: [
+                          Text('${m.trni.isEmpty ? '-' : m.trni} | ',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500)),
+                          if (m.bolla.isEmpty)
+                            const Text('-')
+                          else
+                            GestureDetector(
+                              onTap: _apriBolla,
+                              child: Text(
+                                m.bolla,
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Chiudi'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Le foto ARXivar arrivano dall'API (azione giacenze/fotoArxivar) e richiedono il
+/// token; quelle dell'archivio del tecnico sono file statici del web server.
+Map<String, String>? _headersFoto(String url) =>
+    url.startsWith(AppConfig.apiBaseUrl) ? AuthToken.headers : null;
+
+/// Foto dell'articolo a schermo intero, scorrevoli e ingrandibili.
+class _FotoPage extends StatefulWidget {
+  const _FotoPage({required this.foto, required this.iniziale});
+
+  final List<String> foto;
+  final int iniziale;
+
+  @override
+  State<_FotoPage> createState() => _FotoPageState();
+}
+
+class _FotoPageState extends State<_FotoPage> {
+  late final PageController _pagine = PageController(initialPage: widget.iniziale);
+  late int _corrente = widget.iniziale;
+
+  @override
+  void dispose() {
+    _pagine.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text('Foto ${_corrente + 1} di ${widget.foto.length}'),
+      ),
+      body: PageView.builder(
+        controller: _pagine,
+        itemCount: widget.foto.length,
+        onPageChanged: (i) => setState(() => _corrente = i),
+        itemBuilder: (_, i) => InteractiveViewer(
+          maxScale: 5,
+          child: Center(
+            child: Image.network(
+              widget.foto[i],
+              headers: _headersFoto(widget.foto[i]),
+              fit: BoxFit.contain,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const CircularProgressIndicator(color: Colors.white),
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.broken_image, color: Colors.white54, size: 64),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

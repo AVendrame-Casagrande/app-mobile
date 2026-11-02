@@ -12,7 +12,7 @@ class CercaService {
   final ApiClient _api;
 
   /// Società in base alla lingua dell'utente (come nell'originale).
-  String societaPerUtente(Utente utente) => utente.isEnglish ? 'CSUSA' : 'CSPRO';
+  String societaPerUtente(Utente utente) => utente.societaApi;
 
   /// Ricerca "like" per codice/descrizione.
   /// POST /giacenze/selectArticoloLike.php data: {inputArticoloDesc, societa}
@@ -60,13 +60,14 @@ class CercaService {
   Future<List<DistintaArticolo>> getListaDistinte(
     String codiceArticolo, {
     String tipoDistinta = 'esplosione',
+    bool solamenteCheckFigli = false,
   }) async {
     final res = await _api.postJson(
       '${AppConfig.giacenzeUrl}/getListaDistinte',
       data: {
         'codiceArticolo': codiceArticolo,
         'tipoDistinta': tipoDistinta,
-        'solamenteCheckFigli': false,
+        'solamenteCheckFigli': solamenteCheckFigli,
       },
     );
     if (res is! List) return [];
@@ -74,5 +75,51 @@ class CercaService {
         .whereType<Map>()
         .map((e) => DistintaArticolo.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+  }
+
+  /// True se l'articolo ha a sua volta una distinta del tipo indicato
+  /// (Cordova: queryArticoloCercaAddDistinte con solamenteCheckFigli=true,
+  /// che mostra il pulsante "cerca" per scendere nella distinta).
+  Future<bool> haDistinta(String codiceArticolo, String tipoDistinta) async {
+    final lista = await getListaDistinte(codiceArticolo,
+        tipoDistinta: tipoDistinta, solamenteCheckFigli: true);
+    return lista.isNotEmpty;
+  }
+
+  /// PDF (disegni + ultimo AO) di una riga di distinta.
+  /// POST /giacenze/getPdfList.php
+  /// data: {codiceArticolo, codiceDisegno, codiceDisegnoIsPreciso}
+  /// codiceDisegnoIsPreciso è true se la riga ha già il codice disegno.
+  Future<List<PdfFileArticolo>> getPdfList(
+      String codiceArticolo, String codiceDisegno) async {
+    final res = await _api.postJson(
+      '${AppConfig.giacenzeUrl}/getPdfList',
+      data: {
+        'codiceArticolo': codiceArticolo,
+        'codiceDisegno': codiceDisegno,
+        'codiceDisegnoIsPreciso': codiceDisegno.isNotEmpty,
+      },
+    );
+    if (res is! List) return [];
+    return res
+        .whereType<Map>()
+        .map((e) => PdfFileArticolo.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+
+  /// Codice e descrizione del padre di un ODL, per i movimenti che non lo
+  /// riportano (solo CSPRO).
+  /// POST /giacenze/addPadreDescrizioneFixToMovimento.php data: {odl}
+  /// Ritorna (codicePadre, descrizionePadre).
+  Future<(String, String)> getPadreOdl(String odl) async {
+    final res = await _api.postJson(
+      '${AppConfig.giacenzeUrl}/addPadreDescrizioneFixToMovimento',
+      data: {'odl': odl},
+    );
+    if (res is! Map) return ('', '');
+    return (
+      (res['codicePadre'] ?? '').toString(),
+      (res['descrizionePadre'] ?? '').toString(),
+    );
   }
 }

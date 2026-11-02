@@ -34,13 +34,14 @@ namespace CG.MobileAPI.Tools
 
         /// <summary>
         /// Verifica utente e password su Diapason. Restituisce l'output di ConCheckUser.exe
-        /// (<see cref="AUTENTICATO"/> se le credenziali sono corrette).
+        /// (<see cref="AUTENTICATO"/> se le credenziali sono corrette). L'ambiente è quello del server (<see cref="DiapasonSettings.Ambiente"/>).
         /// </summary>
-        public async Task<string> CheckUserAsync(string ambiente, string utente, string pwd)
+        public async Task<string> CheckUserAsync(string utente, string pwd)
         {
-            if (!_codice.IsMatch(ambiente) || !_codice.IsMatch(utente))
+            var ambiente = _settings.Ambiente;
+            if (!_codice.IsMatch(utente))
             {
-                throw new MobileException("Ambiente o utente non validi");
+                throw new MobileException("Utente non valido");
             }
             if (string.IsNullOrEmpty(pwd) || pwd.Length > 100 || pwd.Any(char.IsWhiteSpace))
             {
@@ -67,6 +68,7 @@ namespace CG.MobileAPI.Tools
 
         /// <summary>
         /// Aggiorna SOSACPN su Diapason (ex UpdateSOSACPN.php). Restituisce l'output dell'eseguibile.
+        /// I parametri arrivano senza ambiente: si antepone quello del server (<see cref="DiapasonSettings.Ambiente"/>).
         /// </summary>
         public async Task<string> UpdateSosacpnAsync(string parametri)
         {
@@ -74,6 +76,7 @@ namespace CG.MobileAPI.Tools
             {
                 throw new MobileException("Parametri non validi");
             }
+            parametri = _settings.Ambiente + " " + parametri;
 
             if (!string.IsNullOrWhiteSpace(_settings.SosacpnExePath))
             {

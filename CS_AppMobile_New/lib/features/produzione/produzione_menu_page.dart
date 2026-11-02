@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import '../../core/config.dart';
 import '../../state/app_state.dart';
 import '../giacenze/cambio_odl_page.dart';
-import '../placeholder/module_placeholder_page.dart';
 import 'impegno_odl_page.dart';
 import 'lista_precarico_page.dart';
 import 'manutenzione_page.dart';
+import 'prestazioni.dart';
 import 'pallinatura.dart';
 import 'qualita_page.dart';
 import 'situazione_odl_page.dart';
@@ -19,6 +19,7 @@ enum _Sezione {
   impegnoOdl('Impegno ODL', Icons.assignment_turned_in),
   qualita('Qualità', Icons.verified),
   listaPrecarico('Pre-Carico', Icons.playlist_add_check),
+  // Accessori (Manutenzione): nascosta, i servizi PHP non esistono più sul server.
   manutenzione('Accessori', Icons.build),
   pallinatura('Pallinatura', Icons.photo_camera),
   prestazioni('Prestazioni', Icons.speed);
@@ -52,7 +53,6 @@ List<_Sezione> _sezioniForUser(String accountType) {
       return const [
         _Sezione.situazioneOdl,
         _Sezione.cambioOdl,
-        _Sezione.manutenzione,
         _Sezione.prestazioni,
         _Sezione.qualita,
       ];
@@ -62,7 +62,6 @@ List<_Sezione> _sezioniForUser(String accountType) {
         _Sezione.situazioneOdl,
         _Sezione.cambioOdl,
         _Sezione.impegnoOdl,
-        _Sezione.manutenzione,
         _Sezione.listaPrecarico,
         _Sezione.prestazioni,
         _Sezione.pallinatura,
@@ -76,7 +75,6 @@ List<_Sezione> _sezioniForUser(String accountType) {
         _Sezione.qualita,
         _Sezione.listaPrecarico,
         _Sezione.prestazioni,
-        _Sezione.manutenzione,
         _Sezione.pallinatura,
       ];
 
@@ -194,13 +192,15 @@ class _ProduzioneMenuPageState extends State<ProduzioneMenuPage> {
   }
 
   void _open(BuildContext context, _Sezione s) {
-    // La Pallinatura è un popup, non una pagina.
-    if (s == _Sezione.pallinatura) {
-      apriPallinatura(context);
-      return;
-    }
     final Widget page;
     switch (s) {
+      // Pallinatura e Prestazioni sono popup, non pagine.
+      case _Sezione.pallinatura:
+        apriPallinatura(context);
+        return;
+      case _Sezione.prestazioni:
+        apriPrestazioni(context);
+        return;
       case _Sezione.situazioneOdl:
         page = const SituazioneOdlPage();
       case _Sezione.cambioOdl:
@@ -213,12 +213,6 @@ class _ProduzioneMenuPageState extends State<ProduzioneMenuPage> {
         page = const QualitaPage();
       case _Sezione.manutenzione:
         page = const ManutenzionePage();
-      default:
-        // Sezioni non ancora convertite.
-        page = ModulePlaceholderPage(
-          title: s.label,
-          iconAsset: 'assets/img/produzione_icon.png',
-        );
     }
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }

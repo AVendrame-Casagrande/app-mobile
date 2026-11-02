@@ -129,7 +129,7 @@ namespace CG.MobileAPI.Tools
         {
             var dir = Resolve(cartella);
             if (!Directory.Exists(dir)) return new List<string>();
-            return Directory.GetFiles(dir, pattern).Select(Path.GetFileName).OfType<string>().OrderBy(f => f).ToList();
+            return RicercaFile.Elenca(dir, pattern);
         }
 
         /// <summary>Legge un file.</summary>

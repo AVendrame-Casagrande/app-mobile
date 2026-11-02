@@ -1,4 +1,4 @@
-using CG.MobileAPI.Data;
+﻿using CG.MobileAPI.Data;
 using CG.MobileAPI.Models;
 using CG.MobileAPI.Tools;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +29,7 @@ namespace CG.MobileAPI.Controllers
         /// <summary>
         /// Login con codice utente e password Diapason.
         /// </summary>
-        /// <param name="request">Codice utente, password e ambiente.</param>
+        /// <param name="request">Codice utente, password e società.</param>
         /// <returns>L'utente loggato e il token JWT; 401 se le credenziali sono errate.</returns>
         [AllowAnonymous]
         [HttpPost("login")]
@@ -41,9 +41,14 @@ namespace CG.MobileAPI.Controllers
             }
 
             var codice = request.CodiceUtente.Trim().ToUpperInvariant();
+            if (!string.IsNullOrWhiteSpace(request.Societa) && !CodiciSocieta.IsSelezionabile(request.Societa))
+            {
+                return BadRequest(ResultInfo.Error(-1, "Società non valida", null!));
+            }
+            var societa = CodiciSocieta.Normalizza(request.Societa);
             using (_logger.BeginScope(new Dictionary<string, object>
             {
-                ["LOG_CODSOC"] = "CSPRO",
+                ["LOG_CODSOC"] = societa,
                 ["LOG_ORIGIN"] = ORIGIN,
                 ["LOG_USER"] = codice,
 
@@ -60,17 +65,24 @@ namespace CG.MobileAPI.Controllers
                         return Unauthorized(ResultInfo.Error(-2, "Nome utente o password errati", null!));
                     }
 
-                    var esito = (await _diapasonExe.CheckUserAsync(request.Ambiente, utente.codiceUtente, request.Password)).Trim();
+                    var esito = (await _diapasonExe.CheckUserAsync(utente.codiceUtente, request.Password)).Trim();
                     if (esito != DiapasonExe.AUTENTICATO)
                     {
                         _logger.LogWarning("Login fallito per {Username}: {Esito}", codice, esito);
                         return Unauthorized(ResultInfo.Error(-2, "Nome utente o password errati", null!));
                     }
 
+                    // Gli utenti in lingua inglese lavorano su Casagrande USA, qualunque sia la scelta (come la vecchia app).
+                    if (utente.language == "E")
+                    {
+                        societa = CodiciSocieta.CS_USA;
+                    }
+                    utente.societa = societa;
                     var token = TokenTool.GeneraTokenJwt(utente.codiceUtente, new Dictionary<string, string>
                     {
                         [CLAIM_NOME_PORTALE] = utente.nomePortale,
-                        [CLAIM_ACCOUNT_TYPE] = utente.accountType
+                        [CLAIM_ACCOUNT_TYPE] = utente.accountType,
+                        [CLAIM_SOCIETA] = societa
                     });
 
                     _logger.LogInformation("L'utente {Username} ha effettuato il login", codice);
@@ -95,7 +107,12 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("utente")]
         public IActionResult GetUtente()
         {
-            return Esegui("GetUtente", () => _db2Connection.DBAUTH.GetUtente(Utente) ?? throw new MobileException("Utente non trovato"));
+            return Esegui("GetUtente", () =>
+            {
+                var utente = _db2Connection.DBAUTH.GetUtente(Utente) ?? throw new MobileException("Utente non trovato");
+                utente.societa = Societa;
+                return utente;
+            });
         }
     }
 }

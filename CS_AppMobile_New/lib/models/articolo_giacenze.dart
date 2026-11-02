@@ -308,10 +308,15 @@ class MovimentoArticolo {
   final String descrizioneFornitore;
   final String codicePadre;
   final String descrizionePadre;
+  /// Commessa (MASATRN.TRNI), mostrata nel dettaglio come "Comm | Bolla".
+  final String trni;
   final String bolla;
   final String nota;
   final String responsabile;
   final String vano;
+
+  /// Chiave usata dal filtro causali (come in Cordova: "causale-valore").
+  String get chiaveCausale => '$movCausale-$movValore';
 
   MovimentoArticolo({
     this.riferimento = '',
@@ -327,6 +332,7 @@ class MovimentoArticolo {
     this.descrizioneFornitore = '',
     this.codicePadre = '',
     this.descrizionePadre = '',
+    this.trni = '',
     this.bolla = '',
     this.nota = '',
     this.responsabile = '',
@@ -354,6 +360,7 @@ class MovimentoArticolo {
         descrizioneFornitore: _str(json['descrizioneFornitore']),
         codicePadre: _str(json['codicePadre']),
         descrizionePadre: _str(json['descrizionePadre']),
+        trni: _str(json['trni']),
         bolla: _str(json['bolla']),
         nota: _str(json['nota']),
         responsabile: _str(json['responsabile']),
@@ -369,6 +376,9 @@ class OrdineAcquisto {
   final String pos;
   final String sched;
 
+  /// Date/quantità confermate dal fornitore (cs_fabbmanc_risp_soda2).
+  final List<DettaglioOrdineAcquisto> dettagliOrdine;
+
   OrdineAcquisto({
     this.azienda = '',
     this.numeroOrdine = '',
@@ -376,6 +386,7 @@ class OrdineAcquisto {
     this.dataConsegna = '',
     this.pos = '',
     this.sched = '',
+    this.dettagliOrdine = const [],
   });
 
   factory OrdineAcquisto.fromJson(Map<String, dynamic> json) => OrdineAcquisto(
@@ -385,6 +396,28 @@ class OrdineAcquisto {
         dataConsegna: fmtDataArticolo(json['dataConsegna']),
         pos: _str(json['pos']),
         sched: _str(json['sched']),
+        dettagliOrdine: ArticoloGiacenze._mapList(
+            json['dettagliOrdine'], DettaglioOrdineAcquisto.fromJson),
+      );
+}
+
+/// Riga di conferma di un ordine di acquisto (popup ODA di Cordova).
+class DettaglioOrdineAcquisto {
+  final String qtaConfermata;
+  final String dataConfermata;
+  final String note;
+
+  DettaglioOrdineAcquisto({
+    this.qtaConfermata = '',
+    this.dataConfermata = '',
+    this.note = '',
+  });
+
+  factory DettaglioOrdineAcquisto.fromJson(Map<String, dynamic> json) =>
+      DettaglioOrdineAcquisto(
+        qtaConfermata: _str(json['qtaConfermata']),
+        dataConfermata: fmtDataArticolo(json['dataConfermata']),
+        note: _str(json['note']),
       );
 }
 

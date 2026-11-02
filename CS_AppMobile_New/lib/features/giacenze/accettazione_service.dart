@@ -69,7 +69,6 @@ class AccettazioneService {
     final res = await _api.postText(
       '${AppConfig.movimentiUrl}/WriteListaMagazzinoAutomatico',
       data: {
-        'ambiente': 'PRODUZIONE',
         'utente': utente,
         'magazzino_origine': magazzinoOrigine,
         'magazzino_destinazione': magazzinoDestinazione,

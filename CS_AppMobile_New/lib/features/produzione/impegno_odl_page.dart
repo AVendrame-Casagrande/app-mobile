@@ -14,6 +14,7 @@ import '../scanner/barcode_scanner_page.dart';
 import 'impegno_odl_service.dart';
 import 'lista_precarico_page.dart';
 import 'lista_precarico_service.dart';
+import 'prestazioni.dart';
 
 /// Pagina Produzione → Impegno ODL — porting di
 /// www/scripts/Produzione-Odl/Pagine/ImpegnoOdl.
@@ -433,11 +434,11 @@ class _ImpegnoOdlPageState extends State<ImpegnoOdlPage> {
     );
     if (ok != 0 || !mounted) return;
 
-    // Parametri Diapason: "P <ADD|REP|DEL> odl articolo fase [qta]".
+    // Parametri Diapason: "<ADD|REP|DEL> odl articolo fase [qta]".
     final funzione = _operazione == 'UPD' ? 'REP' : _operazione;
     final parametri = _operazione == 'DEL'
-        ? 'P $funzione ${i.odl} $articolo $fase'
-        : 'P $funzione ${i.odl} $articolo $fase ${formatQta(qta)}';
+        ? '$funzione ${i.odl} $articolo $fase'
+        : '$funzione ${i.odl} $articolo $fase ${formatQta(qta)}';
 
     setState(() => _busy = true);
     String risposta;
@@ -688,13 +689,20 @@ class _ImpegnoOdlPageState extends State<ImpegnoOdlPage> {
 
     if (!mounted) return;
     setState(() => _busy = false);
-    await invAlert(
-      context,
-      'Operazione Completata',
-      tracciata
-          ? '$esito | Attività creata )'
-          : '$esito | Attività creata ma NON tracciata )',
-    );
+    if (tracciata && i.fase == '0027') {
+      // Come Cordova (fromFase0027): propone il tempo di attesa medio del magazzino.
+      final scelta = await invChoice(context, 'Operazione Completata',
+          '$esito | Attività creata )', ['Tempo di Attesa medio', 'Chiudi']);
+      if (scelta == 0 && mounted) await mostraTempoAttesa(context, i.magazzinoDestinazione);
+    } else {
+      await invAlert(
+        context,
+        'Operazione Completata',
+        tracciata
+            ? '$esito | Attività creata )'
+            : '$esito | Attività creata ma NON tracciata )',
+      );
+    }
     await _ricarica();
   }
 

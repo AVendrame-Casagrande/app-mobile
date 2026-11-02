@@ -1,4 +1,4 @@
-namespace CG.MobileAPI.Data
+﻿namespace CG.MobileAPI.Data
 {
     /// <summary>
     /// Impostazioni dei servizi dell'app mobile (sezione <c>mobile</c> di config.json).
@@ -46,6 +46,18 @@ namespace CG.MobileAPI.Data
 
         /// <summary>URL di UpdateSOSACPN.php sul server Diapason (10.0.2.1).</summary>
         public string SosacpnUrl { get; set; } = "http://10.0.2.1/applicazioni/produzione/UpdateSOSACPN.php";
+
+        /// <summary>
+        /// Ambiente Diapason di test: lo imposta Program.cs da <c>configuration:isTest</c>, insieme alle connection string.
+        /// Il client non sceglie più l'ambiente.
+        /// </summary>
+        public bool IsTest { get; set; }
+
+        /// <summary>Ambiente per gli eseguibili Diapason (ConCheckUser / ConSOSACPN): "T" in test, "P" in produzione.</summary>
+        public string Ambiente => IsTest ? "T" : "P";
+
+        /// <summary>Porta del socket dei movimenti per l'ambiente corrente.</summary>
+        public int SocketPort => IsTest ? SocketPortTest : SocketPortProd;
     }
 
     /// <summary>
@@ -61,6 +73,15 @@ namespace CG.MobileAPI.Data
 
         /// <summary>Dimensione massima di un file caricato, in MB.</summary>
         public int MaxUploadMb { get; set; } = 20;
+
+        /// <summary>
+        /// Archivio di rete dei PDF dei disegni (es. <c>\\csg-fs-cld-01\Archivio3d</c>). L'utente con cui gira l'API
+        /// deve poterlo leggere.
+        /// </summary>
+        public string ArchivioDisegni { get; set; } = "";
+
+        /// <summary>Validità in minuti dei link ai disegni restituiti all'app.</summary>
+        public int LinkDisegniMinuti { get; set; } = 60;
     }
 
     /// <summary>

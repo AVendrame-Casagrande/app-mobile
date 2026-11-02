@@ -159,14 +159,14 @@ class InventarioService {
 
   /// Articolo per la riga manuale (null se non esiste: HTTP 404).
   /// Gli errori di rete vengono propagati (gestione offline nella pagina).
-  /// POST /giacenze/selectSingoloArticolo.php {codiceArticolo, societa:'CSPRO', needCompleteInfo:false}
+  /// POST /giacenze/selectSingoloArticolo.php {codiceArticolo, societa, needCompleteInfo:false}
   Future<ArticoloInventario?> getArticolo(String codice) async {
     try {
       final res = await _api.postJson(
         '${AppConfig.giacenzeUrl}/selectSingoloArticolo',
         data: {
           'codiceArticolo': codice,
-          'societa': 'CSPRO',
+          'societa': AuthToken.societa,
           'needCompleteInfo': false,
         },
       );

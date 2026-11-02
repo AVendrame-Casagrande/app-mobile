@@ -194,7 +194,7 @@ class ListaPrecaricoService {
     dynamic res;
     try {
       res = await _api.postJson('$_g/selectSingoloArticolo',
-          data: {'codiceArticolo': codice, 'societa': 'CSPRO', 'needCompleteInfo': false});
+          data: {'codiceArticolo': codice, 'societa': AuthToken.societa, 'needCompleteInfo': false});
     } on ApiException catch (e) {
       if (e.statusCode == 404) return null;
       rethrow;
@@ -345,9 +345,8 @@ class ListaPrecaricoService {
         'odl': '',
         'commessa': '',
         'nota': nota,
-        'ambiente': 'PRODUZIONE',
         'id': utente,
-        'societa': 'CSPRO',
+        'societa': AuthToken.societa,
       }))
           .trim();
 }

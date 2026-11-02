@@ -20,7 +20,9 @@
         "Storage": {
             "WebRoot": "",
             "MaxUploadMb": 20,
-            "PublicBaseUrl": "http://app.casagrandegroup.local"
+            "PublicBaseUrl": "http://app.casagrandegroup.local",
+            "ArchivioDisegni": "\\\\csg-fs-cld-01\\Archivio3d",
+            "LinkDisegniMinuti": 60
         },
         "Smtp": {
             "Host": "",

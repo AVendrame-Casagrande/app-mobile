@@ -45,12 +45,12 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getTipoArticolo")]
         public IActionResult GetTipoArticolo([FromBody] GetTipoArticoloRequest request)
         {
-            return Esegui("GetTipoArticolo", () => Db.GetTipoArticolo(request.codice));
+            return Esegui("GetTipoArticolo", () => Db.GetTipoArticolo(request.codice, Societa));
         }
 
         /// <summary>
         /// Impegno su Diapason con ConSOSACPN.exe (ex [10.0.2.1]/applicazioni/produzione/UpdateSOSACPN.php).
-        /// I parametri devono avere la forma "P|T ADD|REP|DEL odl articolo fase [qta]".
+        /// I parametri devono avere la forma "ADD|REP|DEL odl articolo fase [qta]": l'ambiente P/T lo aggiunge il server.
         /// </summary>
         /// <returns>L'output dell'eseguibile ('0000 OPERAZIONE ESEGUITA' se riuscito).</returns>
         [HttpPost("updateSOSACPN")]
@@ -72,7 +72,7 @@ namespace CG.MobileAPI.Controllers
             return Esegui("AddArticoliImpegnoOdl", () =>
             {
                 if (string.IsNullOrWhiteSpace(request.fase)) throw new MobileException("Fase obbligatoria");
-                return Db.AddArticoliImpegnoOdl(request);
+                return Db.AddArticoliImpegnoOdl(request, Societa);
             });
         }
 
@@ -95,7 +95,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("returnMagazzinoFromImpegnoOdl")]
         public IActionResult ReturnMagazzinoFromImpegnoOdl([FromBody] ReturnMagazzinoFromImpegnoOdlRequest request)
         {
-            return Esegui("ReturnMagazzinoFromImpegnoOdl", () => Db.ReturnMagazzinoFromImpegnoOdl(request));
+            return Esegui("ReturnMagazzinoFromImpegnoOdl", () => Db.ReturnMagazzinoFromImpegnoOdl(request, Societa));
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("selectImpegniOdl")]
         public IActionResult SelectImpegniOdl([FromBody] SelectImpegniOdlRequest request)
         {
-            return Esegui("SelectImpegniOdl", () => Db.SelectImpegniOdl(request.codiceOdl_Padre_Mag, request.fase, Utente));
+            return Esegui("SelectImpegniOdl", () => Db.SelectImpegniOdl(request.codiceOdl_Padre_Mag, request.fase, Utente, Societa));
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("selectSituazioneOdl")]
         public IActionResult SelectSituazioneOdl([FromBody] SelectSituazioneOdlRequest request)
         {
-            return Esegui("SelectSituazioneOdl", () => Db.SelectSituazioneOdl(request.odl));
+            return Esegui("SelectSituazioneOdl", () => Db.SelectSituazioneOdl(request.odl, Societa));
         }
 
         // -------------------------------------------------------------------------------------------------------------
@@ -214,7 +214,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getQualita")]
         public IActionResult GetQualita()
         {
-            return Esegui("GetQualita", () => Db.GetQualita());
+            return Esegui("GetQualita", () => Db.GetQualita(Societa));
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getQualitaArrivi")]
         public IActionResult GetQualitaArrivi([FromBody] GetQualitaArriviRequest request)
         {
-            return Esegui("GetQualitaArrivi", () => Db.GetQualitaArrivi(request), request.societa);
+            return Esegui("GetQualitaArrivi", () => Db.GetQualitaArrivi(request, Societa));
         }
 
         /// <summary>

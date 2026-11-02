@@ -80,7 +80,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getSituazioneOdv")]
         public IActionResult GetSituazioneOdv([FromBody] GetSituazioneOdvRequest request)
         {
-            return Esegui("getSituazioneOdv", () => _db2Connection.DBGENERALE.GetSituazioneOdv(request));
+            return Esegui("getSituazioneOdv", () => _db2Connection.DBGENERALE.GetSituazioneOdv(request, Societa));
         }
 
         /// <summary>

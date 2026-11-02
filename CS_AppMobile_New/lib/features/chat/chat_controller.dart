@@ -32,7 +32,19 @@ class ChatController extends ChangeNotifier {
   Timer? _riconnessione;
   bool _chiuso = false;
 
+  /// true dopo il primo caricamento riuscito (il controller vive per tutta la sessione).
+  bool caricato = false;
+
+  /// Conversazione aperta a schermo: i suoi nuovi messaggi si segnano subito come letti.
+  String? conversazioneAperta;
+
+  /// Nuovi messaggi ricevuti e non letti arrivati dallo stream (per popup e notifiche).
+  void Function(List<ChatMessage> nuovi)? onNuoviMessaggi;
+
   bool isGroup(String id) => _groupIds.contains(id);
+
+  /// Nome da mostrare per un utente o gruppo.
+  String nomeUtente(String id) => _utenteById(id).nomeUtente;
 
   // -------------------------------------------------------------------------
   // Caricamento iniziale: utenti + gruppi + tutte le chat.
@@ -68,6 +80,7 @@ class ChatController extends ChangeNotifier {
       _costruisciConversazioni(tutti);
 
       loading = false;
+      caricato = true;
       notifyListeners();
 
       // 4) Avvio lo stream realtime
@@ -76,6 +89,11 @@ class ChatController extends ChangeNotifier {
       loading = false;
       error = 'Errore: impossibile contattare il server della Chat';
       notifyListeners();
+      // Senza il primo caricamento non c'è stream: si riprova finché la sessione è aperta.
+      _riconnessione?.cancel();
+      _riconnessione = Timer(const Duration(seconds: 60), () {
+        if (!_chiuso && !caricato) caricaTutto();
+      });
     }
   }
 
@@ -175,6 +193,7 @@ class ChatController extends ChangeNotifier {
 
   void _gestisciNuoviMessaggi(List<ChatMessage> nuovi) {
     var cambiato = false;
+    final daNotificare = <ChatMessage>[];
     for (final m in nuovi) {
       final isIncoming = (m.receiverid == _me && m.nascostoRicevuto == 'f') ||
           (isGroup(m.receiverid) && m.senderid != _me);
@@ -192,6 +211,7 @@ class ChatController extends ChangeNotifier {
         conv.messaggi.add(m);
         conv.messaggi.sort((a, b) => a.timestamp.compareTo(b.timestamp));
         cambiato = true;
+        if (!m.letto) daNotificare.add(m);
       } else if (m.senderid == _me && m.letto) {
         // Ricevuta di lettura di un mio messaggio.
         for (final c in conversazioni) {
@@ -208,6 +228,14 @@ class ChatController extends ChangeNotifier {
       _ordinaConversazioni();
       notifyListeners();
     }
+
+    // Conversazione aperta: i messaggi si leggono subito, niente popup.
+    final aperta = conversazioneAperta == null ? null : conversazioneCon(conversazioneAperta!);
+    if (aperta != null && daNotificare.any((m) => m.senderid == aperta.utente.codiceUtente)) {
+      segnaLetti(aperta);
+      daNotificare.removeWhere((m) => m.senderid == aperta.utente.codiceUtente);
+    }
+    if (daNotificare.isNotEmpty) onNuoviMessaggi?.call(daNotificare);
   }
 
   // -------------------------------------------------------------------------

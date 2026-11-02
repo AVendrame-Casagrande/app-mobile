@@ -187,7 +187,7 @@ class _QualitaPageState extends State<QualitaPage> {
     setState(() => _loadingArrivi = true);
     try {
       final l = await _service.getArrivi(
-        societa: _app.utenteLoggato.isEnglish ? 'CSUSA' : 'CSPRO',
+        societa: _app.utenteLoggato.societaApi,
         articolo: _artController.text.trim().toUpperCase(),
         ragioneSociale: _fornController.text.trim().toUpperCase(),
         data: _dataArrivo == null ? '' : DateFormat('yyyyMMdd').format(_dataArrivo!),

@@ -9,9 +9,18 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- Salvataggio foto in galleria (gal) per la Pallinatura, solo Android <= 9 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <!-- Notifiche dei messaggi chat e delle Attività (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Servizio in background che riceve i messaggi chat ad app chiusa (ex cordova-plugin-background-mode) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
-        android:label="Casagrande"
+        android:label="Stokky"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
@@ -42,6 +51,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Servizio notifiche chat (flutter_foreground_task): il nome non va cambiato.
+             specialUse perché dataSync su Android 15 si ferma dopo 6 ore al giorno. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="specialUse"
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Ricezione dei messaggi della chat aziendale" />
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

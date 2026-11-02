@@ -19,7 +19,7 @@
             <summary>
             Login con codice utente e password Diapason.
             </summary>
-            <param name="request">Codice utente, password e ambiente.</param>
+            <param name="request">Codice utente, password e società.</param>
             <returns>L'utente loggato e il token JWT; 401 se le credenziali sono errate.</returns>
         </member>
         <member name="M:CG.MobileAPI.Controllers.AuthController.GetUtente">
@@ -29,7 +29,7 @@
         </member>
         <member name="T:CG.MobileAPI.Controllers.AvvisiController">
             <summary>
-            Attività / avvisi dell'app mobile (ex query/avvisi/*.php): attività tra utenti (D60STDDB.CSAVVMAG),
+            Attività / avvisi dell'app mobile (ex query/avvisi/*.php): attività tra utenti (CSAVVMAG),
             bolle a destinazione specifica, attività legate agli impegni ODL, mancanti CC e materiale in arrivo.
             </summary>
         </member>
@@ -105,6 +105,9 @@
         </member>
         <member name="T:CG.MobileAPI.Controllers.AvvisiController.Job0027">
             <summary>Parametri di un job 0027.</summary>
+        </member>
+        <member name="P:CG.MobileAPI.Controllers.AvvisiController.Job0027.Societa">
+            <summary>Società del token, catturata prima di avviare il job in background.</summary>
         </member>
         <member name="T:CG.MobileAPI.Controllers.AvvisiController.CompletamentoException">
             <summary>Errore durante il completamento dell'attività 0027 (termina il job).</summary>
@@ -253,9 +256,10 @@
         <member name="M:CG.MobileAPI.Controllers.DapiwsController.UpdateArticolo(CG.MobileAPI.Models.UpdateArticoloRequest)">
             <summary>
             Aggiorna peso netto e/o lordo di un articolo in anagrafica Diapason (ex dapiws/UpdateArticolo.php).
-            La sessione web service viene aperta con l'utente del token, non con il campo <c>username</c>.
+            La sessione web service viene aperta con l'utente e la società del token, non con i campi
+            <c>username</c> e <c>societa</c> del body (ignorati).
             </summary>
-            <param name="request">Società, articolo e nuovi pesi (JSON).</param>
+            <param name="request">Articolo e nuovi pesi (JSON).</param>
             <returns>Il messaggio di Diapason; HTTP 400 con il messaggio se Diapason restituisce un errore.</returns>
         </member>
         <member name="T:CG.MobileAPI.Controllers.GeneraleController">
@@ -325,10 +329,13 @@
             (ex mobile/server/query/giacenze/*.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.#ctor(CG.MobileAPI.Data.MyDbContext,Microsoft.Extensions.Logging.ILogger{CG.MobileAPI.Controllers.GiacenzeArticoliController},CG.MobileAPI.Tools.StorageTool,CG.MobileAPI.Tools.EmailTool)">
+        <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.#ctor(CG.MobileAPI.Data.MyDbContext,Microsoft.Extensions.Logging.ILogger{CG.MobileAPI.Controllers.GiacenzeArticoliController},CG.MobileAPI.Tools.StorageTool,CG.MobileAPI.Tools.EmailTool,CG.MobileAPI.Tools.DisegniTool)">
             <summary>
             Inizializza una nuova istanza del <see cref="T:CG.MobileAPI.Controllers.GiacenzeArticoliController"/>.
             </summary>
+        </member>
+        <member name="P:CG.MobileAPI.Controllers.GiacenzeArticoliController.UrlApi">
+            <summary>URL base di queste azioni visto dal client (per i link a foto e disegni).</summary>
         </member>
         <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.AddInfoCostoGiacenzaInventario(CG.MobileAPI.Models.GiacArtAddInfoCostoGiacenzaInventarioRequest)">
             <summary>Ultimo costo CATT dell'articolo (ex addInfoCostoGiacenzaInventario.php).</summary>
@@ -368,6 +375,23 @@
         </member>
         <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.SelectSingoloArticolo(CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest)">
             <summary>Scheda dell'articolo (ex selectSingoloArticolo.php). Articolo inesistente: HTTP 404.</summary>
+        </member>
+        <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.Disegno(System.String,System.Int64,System.String)">
+            <summary>
+            PDF di un disegno dell'archivio di rete. Il link (firmato, con scadenza) arriva da selectSingoloArticolo o
+            getPdfList: non serve il token, così il PDF si apre anche nel visualizzatore del telefono.
+            </summary>
+            <param name="nomeFile">Nome del PDF.</param>
+            <param name="exp">Scadenza del link (secondi Unix).</param>
+            <param name="sig">Firma del link.</param>
+        </member>
+        <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.FotoArxivar(System.Int32,System.String)">
+            <summary>
+            Foto ARXivar di un articolo (i link sono in arrayImmagini di selectSingoloArticolo): il jpg viene letto da
+            ARXivar e inviato direttamente, senza copiarlo nella cartella del server.
+            </summary>
+            <param name="docNumber">Numero del documento ARXivar.</param>
+            <param name="articolo">Codice articolo a cui la foto deve appartenere.</param>
         </member>
         <member name="M:CG.MobileAPI.Controllers.GiacenzeArticoliController.UpdateRigaInventario(CG.MobileAPI.Models.GiacArtUpdateRigaInventarioRequest)">
             <summary>Aggiorna una riga di inventario (ex updateRigaInventario.php).</summary>
@@ -633,6 +657,9 @@
         <member name="F:CG.MobileAPI.Controllers.MobileControllerBase.CLAIM_ACCOUNT_TYPE">
             <summary>Claim JWT con il tipo di account (Utente Standard / Magazzino / Produzione / Qualità / Avanzato).</summary>
         </member>
+        <member name="F:CG.MobileAPI.Controllers.MobileControllerBase.CLAIM_SOCIETA">
+            <summary>Claim JWT con la società scelta al login (CSPRO / IMM00).</summary>
+        </member>
         <member name="F:CG.MobileAPI.Controllers.MobileControllerBase._db2Connection">
             <summary>Il contesto di database.</summary>
         </member>
@@ -656,18 +683,29 @@
         <member name="P:CG.MobileAPI.Controllers.MobileControllerBase.AccountType">
             <summary>Tipo di account dell'utente autenticato.</summary>
         </member>
-        <member name="M:CG.MobileAPI.Controllers.MobileControllerBase.Esegui(System.String,System.Func{System.Object},System.String)">
+        <member name="P:CG.MobileAPI.Controllers.MobileControllerBase.Societa">
+            <summary>
+            Società scelta al login (claim del token): va passata a tutte le query che filtrano per società.
+            Token senza società (emessi prima di questa modifica) = CSPRO.
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Controllers.MobileControllerBase.Esegui(System.String,System.Func{System.Object})">
             <summary>
             Esegue l'azione nello scope di log e restituisce <c>Ok(ResultInfo.Success(dati))</c>.
             <see cref="T:CG.MobileAPI.Tools.MobileException"/> diventa HTTP 400 (404 se il suo Code è 404) con il suo messaggio, ogni altro errore HTTP 500 con codice -100.
             </summary>
             <param name="action">Valore di LOG_WS_ACTION.</param>
             <param name="azione">Funzione che restituisce i dati.</param>
-            <param name="societa">Società della richiesta (LOG_CODSOC).</param>
         </member>
-        <member name="M:CG.MobileAPI.Controllers.MobileControllerBase.EseguiAsync(System.String,System.Func{System.Threading.Tasks.Task{System.Object}},System.String)">
+        <member name="M:CG.MobileAPI.Controllers.MobileControllerBase.EseguiAsync(System.String,System.Func{System.Threading.Tasks.Task{System.Object}})">
             <summary>
-            Versione asincrona di <see cref="M:CG.MobileAPI.Controllers.MobileControllerBase.Esegui(System.String,System.Func{System.Object},System.String)"/>.
+            Versione asincrona di <see cref="M:CG.MobileAPI.Controllers.MobileControllerBase.Esegui(System.String,System.Func{System.Object})"/>.
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Controllers.MobileControllerBase.EseguiRispostaAsync(System.String,System.Func{System.Threading.Tasks.Task{Microsoft.AspNetCore.Mvc.IActionResult}})">
+            <summary>
+            Come <see cref="M:CG.MobileAPI.Controllers.MobileControllerBase.EseguiAsync(System.String,System.Func{System.Threading.Tasks.Task{System.Object}})"/> ma l'azione costruisce da sé la risposta (es. un file), senza la busta
+            <see cref="T:CG.MobileAPI.Models.ResultInfo"/>; scope di log e gestione degli errori sono gli stessi.
             </summary>
         </member>
         <member name="T:CG.MobileAPI.Controllers.MovimentiController">
@@ -745,7 +783,7 @@
         <member name="M:CG.MobileAPI.Controllers.ProduzioneController.UpdateSOSACPN(CG.MobileAPI.Models.UpdateSosacpnRequest)">
             <summary>
             Impegno su Diapason con ConSOSACPN.exe (ex [10.0.2.1]/applicazioni/produzione/UpdateSOSACPN.php).
-            I parametri devono avere la forma "P|T ADD|REP|DEL odl articolo fase [qta]".
+            I parametri devono avere la forma "ADD|REP|DEL odl articolo fase [qta]": l'ambiente P/T lo aggiunge il server.
             </summary>
             <returns>L'output dell'eseguibile ('0000 OPERAZIONE ESEGUITA' se riuscito).</returns>
         </member>
@@ -921,6 +959,37 @@
             Converte un documento HTML in PDF e lo salva nello storage (ex queryDesktop/modifiche_tecniche/createPDF.php).
             </summary>
             <returns>L'URL del PDF, oppure <c>error_pdf</c> se la conversione fallisce.</returns>
+        </member>
+        <member name="T:CG.MobileAPI.Data.CodiciSocieta">
+            <summary>
+            Società Diapason gestite dall'app mobile. Si sceglie al login (CSPRO / IMM00; gli utenti in lingua inglese
+            lavorano sempre su CSUSA, come nella vecchia app) e viaggia nel token JWT (claim <c>societa</c>): i controller
+            la passano alle query al posto del vecchio <c>'CSPRO'</c> fisso.
+            </summary>
+        </member>
+        <member name="F:CG.MobileAPI.Data.CodiciSocieta.CASAGRANDE">
+            <summary>Casagrande.</summary>
+        </member>
+        <member name="F:CG.MobileAPI.Data.CodiciSocieta.IMM">
+            <summary>IMM.</summary>
+        </member>
+        <member name="F:CG.MobileAPI.Data.CodiciSocieta.CS_USA">
+            <summary>Casagrande USA: assegnata in automatico agli utenti in lingua inglese.</summary>
+        </member>
+        <member name="F:CG.MobileAPI.Data.CodiciSocieta.Selezionabili">
+            <summary>Società che si possono scegliere al login.</summary>
+        </member>
+        <member name="F:CG.MobileAPI.Data.CodiciSocieta.Valide">
+            <summary>Società ammesse nel token.</summary>
+        </member>
+        <member name="M:CG.MobileAPI.Data.CodiciSocieta.IsSelezionabile(System.String)">
+            <summary>true se il codice si può scegliere al login.</summary>
+        </member>
+        <member name="M:CG.MobileAPI.Data.CodiciSocieta.IsValida(System.String)">
+            <summary>true se il codice è una delle società gestite.</summary>
+        </member>
+        <member name="M:CG.MobileAPI.Data.CodiciSocieta.Normalizza(System.String)">
+            <summary>Codice normalizzato (maiuscolo); Casagrande se vuoto o non gestito.</summary>
         </member>
         <member name="T:CG.MobileAPI.Data.ConfigurationLoader">
             <summary>
@@ -1153,6 +1222,18 @@
         <member name="P:CG.MobileAPI.Data.DiapasonSettings.SosacpnUrl">
             <summary>URL di UpdateSOSACPN.php sul server Diapason (10.0.2.1).</summary>
         </member>
+        <member name="P:CG.MobileAPI.Data.DiapasonSettings.IsTest">
+            <summary>
+            Ambiente Diapason di test: lo imposta Program.cs da <c>configuration:isTest</c>, insieme alle connection string.
+            Il client non sceglie più l'ambiente.
+            </summary>
+        </member>
+        <member name="P:CG.MobileAPI.Data.DiapasonSettings.Ambiente">
+            <summary>Ambiente per gli eseguibili Diapason (ConCheckUser / ConSOSACPN): "T" in test, "P" in produzione.</summary>
+        </member>
+        <member name="P:CG.MobileAPI.Data.DiapasonSettings.SocketPort">
+            <summary>Porta del socket dei movimenti per l'ambiente corrente.</summary>
+        </member>
         <member name="T:CG.MobileAPI.Data.StorageSettings">
             <summary>
             Impostazioni per i file.
@@ -1166,6 +1247,15 @@
         </member>
         <member name="P:CG.MobileAPI.Data.StorageSettings.MaxUploadMb">
             <summary>Dimensione massima di un file caricato, in MB.</summary>
+        </member>
+        <member name="P:CG.MobileAPI.Data.StorageSettings.ArchivioDisegni">
+            <summary>
+            Archivio di rete dei PDF dei disegni (es. <c>\\csg-fs-cld-01\Archivio3d</c>). L'utente con cui gira l'API
+            deve poterlo leggere.
+            </summary>
+        </member>
+        <member name="P:CG.MobileAPI.Data.StorageSettings.LinkDisegniMinuti">
+            <summary>Validità in minuti dei link ai disegni restituiti all'app.</summary>
         </member>
         <member name="T:CG.MobileAPI.Data.SmtpSettings">
             <summary>
@@ -1269,8 +1359,8 @@
         <member name="P:CG.MobileAPI.Models.LoginRequestModel.Password">
             <summary>Password Diapason.</summary>
         </member>
-        <member name="P:CG.MobileAPI.Models.LoginRequestModel.Ambiente">
-            <summary>Ambiente Diapason per la verifica password (default "P").</summary>
+        <member name="P:CG.MobileAPI.Models.LoginRequestModel.Societa">
+            <summary>Società con cui lavorare: CSPRO (Casagrande) o IMM00 (IMM). Default CSPRO. Ignorata per gli utenti in lingua inglese (CSUSA).</summary>
         </member>
         <member name="T:CG.MobileAPI.Models.UtenteLoggatoModel">
             <summary>
@@ -1304,6 +1394,9 @@
         <member name="P:CG.MobileAPI.Models.UtenteLoggatoModel.instantLogin">
             <summary>Sempre false (il login istantaneo non è più supportato).</summary>
         </member>
+        <member name="P:CG.MobileAPI.Models.UtenteLoggatoModel.societa">
+            <summary>Società della sessione (CSPRO / IMM00 / CSUSA per gli utenti in inglese), la stessa del token.</summary>
+        </member>
         <member name="T:CG.MobileAPI.Models.LoginResponseModel">
             <summary>
             Risposta del login: utente e token JWT da inviare nell'header Authorization.
@@ -1328,7 +1421,7 @@
         </member>
         <member name="M:CG.MobileAPI.Models.DBAUTH.GetUtente(System.String)">
             <summary>
-            Legge l'utente da D60STDDB.DIAPOPER e calcola tipo account e nome portale (ex query/login.php).
+            Legge l'utente da DIAPOPER e calcola tipo account e nome portale (ex query/login.php).
             Restituisce null se l'utente non esiste.
             </summary>
         </member>
@@ -1593,7 +1686,7 @@
             (prima parte di startScriptCompletaAvviso0027Mgaut01.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.VerificaTrasferimentoMgaut01(System.String,System.String,System.Int64)">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.VerificaTrasferimentoMgaut01(System.String,System.String,System.Int64,System.String)">
             <summary>
             Verifica se l'articolo dell'ODL è entrato (ET-A) su MGAUT01 dopo l'avvio dello script
             (controllo periodico di startScriptCompletaAvviso0027Mgaut01.php).
@@ -1601,6 +1694,7 @@
             <param name="articolo">Articolo dell'attività.</param>
             <param name="odl">ODL dell'attività.</param>
             <param name="dataOraCreazione">Data e ora di avvio dello script, numerico yyyyMMddHHmmss.</param>
+            <param name="societa">Società del token.</param>
         </member>
         <member name="M:CG.MobileAPI.Models.DBAVVISI.CompletaAttivita0027(System.String,System.String,System.String,System.String,System.String,System.String)">
             <summary>
@@ -1620,19 +1714,19 @@
             aggiorna anche la quantità (ex getAttivitaKeysFromImpegnoOdl.php). Restituisce null se non ci sono attività.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.SelectAllAvvisiSpeciali">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.SelectAllAvvisiSpeciali(System.String)">
             <summary>
             Bolle a destinazione specifica dell'ultimo anno non ancora completate, ordinate per data
             (ex selectAllAvvisiSpeciali.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.AddInfoAvvisoSpeciale(System.String)">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.AddInfoAvvisoSpeciale(System.String,System.String)">
             <summary>
-            Righe (note CSPRO/IT) di una bolla a destinazione specifica non ancora completate
+            Righe (note IT della società del token) di una bolla a destinazione specifica non ancora completate
             (ex addInfoAvvisoSpeciale.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.CompletaAvvisoSpeciale(System.String,System.String,System.String,System.Int32)">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.CompletaAvvisoSpeciale(System.String,System.String,System.String,System.Int32,System.String)">
             <summary>
             Completa le righe 1..riga di una bolla a destinazione specifica aggiungendo, dove manca, la nota IM
             <c>#utente#data#bolla</c> (ex completaAvvisoSpeciale.php).
@@ -1640,13 +1734,13 @@
             (righe inserite) per ogni riga completata ora.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.GetMancantiCC">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.GetMancantiCC(System.String)">
             <summary>
             Componenti CC mancanti degli ODL con l'eventuale ODA e fornitore (ex getMancantiCC.php).
             Restituisce le righe della query così come sono.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBAVVISI.GetMaterialeInArrivo">
+        <member name="M:CG.MobileAPI.Models.DBAVVISI.GetMaterialeInArrivo(System.String)">
             <summary>
             Bolle fornitore non ancora scaricate con i relativi articoli e il numero di mancanti
             (ex getMaterialeInArrivo.php).
@@ -2123,21 +2217,33 @@
             </summary>
             <param name="codice">Codice Diapason dell'utente autenticato.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGENERALE.GetSituazioneOdv(CG.MobileAPI.Models.GetSituazioneOdvRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGENERALE.GetSituazioneOdv(CG.MobileAPI.Models.GetSituazioneOdvRequest,System.String)">
             <summary>
             Situazione delle righe degli ordini di vendita il cui numero inizia per or_om, raggruppate per ordine,
-            con lo stato di ogni riga (disponibile, disponibile_prel, in_oda, in_odl, mancante) (ex getSituazioneOdv.php).
+            con lo stato di ogni riga (disponibile, disponibile_prel, in_oda, in_odl, mancante) (ex getSituazioneOdv.php
+            e getSituazioneOdvIMM.php). Le righe sono filtrate per la società del token: la variante IMM filtrava
+            cs_fabbmanc_rodv.societa (e ripeteva la società su ogni join, condizioni già implicate dai join per societa),
+            quella Casagrande non filtrava affatto.
             </summary>
+            <param name="request">Numero ordine.</param>
+            <param name="societa">Società del token.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGENERALE.CheckMagazzinoExists(CG.MobileAPI.Models.CheckMagazzinoExistsRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGENERALE.CheckMagazzinoExists(CG.MobileAPI.Models.CheckMagazzinoExistsRequest,System.String)">
             <summary>
-            Indica se il magazzino esiste in D60STDDB.MASAHED per la società CSPRO (ex queryDesktop/giacenze/checkMagazzinoExists.php).
+            Indica se il magazzino esiste in MASAHED per la società del token
+            (ex queryDesktop/giacenze/checkMagazzinoExists.php e checkMagazzinoExistsIMM.php).
             </summary>
+            <param name="request">Codice magazzino.</param>
+            <param name="societa">Società del token.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGENERALE.CheckVanoExists(CG.MobileAPI.Models.CheckVanoExistsRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGENERALE.CheckVanoExists(CG.MobileAPI.Models.CheckVanoExistsRequest,System.String)">
             <summary>
-            Indica se il vano esiste in D60STDDB.MASAHLO (ex queryDesktop/giacenze/checkVanoExists.php).
+            Indica se il vano esiste in MASAHLO (ex queryDesktop/giacenze/checkVanoExists.php e checkVanoExistsIMM.php).
+            La versione Casagrande non filtrava la società, la variante IMM sì (MASAHLO.MAHCOSC='IMM00'): il filtro
+            è applicato solo per IMM, così per Casagrande il comportamento resta quello del PHP.
             </summary>
+            <param name="request">Codice vano.</param>
+            <param name="societa">Società del token.</param>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGENERALE.ConvertPdfAsync(CG.MobileAPI.Models.ConvertPdfRequest,CG.MobileAPI.Tools.StorageTool,System.String)">
             <summary>
@@ -2278,9 +2384,6 @@
         <member name="P:CG.MobileAPI.Models.GiacArtGetVaniMovimentoSingoloRequest.magazzino">
             <summary>Codice magazzino (gestito solo per i magazzini MISK*).</summary>
         </member>
-        <member name="P:CG.MobileAPI.Models.GiacArtGetVaniMovimentoSingoloRequest.societa">
-            <summary>Società (non usata dal servizio, come nel PHP).</summary>
-        </member>
         <member name="T:CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest">
             <summary>
             Richiesta di selectArticoloLike.php.
@@ -2289,9 +2392,6 @@
         <member name="P:CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest.inputArticoloDesc">
             <summary>Inizio del codice articolo o della descrizione.</summary>
         </member>
-        <member name="P:CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest.societa">
-            <summary>Società (default CSPRO).</summary>
-        </member>
         <member name="T:CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest">
             <summary>
             Richiesta di selectArticoloMagazzini.php.
@@ -2299,9 +2399,6 @@
         </member>
         <member name="P:CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest.codiceArticolo">
             <summary>Codice articolo.</summary>
-        </member>
-        <member name="P:CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest.societa">
-            <summary>Società (default CSPRO).</summary>
         </member>
         <member name="T:CG.MobileAPI.Models.GiacArtSelectGiacenzeInventarioRequest">
             <summary>
@@ -2318,9 +2415,6 @@
         </member>
         <member name="P:CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest.codiceArticolo">
             <summary>Codice articolo.</summary>
-        </member>
-        <member name="P:CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest.societa">
-            <summary>Società (default CSPRO).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest.needCompleteInfo">
             <summary>"true" per la scheda completa (note, ordini, impegni, prezzi, movimenti, foto, PDF...).</summary>
@@ -2437,29 +2531,30 @@
             </summary>
             <param name="conn">Le stringhe di connessione dei servizi dell'app mobile.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.AddInfoCostoGiacenzaInventario(CG.MobileAPI.Models.GiacArtAddInfoCostoGiacenzaInventarioRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.AddInfoCostoGiacenzaInventario(CG.MobileAPI.Models.GiacArtAddInfoCostoGiacenzaInventarioRequest,System.String)">
             <summary>
             Ultimo costo CATT dell'articolo da MVSACPE (ex addInfoCostoGiacenzaInventario.php). 0 se non trovato.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.CheckMagazzinoExists(CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.CheckMagazzinoExists(CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest,System.String)">
             <summary>
-            Indica se il magazzino esiste in MASAHED per CSPRO (ex checkMagazzinoExists.php).
+            Indica se il magazzino esiste in MASAHED per la società del token
+            (ex checkMagazzinoExists.php / checkMagazzinoExistsIMM.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.CheckMagazzinoExistsAndCheckVani(CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.CheckMagazzinoExistsAndCheckVani(CG.MobileAPI.Models.GiacArtCheckMagazzinoRequest,System.String)">
             <summary>
-            Indica se il magazzino esiste e se ha vani (MGRICAM escluso) (ex checkMagazzinoExistsAndCheckVani.php).
-            Chiavi: magazzinoFound, magazzino_has_vani.
+            Indica se il magazzino esiste (per la società del token) e se ha vani (MGRICAM escluso)
+            (ex checkMagazzinoExistsAndCheckVani.php). Chiavi: magazzinoFound, magazzino_has_vani.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetMagazziniVaniPerModificaPrelievi(CG.MobileAPI.Models.GiacArtGetMagazziniVaniPerModificaPrelieviRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetMagazziniVaniPerModificaPrelievi(CG.MobileAPI.Models.GiacArtGetMagazziniVaniPerModificaPrelieviRequest,System.String)">
             <summary>
             Magazzini e vani dell'articolo con disponibile sufficiente per il movimento
             (ex getMagazziniVaniPerModificaPrelievi.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetMgricamVanoPreferenziale(CG.MobileAPI.Models.GiacArtGetMgricamVanoPreferenzialeRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetMgricamVanoPreferenziale(CG.MobileAPI.Models.GiacArtGetMgricamVanoPreferenzialeRequest,System.String)">
             <summary>
             Vano preferenziale dell'articolo su MGRICAM, stringa vuota se assente (ex getMgricamVanoPreferenziale.php).
             </summary>
@@ -2470,13 +2565,13 @@
             (ex getVaniMovimentoSingolo.php). Chiavi: exists, sezione_1..sezione_4.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetInventarioFullQuery(CG.MobileAPI.Models.GiacArtGetInventarioFullQueryRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetInventarioFullQuery(CG.MobileAPI.Models.GiacArtGetInventarioFullQueryRequest,System.String)">
             <summary>
             Righe della lista di inventario (DB_1.liste_righe) e giacenze del magazzino / vano
             (ex getInventarioFullQuery.php). Chiavi: listaRighe, listaGiacenze.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectGiacenzeInventario(CG.MobileAPI.Models.GiacArtSelectGiacenzeInventarioRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectGiacenzeInventario(CG.MobileAPI.Models.GiacArtSelectGiacenzeInventarioRequest,System.String)">
             <summary>
             Giacenze del magazzino (o dei vani che iniziano con il codice) (ex selectGiacenzeInventario.php).
             </summary>
@@ -2518,13 +2613,13 @@
             Restituisce "1" se inviata, altrimenti "Mailer Error: ..." come il PHP.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectArticoloLike(CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectArticoloLike(CG.MobileAPI.Models.GiacArtSelectArticoloLikeRequest,System.String)">
             <summary>
             Ricerca articoli per inizio codice (o codice contenuto per i fantasma 'D'), altrimenti per inizio descrizione
             (ex selectArticoloLike.php). Elementi: codice, descrizione.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectArticoloMagazzini(CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectArticoloMagazzini(CG.MobileAPI.Models.GiacArtSelectArticoloMagazziniRequest,System.String)">
             <summary>
             Dati dell'articolo per i movimenti: magazzini con giacenza, magazzini possibili, magazzini preferenziali,
             mancanti e possibili ODL (ex selectArticoloMagazzini.php).
@@ -2536,12 +2631,12 @@
             Con solamenteCheckFigli = true restituisce solo { componente }.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetPdfList(CG.MobileAPI.Models.GiacArtGetPdfListRequest,CG.MobileAPI.Tools.StorageTool)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetPdfList(CG.MobileAPI.Models.GiacArtGetPdfListRequest,System.String,CG.MobileAPI.Tools.StorageTool,CG.MobileAPI.Tools.DisegniTool,System.String)">
             <summary>
             Elenco dei PDF del disegno (archivio disegni) e dell'ultimo PDF AO dell'articolo (ex getPdfList.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectSingoloArticoloAsync(CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest,CG.MobileAPI.Tools.StorageTool)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.SelectSingoloArticoloAsync(CG.MobileAPI.Models.GiacArtSelectSingoloArticoloRequest,System.String,CG.MobileAPI.Tools.StorageTool,CG.MobileAPI.Tools.DisegniTool,System.String)">
             <summary>
             Scheda dell'articolo (ex selectSingoloArticolo.php): dati base e magazzini; con needCompleteInfo anche note,
             ordini di acquisto (con dettagli confermati), ODL, impegni ODL/ODV, prezzi, movimenti degli ultimi 2 anni,
@@ -2549,17 +2644,23 @@
             Solleva <see cref="T:CG.MobileAPI.Tools.MobileException"/> (codice 404) se l'articolo non esiste.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetListaGiacenze(System.String,System.String,System.String)">
-            <summary>Ex shared_functions/getListaGiacenze.php.</summary>
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetListaGiacenze(System.String,System.String,System.String,System.String)">
+            <summary>
+            Ex shared_functions/getListaGiacenze.php e getListaGiacenzeIMM.php (identici salvo il codice società).
+            </summary>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetMagazzinoVanoPreferenziale(System.String,System.Boolean,System.String)">
             <summary>Ex getMagazzinoVanoPreferenziale di selectSingoloArticolo.php; null se non c'è.</summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetDisegniPdf(System.String,CG.MobileAPI.Tools.StorageTool)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetDisegniPdf(System.String,CG.MobileAPI.Tools.DisegniTool,System.String)">
             <summary>
             Ex query/giacenze/shared/getDisegniPdf.php: PDF dell'archivio disegni il cui nome inizia con il codice disegno
-            (fogli -F01, -F02... o foglio con lettera), in ordine di nome.
+            (fogli -F01, -F02... o foglio con lettera), in ordine di nome. I file sono letti dall'archivio di rete e gli
+            url sono link firmati all'azione giacenze/disegno.
             </summary>
+            <param name="codiceDisegno">Codice disegno.</param>
+            <param name="disegni">Accesso all'archivio dei disegni.</param>
+            <param name="urlApi">URL base delle azioni giacenze (es. https://host/api/giacenze).</param>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetUltimoPdfAo(System.String,CG.MobileAPI.Tools.StorageTool)">
             <summary>
@@ -2574,11 +2675,29 @@
             numeroFoglioPdf è la posizione nell'elenco completo (cartelle comprese), come nel PHP.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetFotoArxivarAsync(System.String,CG.MobileAPI.Tools.StorageTool)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetFotoArxivarAsync(System.String,System.String)">
             <summary>
-            Foto ARXivar dell'articolo (classe foto ricambi, COMBO6_3 = 'Fotografia', TABLE1_3 = articolo), al massimo 10 jpg:
-            vengono copiate nell'archivio foto del tecnico se mancanti; quelle non VALID vengono rimosse e non restituite
-            (ex connectArx.php + query su ARCHDB.dbo.DM_PROFILE di selectSingoloArticolo.php).
+            Foto ARXivar dell'articolo (classe foto ricambi, COMBO6_3 = 'Fotografia', TABLE1_3 = articolo): i link
+            all'azione fotoArxivar dell'API, al massimo 10 jpg VALID. Le foto non vengono più copiate nell'archivio
+            del tecnico: l'app le scarica direttamente dall'API (ex connectArx.php + query su ARCHDB.dbo.DM_PROFILE
+            di selectSingoloArticolo.php).
+            </summary>
+            <param name="articoloLink">Codice articolo con "/" sostituito da "-".</param>
+            <param name="urlFoto">URL dell'azione fotoArxivar (es. https://host/api/giacenze/fotoArxivar).</param>
+        </member>
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.GetFotoArxivarFileAsync(System.String,System.Int32)">
+            <summary>
+            Contenuto di una foto ARXivar dell'articolo, letto da ARXivar e restituito senza passare dal disco.
+            Il documento deve essere tra le foto VALID dell'articolo (non si può leggere un documento qualsiasi).
+            </summary>
+            <param name="articolo">Codice articolo.</param>
+            <param name="docNumber">Numero del documento ARXivar.</param>
+            <returns>I byte del jpg.</returns>
+        </member>
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.CercaFotoArxivarAsync(System.String)">
+            <summary>
+            Numeri documento delle foto ARXivar dell'articolo: i primi 10 jpg (in ordine di numero documento),
+            di cui solo quelli in stato VALID.
             </summary>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.V(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
@@ -2616,6 +2735,12 @@
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.ElencaFile(CG.MobileAPI.Tools.StorageTool,System.String,System.String)">
             <summary>storage.Elenca con pattern costruito dal codice articolo; vuoto se il pattern non è valido.</summary>
+        </member>
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.ArchivioNonDisponibile(System.Exception)">
+            <summary>
+            Archivio di file non utilizzabile (WebRoot non configurato, cartella di rete non raggiungibile o senza
+            permessi): come nel PHP la scheda viene restituita senza quei file invece di andare in errore.
+            </summary>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_ARTICOLI.ScriviCella(ClosedXML.Excel.IXLCell,System.Nullable{System.Text.Json.JsonElement},System.Boolean,System.Boolean)">
             <summary>
@@ -2990,52 +3115,52 @@
             Testate di precarico non completate, ognuna con le sue righe in <c>righe</c> (ex accettazione_get_precarico.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectAccettazioni(CG.MobileAPI.Models.SelectAccettazioniRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectAccettazioni(CG.MobileAPI.Models.SelectAccettazioniRequest,System.String)">
             <summary>
             Accettazioni (entrate dell'ultimo anno) di un magazzino con i mancanti MIRC collegati (ex selectAccettazioni.php).
             Restituisce <c>null</c> se non ci sono movimenti (il PHP rispondeva HTTP 404).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoOdlStampaVern(CG.MobileAPI.Models.AddInfoOdlStampaVernRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoOdlStampaVern(CG.MobileAPI.Models.AddInfoOdlStampaVernRequest,System.String)">
             <summary>
             Fasi (da stransfer), padre, descrizione padre e colore di un ODL per la stampa verniciatura (ex addInfoOdlStampaVern.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoOdlStampaVernLibera(CG.MobileAPI.Models.AddInfoOdlStampaVernLiberaRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoOdlStampaVernLibera(CG.MobileAPI.Models.AddInfoOdlStampaVernLiberaRequest,System.String)">
             <summary>
             Fasi (da cs_fabbmanc_odl_fasi), padre, descrizione padre e colore di un ODL per la stampa verniciatura libera
             (ex addInfoOdlStampaVernLibera.php). Se mancano le fasi o il padre restituisce solo quanto trovato fino a lì.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoPadreStampaVernLibera(CG.MobileAPI.Models.AddInfoPadreStampaVernLiberaRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddInfoPadreStampaVernLibera(CG.MobileAPI.Models.AddInfoPadreStampaVernLiberaRequest,System.String)">
             <summary>
             Padre, descrizione padre e colore dato il codice del padre (ex addInfoPadreStampaVernLibera.php).
             Oggetto vuoto se non trovato.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddPadreDescrizioneFixToMovimento(CG.MobileAPI.Models.AddPadreDescrizioneFixToMovimentoRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.AddPadreDescrizioneFixToMovimento(CG.MobileAPI.Models.AddPadreDescrizioneFixToMovimentoRequest,System.String)">
             <summary>
             Codice e descrizione del padre di un ODL (ex addPadreDescrizioneFixToMovimento.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.ValidateOdlSelectFasi(CG.MobileAPI.Models.ValidateOdlSelectFasiRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.ValidateOdlSelectFasi(CG.MobileAPI.Models.ValidateOdlSelectFasiRequest,System.String)">
             <summary>
             Fasi di un ODL con magazzino/vano di destinazione, esclusi i magazzini automatici (ex validateOdlSelectFasi.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectCambioOdl(CG.MobileAPI.Models.SelectCambioOdlRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectCambioOdl(CG.MobileAPI.Models.SelectCambioOdlRequest,System.String)">
             <summary>
             Righe di trasferimento di un ODL, oppure (se il codice è un padre o un magazzino) la lista degli ODL possibili;
             per la ricerca per ODL aggiunge gli altri ODL dello stesso magazzino di destinazione (ex selectCambioOdl.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetOdlListFromMagDest(CG.MobileAPI.Models.GetOdlListFromMagDestRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetOdlListFromMagDest(CG.MobileAPI.Models.GetOdlListFromMagDestRequest,System.String)">
             <summary>
             Elenco degli ODL (o, dalla sezione Prelievi, di ODL + ODV) che hanno come destinazione il magazzino indicato
             (ex getOdlListFromMagDest.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.CountMancantiSearchPage">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.CountMancantiSearchPage(System.String)">
             <summary>
             Numero di mancanti critici per magazzino di impegno e ultimo data-log (ex countMancantiSearchPage.php).
             </summary>
@@ -3046,7 +3171,7 @@
             <c>"error: no Data Log"</c> (ex getLatestDtrunHrrun.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectMancantiDaMag(CG.MobileAPI.Models.SelectMancantiDaMagRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.SelectMancantiDaMag(CG.MobileAPI.Models.SelectMancantiDaMagRequest,System.String)">
             <summary>
             Mancanti (o prelievi) di un magazzino di impegno, divisi tra magazzini normali e automatici, con l'ultimo
             data-log; per gli ODV (OM / OR) nei prelievi legge le righe ODV (ex selectMancantiDaMag.php).
@@ -3092,7 +3217,7 @@
             Liste di inventario non chiuse (stato &lt; 3) (ex getElencoListe.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.WriteLista(CG.MobileAPI.Models.WriteListaRequest,System.String)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.WriteLista(CG.MobileAPI.Models.WriteListaRequest,System.String,System.String)">
             <summary>
             Crea una lista di inventario dopo aver verificato che non ne esista già una aperta con lo stesso nome e che
             magazzino/vano esistano su Diapason. Restituisce l'id inserito oppure <c>lista_already_exists</c>,
@@ -3100,6 +3225,7 @@
             </summary>
             <param name="request">Nome e tipo della lista.</param>
             <param name="utente">Codice dell'utente autenticato (utente di creazione).</param>
+            <param name="societa">Società del token (controllo magazzino / vano su Diapason).</param>
         </member>
         <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.CambiaStatoLista(CG.MobileAPI.Models.CambiaStatoListaRequest,System.String)">
             <summary>
@@ -3134,7 +3260,7 @@
             (ex checkOdlListaPrelievoMgautAndGetFasi.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.CheckOdvListaPrelievoMgaut(CG.MobileAPI.Models.CheckOdvListaPrelievoMgautRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.CheckOdvListaPrelievoMgaut(CG.MobileAPI.Models.CheckOdvListaPrelievoMgautRequest,System.String)">
             <summary>
             Numero, cliente, nome cliente e posizione di un ODV con l'articolo su magazzino automatico; <c>null</c> se non
             trovato (ex checkOdvListaPrelievoMgaut.php).
@@ -3157,61 +3283,61 @@
             Righe di prelievo MGAUT00 / MGAUT10 non ancora uscite (ex getListaMgaut02.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetListaPrelievi0027FromAttivitaCheckScript(CG.MobileAPI.Models.GetListaPrelievi0027FromAttivitaCheckScriptRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetListaPrelievi0027FromAttivitaCheckScript(CG.MobileAPI.Models.GetListaPrelievi0027FromAttivitaCheckScriptRequest,System.String)">
             <summary>
             True se l'articolo dell'attività 0027 è ancora da visualizzare, cioè non è ancora entrato su MGAUT02 / MGAUT03
             per quell'ODL dopo l'avviso (ex getListaPrelievi0027FromAttivitaCheckScript.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetListaTrasferimentiMgis001">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.GetListaTrasferimentiMgis001(System.String)">
             <summary>
             Righe di prelievo uscite e confermate ma non ancora trasferite (esclusi ODV OR / OM), con i dati della testata
             e, per i kanban, la commessa ricavata dalla famiglia dell'articolo (ex getListaTrasferimentiMgis001.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelImmediatoGetOdvFromPrebolla(CG.MobileAPI.Models.MgautPrelImmediatoGetOdvFromPrebollaRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelImmediatoGetOdvFromPrebolla(CG.MobileAPI.Models.MgautPrelImmediatoGetOdvFromPrebollaRequest,System.String)">
             <summary>
             ODV (OR / OM) contenuti in una prebolla in stato 05 (ex mgaut_prel_immediato_get_odv_from_prebolla.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelImmediatoGetRigheFromOdv(CG.MobileAPI.Models.MgautPrelImmediatoGetRigheFromOdvRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelImmediatoGetRigheFromOdv(CG.MobileAPI.Models.MgautPrelImmediatoGetRigheFromOdvRequest,System.String)">
             <summary>
             Righe di prebolla (stato 05) di un ODV con giacenza su MGAUT10 / MGAUT00 e magazzino automatico da cui
             prelevare (prima MGAUT10, poi MGAUT00) se la giacenza copre la quantità cumulata dell'articolo
             (ex mgaut_prel_immediato_get_righe_from_odv.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetArticoli(CG.MobileAPI.Models.MgautPrelOdlGetArticoliRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetArticoli(CG.MobileAPI.Models.MgautPrelOdlGetArticoliRequest,System.String)">
             <summary>
             Articoli di un ODL/fase disponibili sul magazzino automatico di origine per il magazzino di destinazione
             (ex mgaut_prel_odl_get_articoli.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetMagazzini(CG.MobileAPI.Models.MgautPrelOdlGetMagazziniRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetMagazzini(CG.MobileAPI.Models.MgautPrelOdlGetMagazziniRequest,System.String)">
             <summary>
             Magazzini di destinazione (ODL) per cui l'articolo è disponibile sul magazzino automatico di origine
             (ex mgaut_prel_odl_get_magazzini.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetOdl(CG.MobileAPI.Models.MgautPrelOdlGetOdlRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdlGetOdl(CG.MobileAPI.Models.MgautPrelOdlGetOdlRequest,System.String)">
             <summary>
             ODL/fasi con articoli (tutti o quello indicato) disponibili sul magazzino automatico di origine per il
             magazzino di destinazione (ex mgaut_prel_odl_get_odl.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetArticoli(CG.MobileAPI.Models.MgautPrelOdvGetArticoliRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetArticoli(CG.MobileAPI.Models.MgautPrelOdvGetArticoliRequest,System.String)">
             <summary>
             Articoli di un ODV disponibili sul magazzino automatico di origine per il magazzino di destinazione
             (ex mgaut_prel_odv_get_articoli.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetMagazzini(CG.MobileAPI.Models.MgautPrelOdvGetMagazziniRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetMagazzini(CG.MobileAPI.Models.MgautPrelOdvGetMagazziniRequest,System.String)">
             <summary>
             Magazzini di destinazione (ODV) per cui l'articolo è disponibile sul magazzino automatico di origine
             (ex mgaut_prel_odv_get_magazzini.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetOdv(CG.MobileAPI.Models.MgautPrelOdvGetOdvRequest)">
+        <member name="M:CG.MobileAPI.Models.DBGIACENZE_LISTE.MgautPrelOdvGetOdv(CG.MobileAPI.Models.MgautPrelOdvGetOdvRequest,System.String)">
             <summary>
             ODV con articoli (tutti o quello indicato) disponibili sul magazzino automatico di origine per il magazzino
             di destinazione (ex mgaut_prel_odv_get_odv.php).
@@ -3724,7 +3850,7 @@
             <summary>Codice utente Diapason (ignorato: si usa l'utente del token).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.UpdateArticoloRequest.societa">
-            <summary>Società Diapason (es. CSPRO).</summary>
+            <summary>Ignorata: si usa la società del token (CSPRO / IMM00).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.UpdateArticoloRequest.articolo">
             <summary>Codice articolo (stringa, oppure oggetto con la proprietà <c>articolo</c>).</summary>
@@ -3756,19 +3882,19 @@
             </summary>
             <param name="conn">Le stringhe di connessione dei servizi dell'app mobile.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.AddArticoloScaffale(CG.MobileAPI.Models.AddArticoloScaffaleRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.AddArticoloScaffale(CG.MobileAPI.Models.AddArticoloScaffaleRequest,System.String)">
             <summary>
             Aggiunge un articolo a uno scaffale (ex addArticoloScaffale.php).
             </summary>
             <returns>"error" se l'articolo è già nello scaffale, altrimenti "ok".</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.AddElencoScaffaliToArticolo(CG.MobileAPI.Models.AddElencoScaffaliToArticoloRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.AddElencoScaffaliToArticolo(CG.MobileAPI.Models.AddElencoScaffaliToArticoloRequest,System.String)">
             <summary>
             Elenco degli scaffali in cui è presente un articolo (ex addElencoScaffaliToArticolo.php).
             </summary>
             <returns>Lista di { codice, descrizione }.</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.CheckKanbanGiacenzeMgaut(CG.MobileAPI.Models.CheckKanbanGiacenzeMgautRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.CheckKanbanGiacenzeMgaut(CG.MobileAPI.Models.CheckKanbanGiacenzeMgautRequest,System.String)">
             <summary>
             Giacenza dell'articolo nei magazzini automatici MGAUT00 e MGAUT10 (ex checkKanbanGiacenzeMgaut.php).
             </summary>
@@ -3786,13 +3912,13 @@
             </summary>
             <returns>Lista di { codice, descrizione, magazzino, societa }.</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.SelectArticoliScaffale(CG.MobileAPI.Models.SelectArticoliScaffaleRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.SelectArticoliScaffale(CG.MobileAPI.Models.SelectArticoliScaffaleRequest,System.String)">
             <summary>
             Articoli presenti in uno scaffale (ex selectArticoliScaffale.php).
             </summary>
             <returns>Lista di { codice, descrizione, fornitore, qtaConfezione, tipo }.</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.SelectSingoloArticolo(CG.MobileAPI.Models.SelectSingoloArticoloKanbanRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.SelectSingoloArticolo(CG.MobileAPI.Models.SelectSingoloArticoloKanbanRequest,System.String)">
             <summary>
             Dati kanban di un articolo (fornitore, confezione, trattamento, scorta minima) ed eventualmente gli scaffali
             in cui si trova (ex query/kanban/selectSingoloArticolo.php).
@@ -3815,20 +3941,21 @@
             <param name="email">Invio email.</param>
             <returns>"1" se la mail è stata inviata (come <c>echo $email->send()</c>).</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.WriteOrdineRifornimento(CG.MobileAPI.Models.WriteOrdineRifornimentoRequest)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.WriteOrdineRifornimento(CG.MobileAPI.Models.WriteOrdineRifornimentoRequest,System.String)">
             <summary>
             Scrive gli ordini di rifornimento kanban: una testata CSORKBT per ogni fornitore e una riga CSORKBR per
             ogni articolo (ex writeOrdineRifornimento.php).
             </summary>
             <returns>L'elenco dei fornitori (senza duplicati) a cui è stato creato un ordine.</returns>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBKANBAN.UpdateArticolo(CG.MobileAPI.Models.UpdateArticoloRequest,System.String)">
+        <member name="M:CG.MobileAPI.Models.DBKANBAN.UpdateArticolo(CG.MobileAPI.Models.UpdateArticoloRequest,System.String,System.String)">
             <summary>
             Aggiorna peso netto e/o lordo di un articolo tramite il web service Diapason GFDARTREPV
             (ex dapiws/UpdateArticolo.php): login della sessione WS, chiamata CS_DAPIWS_GFDARTREPV_FN, logout.
             </summary>
-            <param name="request">Società, articolo e nuovi pesi.</param>
+            <param name="request">Articolo e nuovi pesi.</param>
             <param name="utente">Codice Diapason dell'utente autenticato (usato per la sessione WS).</param>
+            <param name="societa">Società del token (usata per la sessione WS al posto di quella del body).</param>
             <returns>Il messaggio (fault_string) restituito da Diapason.</returns>
         </member>
         <member name="M:CG.MobileAPI.Models.DBKANBAN.T(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
@@ -3873,9 +4000,6 @@
             L'utente Diapason che esegue il movimento è quello del token (il campo <c>id</c> del PHP non è più usato).
             </summary>
         </member>
-        <member name="P:CG.MobileAPI.Models.APIMovMagMobileAppRequest.ambiente">
-            <summary>TEST o PRODUZIONE.</summary>
-        </member>
         <member name="P:CG.MobileAPI.Models.APIMovMagMobileAppRequest.articolo">
             <summary>Articolo.</summary>
         </member>
@@ -3910,7 +4034,7 @@
             <summary>Fase dell'ODL (vuota = ricavata dall'ODL).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.APIMovMagMobileAppRequest.societa">
-            <summary>Società.</summary>
+            <summary>Ignorato: la società del movimento è quella del token (ex campo societa di APIMovMagMobileApp[IMM].php).</summary>
         </member>
         <member name="T:CG.MobileAPI.Models.RigaListaMagazzinoAutomatico">
             <summary>
@@ -3940,9 +4064,6 @@
             Richiesta di invio di una lista al magazzino automatico (ex api/WriteListaMagazzinoAutomatico.php).
             L'utente Diapason è quello del token (il campo <c>utente</c> del PHP non è più usato).
             </summary>
-        </member>
-        <member name="P:CG.MobileAPI.Models.WriteListaMagazzinoAutomaticoRequest.ambiente">
-            <summary>TEST o PRODUZIONE.</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.WriteListaMagazzinoAutomaticoRequest.tipo_interfaccia">
             <summary>PRELMAN, PRELODL, PRELODV, PRELKAN, CAR o CARPRT.</summary>
@@ -3989,7 +4110,7 @@
             <summary>Causale (TNAV2, UR1, UNA).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.MovimentoMultiplo.societa">
-            <summary>Società.</summary>
+            <summary>Ignorato: la società del movimento è quella del token.</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.MovimentoMultiplo.articolo">
             <summary>Articolo.</summary>
@@ -4014,9 +4135,6 @@
         </member>
         <member name="P:CG.MobileAPI.Models.MovimentoMultiplo.commessa">
             <summary>Commessa.</summary>
-        </member>
-        <member name="P:CG.MobileAPI.Models.MovimentoMultiplo.ambiente">
-            <summary>TEST o PRODUZIONE.</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.MovimentoMultiplo.nota">
             <summary>Nota.</summary>
@@ -4122,12 +4240,13 @@
             </summary>
             <param name="conn">Le stringhe di connessione dei servizi dell'app mobile.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.APIMovMagMobileAppAsync(CG.MobileAPI.Models.APIMovMagMobileAppRequest,System.String,CG.MobileAPI.Tools.DiapasonSocket)">
+        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.APIMovMagMobileAppAsync(CG.MobileAPI.Models.APIMovMagMobileAppRequest,System.String,System.String,CG.MobileAPI.Tools.DiapasonSocket)">
             <summary>
             Esegue un movimento singolo su Diapason (ex api/APIMovMagMobileApp.php) e restituisce la risposta di Diapason.
             </summary>
             <param name="request">Dati del movimento.</param>
             <param name="utente">Codice Diapason dell'utente che esegue il movimento.</param>
+            <param name="societa">Società del token (CSPRO / IMM00; sostituisce anche APIMovMagMobileAppIMM.php).</param>
             <param name="socket">Client del socket Diapason.</param>
         </member>
         <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.DBGetARMListMobile">
@@ -4136,7 +4255,7 @@
             Chiavi: numero ("/" sostituiti da "_"), causale, cliente, data (intero). <c>null</c> se non ci sono ARM.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.WriteListaMagazzinoAutomaticoAsync(CG.MobileAPI.Models.WriteListaMagazzinoAutomaticoRequest,System.String,CG.MobileAPI.Data.DiapasonSettings,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.WriteListaMagazzinoAutomaticoAsync(CG.MobileAPI.Models.WriteListaMagazzinoAutomaticoRequest,System.String,System.String,CG.MobileAPI.Data.DiapasonSettings,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Invia una lista di prelievo / carico al magazzino automatico tramite il socket Diapason
             (ex api/WriteListaMagazzinoAutomatico.php). Restituisce la risposta del socket ("200 ..." = lista creata),
@@ -4144,6 +4263,7 @@
             </summary>
             <param name="request">Dati della lista.</param>
             <param name="utente">Codice Diapason dell'utente che crea la lista.</param>
+            <param name="societa">Società del token.</param>
             <param name="settings">Impostazioni del socket Diapason.</param>
             <param name="logger">Logger (al posto del file PrelieviLogs).</param>
         </member>
@@ -4153,7 +4273,7 @@
             (i campi numerici che il PHP inseriva direttamente nell'SQL devono essere numeri).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.WriteMovimentiMultipliAPIAsync(CG.MobileAPI.Models.WriteMovimentiMultipliAPIRequest,System.String,CG.MobileAPI.Tools.DiapasonSocket,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:CG.MobileAPI.Models.DBMOVIMENTI.WriteMovimentiMultipliAPIAsync(CG.MobileAPI.Models.WriteMovimentiMultipliAPIRequest,System.String,System.String,CG.MobileAPI.Tools.DiapasonSocket,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Esegue i movimenti dell'invio multiplo (ex api/WriteMovimentiMultipliAPI.php, parte in background):
             marca le righe come trasferite / registra lo storico a seconda della sezione, crea la riga di
@@ -4162,6 +4282,7 @@
             </summary>
             <param name="request">Dati generali e movimenti.</param>
             <param name="utente">Codice Diapason dell'utente che esegue i movimenti.</param>
+            <param name="societa">Società del token (catturata prima di avviare il job in background).</param>
             <param name="socket">Client del socket Diapason.</param>
             <param name="logger">Logger per gli errori dei singoli movimenti.</param>
         </member>
@@ -4232,7 +4353,7 @@
             <summary>Richiesta di UpdateSOSACPN (impegno su Diapason).</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.UpdateSosacpnRequest.parametri">
-            <summary>Parametri di ConSOSACPN.exe: "ambiente funzione odl articolo fase [qta]" (es. "P ADD 123 ART 0027 5").</summary>
+            <summary>Parametri di ConSOSACPN.exe senza ambiente: "funzione odl articolo fase [qta]" (es. "ADD 123 ART 0027 5"). L'ambiente (P/T) lo antepone il server.</summary>
         </member>
         <member name="T:CG.MobileAPI.Models.AddArticoliImpegnoOdlRequest">
             <summary>Richiesta di addArticoliImpegnoOdl.</summary>
@@ -4298,7 +4419,7 @@
             <summary>Richiesta di getQualitaArrivi.</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.GetQualitaArriviRequest.societa">
-            <summary>Società (default CSPRO).</summary>
+            <summary>Ignorato: la società è quella del token.</summary>
         </member>
         <member name="P:CG.MobileAPI.Models.GetQualitaArriviRequest.art">
             <summary>Inizio del codice articolo.</summary>
@@ -4530,7 +4651,7 @@
             </summary>
             <param name="conn">Le stringhe di connessione dei servizi dell'app mobile.</param>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetTipoArticolo(System.String)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetTipoArticolo(System.String,System.String)">
             <summary>
             Tipo articolo (MTYPN) da DBSAITE (ex casagrande-app-web/getTipoArticolo.php).
             Restituisce <c>{tipoArticolo}</c> oppure <c>{error: "Nessun risultato"}</c>.
@@ -4539,10 +4660,10 @@
         <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.ValidaParametriSosacpn(System.String)">
             <summary>
             Controlla che i parametri di UpdateSOSACPN abbiano la forma usata dall'app
-            ("P|T ADD|REP|DEL odl articolo fase [qta]"), così il servizio non può essere usato per comandi arbitrari.
+            ("ADD|REP|DEL odl articolo fase [qta]", senza ambiente: lo aggiunge il server), così il servizio non può essere usato per comandi arbitrari.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.AddArticoliImpegnoOdl(CG.MobileAPI.Models.AddArticoliImpegnoOdlRequest)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.AddArticoliImpegnoOdl(CG.MobileAPI.Models.AddArticoliImpegnoOdlRequest,System.String)">
             <summary>
             Articoli già impegnati sull'ODL nella fase (ex query/produzione/addArticoliImpegnoOdl.php).
             </summary>
@@ -4552,12 +4673,12 @@
             Disponibilità dell'articolo nei magazzini MGAUT00, MGAUT10 e MISK* (ex query/produzione/checkImpegnoGiacenzaArticolo.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.ReturnMagazzinoFromImpegnoOdl(CG.MobileAPI.Models.ReturnMagazzinoFromImpegnoOdlRequest)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.ReturnMagazzinoFromImpegnoOdl(CG.MobileAPI.Models.ReturnMagazzinoFromImpegnoOdlRequest,System.String)">
             <summary>
             Magazzino di destinazione dell'ODL nella fase, 'Nessuno' se non c'è (ex query/produzione/returnMagazzinoFromImpegnoOdl.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.SelectImpegniOdl(System.String,System.String,System.String)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.SelectImpegniOdl(System.String,System.String,System.String,System.String)">
             <summary>
             ODL/fasi su cui l'utente può impegnare, cercando il codice come ODL, poi come padre, poi come magazzino
             (ex query/produzione/selectImpegniOdl.php). Le fasi visibili dipendono dal codice utente.
@@ -4583,7 +4704,7 @@
             ODL con componenti critici il cui numero o articolo padre contiene il testo (ex query/produzione/selectSituazioneCheckOdl.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.SelectSituazioneOdl(System.String)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.SelectSituazioneOdl(System.String,System.String)">
             <summary>
             Situazione dei componenti critici dell'ODL, con note e data di conferma dell'OdA (ex query/produzione/selectSituazioneOdl.php).
             </summary>
@@ -4603,12 +4724,12 @@
             Data yyyyMMdd di un mese fa calcolata come nel PHP (-100, a gennaio -8900).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetQualita">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetQualita(System.String)">
             <summary>
             Codici R ricondizionati arrivati nei magazzini MIRC, con lo stato di conferma qualità (ex query/produzione/getQualita.php).
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetQualitaArrivi(CG.MobileAPI.Models.GetQualitaArriviRequest)">
+        <member name="M:CG.MobileAPI.Models.DBPRODUZIONE.GetQualitaArrivi(CG.MobileAPI.Models.GetQualitaArriviRequest,System.String)">
             <summary>
             Arrivi di merce filtrati per articolo, ragione sociale e data (ex query/produzione/getQualitaArrivi.php).
             </summary>
@@ -4906,15 +5027,16 @@
             Inizializza una nuova istanza della classe <see cref="T:CG.MobileAPI.Tools.DiapasonExe"/>.
             </summary>
         </member>
-        <member name="M:CG.MobileAPI.Tools.DiapasonExe.CheckUserAsync(System.String,System.String,System.String)">
+        <member name="M:CG.MobileAPI.Tools.DiapasonExe.CheckUserAsync(System.String,System.String)">
             <summary>
             Verifica utente e password su Diapason. Restituisce l'output di ConCheckUser.exe
-            (<see cref="F:CG.MobileAPI.Tools.DiapasonExe.AUTENTICATO"/> se le credenziali sono corrette).
+            (<see cref="F:CG.MobileAPI.Tools.DiapasonExe.AUTENTICATO"/> se le credenziali sono corrette). L'ambiente è quello del server (<see cref="P:CG.MobileAPI.Data.DiapasonSettings.Ambiente"/>).
             </summary>
         </member>
         <member name="M:CG.MobileAPI.Tools.DiapasonExe.UpdateSosacpnAsync(System.String)">
             <summary>
             Aggiorna SOSACPN su Diapason (ex UpdateSOSACPN.php). Restituisce l'output dell'eseguibile.
+            I parametri arrivano senza ambiente: si antepone quello del server (<see cref="P:CG.MobileAPI.Data.DiapasonSettings.Ambiente"/>).
             </summary>
         </member>
         <member name="T:CG.MobileAPI.Tools.MovimentoDiapason">
@@ -4926,7 +5048,7 @@
             <summary>Causale: TNAV2 (inviata come TNAV3), UR1 o UNA.</summary>
         </member>
         <member name="P:CG.MobileAPI.Tools.MovimentoDiapason.Societa">
-            <summary>Società (vuota = CSPRO).</summary>
+            <summary>Società del token (CSPRO / IMM00): la imposta il controller, mai il client. Vuota o non gestita = CSPRO.</summary>
         </member>
         <member name="P:CG.MobileAPI.Tools.MovimentoDiapason.Utente">
             <summary>Codice utente Diapason.</summary>
@@ -4961,9 +5083,6 @@
         <member name="P:CG.MobileAPI.Tools.MovimentoDiapason.Fase">
             <summary>Fase dell'ODL (vuota = ricavata da cs_fabbmanc_odl_comp).</summary>
         </member>
-        <member name="P:CG.MobileAPI.Tools.MovimentoDiapason.Ambiente">
-            <summary>"TEST" per la porta di test, altrimenti produzione.</summary>
-        </member>
         <member name="T:CG.MobileAPI.Tools.DiapasonSocket">
             <summary>
             Client del server socket Diapason dei movimenti di magazzino (ex api/APIMovMag.php, eseguiAPIMovMag).
@@ -4988,6 +5107,38 @@
         <member name="M:CG.MobileAPI.Tools.DiapasonSocket.Campo(System.String,System.String)">
             <summary>
             Valore di un campo del comando: senza spazi né caratteri di controllo (separano i campi), default se vuoto.
+            </summary>
+        </member>
+        <member name="T:CG.MobileAPI.Tools.DisegniTool">
+            <summary>
+            PDF dei disegni nell'archivio di rete (es. <c>\\csg-fs-cld-01\Archivio3d</c>), letti direttamente dall'API
+            invece che dalla cartella <c>draw</c> del web server.
+            I link restituiti all'app sono firmati e scadono: si aprono anche con il visualizzatore PDF del telefono,
+            che non ha il token di login.
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Tools.DisegniTool.#ctor(Microsoft.Extensions.Options.IOptions{CG.MobileAPI.Data.MobileSettings})">
+            <summary>
+            Inizializza una nuova istanza della classe <see cref="T:CG.MobileAPI.Tools.DisegniTool"/>.
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Tools.DisegniTool.Cerca(System.String)">
+            <summary>
+            Nomi dei PDF il cui nome inizia con il codice disegno, in ordine di nome (vuoto se il codice non è valido
+            o l'archivio non è raggiungibile).
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Tools.DisegniTool.Link(System.String,System.String)">
+            <summary>
+            Link firmato all'azione che restituisce il PDF, valido per <see cref="P:CG.MobileAPI.Data.StorageSettings.LinkDisegniMinuti"/> minuti.
+            </summary>
+            <param name="urlAzione">URL dell'azione, es. https://host/api/giacenze/disegno.</param>
+            <param name="nomeFile">Nome del PDF nell'archivio.</param>
+        </member>
+        <member name="M:CG.MobileAPI.Tools.DisegniTool.Percorso(System.String,System.Int64,System.String)">
+            <summary>
+            Percorso del PDF se il link è valido (firma corretta, non scaduto) e il file esiste; altrimenti
+            <see cref="T:CG.MobileAPI.Tools.MobileException"/> (403 per link non valido o scaduto, 404 per file inesistente).
             </summary>
         </member>
         <member name="T:CG.MobileAPI.Tools.EmailTool">
@@ -5025,6 +5176,24 @@
             </summary>
             <param name="message">Messaggio per il client.</param>
             <param name="code">Codice d'errore (default -1).</param>
+        </member>
+        <member name="T:CG.MobileAPI.Tools.RicercaFile">
+            <summary>
+            Ricerca di file per pattern (es. <c>0010001*.pdf</c>) fatta dal file system / file server.
+            <para>
+            <see cref="M:System.IO.Directory.GetFiles(System.String,System.String)"/> in .NET legge l'elenco COMPLETO della cartella e filtra in
+            memoria: su una cartella di rete con centinaia di migliaia di file (Archivio3d) impiega più di un minuto.
+            FindFirstFileEx invece passa il pattern al server, che restituisce solo i file corrispondenti (decine di ms).
+            </para>
+            </summary>
+        </member>
+        <member name="M:CG.MobileAPI.Tools.RicercaFile.Elenca(System.String,System.String)">
+            <summary>
+            Nomi dei file (non delle cartelle) di <paramref name="cartella"/> che corrispondono a <paramref name="pattern"/>,
+            in ordine di nome. Il pattern non deve contenere separatori di percorso.
+            </summary>
+            <exception cref="T:System.IO.DirectoryNotFoundException">La cartella non esiste o non è raggiungibile.</exception>
+            <exception cref="T:System.UnauthorizedAccessException">Accesso negato alla cartella.</exception>
         </member>
         <member name="T:CG.MobileAPI.Tools.StorageTool">
             <summary>

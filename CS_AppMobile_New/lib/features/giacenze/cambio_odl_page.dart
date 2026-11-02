@@ -49,7 +49,7 @@ class _CambioOdlPageState extends State<CambioOdlPage> {
     super.initState();
     final app = context.read<AppState>();
     _service = CambioOdlService(app.api);
-    _societa = app.utenteLoggato.isEnglish ? 'CSUSA' : 'CSPRO';
+    _societa = app.utenteLoggato.societaApi;
     _recenti = LastSearched.get(_sezione);
   }
 

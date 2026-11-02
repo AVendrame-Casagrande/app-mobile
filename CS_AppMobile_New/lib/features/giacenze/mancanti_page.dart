@@ -87,7 +87,7 @@ class _MancantiPageState extends State<MancantiPage> {
   final List<StreamSubscription<EsitoMovimento>> _subs = [];
 
   String get _utente => _app.utenteLoggato.codiceUtente;
-  String get _societa => _app.utenteLoggato.isEnglish ? 'CSUSA' : 'CSPRO';
+  String get _societa => _app.utenteLoggato.societaApi;
   String get _blacklistKey => widget.isPrelievi
       ? 'blacklistPrelieviMagazzini'
       : 'blacklistMancantiMagazzini';

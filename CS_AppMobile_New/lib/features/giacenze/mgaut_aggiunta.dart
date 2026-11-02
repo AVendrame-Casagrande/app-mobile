@@ -45,6 +45,7 @@ class MgautAggiunta {
     required this.service,
     required this.magazzinoOrigine,
     required this.nomePortale,
+    this.articoloIniziale,
   }) : lista = MgautStore.lista(magazzinoOrigine);
 
   final BuildContext context;
@@ -52,6 +53,10 @@ class MgautAggiunta {
   final String magazzinoOrigine; // MGAUT00 / MGAUT10
   final String nomePortale;
   final List<RigaListaAut> lista;
+
+  /// Articolo già scelto (icona MGAUT della scheda Cerca, afterAddAction
+  /// 'notify'): si salta la scelta dell'articolo.
+  final String? articoloIniziale;
 
   // Variabili locali dell'originale.
   String _tipo = '';
@@ -198,6 +203,12 @@ class MgautAggiunta {
       lista.any((r) => r.tipoprel != 'ODV' && r.articolo == codice);
 
   Future<bool> _aggiungiArticolo() async {
+    final iniziale = articoloIniziale;
+    if (iniziale != null) {
+      // Da Cerca: per una lista ODV l'articolo deve essere nell'ODV con una sola POS.
+      if (lista.isNotEmpty && _tipo == 'ODV') return _articoloInizialeDaOdv(iniziale);
+      return _verificaArticolo(iniziale);
+    }
     if (lista.isNotEmpty && _tipo == 'ODL') return _articoloDaOdl();
     if (lista.isNotEmpty && _tipo == 'ODV') return _articoloDaOdv();
     return _articoloManuale();
@@ -276,6 +287,40 @@ class MgautAggiunta {
     _pos = _i(a['pos']);
     _seq = _i(a['seq']);
     return _verificaArticolo(_s(a['articolo']), qtaDispo: _n(a['qta']));
+  }
+
+  Future<bool> _articoloInizialeDaOdv(String codice) async {
+    final primo = lista.first;
+    List<Map<String, dynamic>> art;
+    try {
+      art = await service.odvGetArticoli(primo.rifprel, magazzinoOrigine, primo.magto);
+    } catch (_) {
+      if (context.mounted) {
+        await invAlert(
+            context, 'Errore di Rete', 'Impossibile scaricare gli Articoli Disponibili');
+      }
+      return false;
+    }
+    if (!context.mounted) return false;
+    if (art.isEmpty) {
+      await invAlert(context, 'Nessun Articolo', 'Nessun Articolo disponibile');
+      return false;
+    }
+    final trovati = art.where((a) => _s(a['articolo']) == codice).toList();
+    if (trovati.isEmpty) {
+      await invAlert(context, 'Articolo non presente',
+          "Questo articolo non è presente nell'ODV ${primo.rifprel} e non può essere aggiunto");
+      return false;
+    }
+    if (trovati.length > 1) {
+      await invAlert(context, 'Articolo ambiguo',
+          'Questo articolo è presente in più POS diverse\n\n'
+              'Devi aggiungere questo Articolo dalla sezione MGAUT');
+      return false;
+    }
+    _pos = _i(trovati.first['pos']);
+    _seq = _i(trovati.first['seq']);
+    return _verificaArticolo(codice, qtaDispo: _n(trovati.first['qta']));
   }
 
   /// checkAndAddArticolo: esiste, non è duplicato, ha giacenza sull'origine.
@@ -610,7 +655,7 @@ class MgautAggiunta {
         vanoRequired: _vanoRequired,
       ),
     );
-    invToast(context, 'Articolo ${a.codice} aggiunto');
+    if (articoloIniziale == null) invToast(context, 'Articolo ${a.codice} aggiunto');
     return true;
   }
 }

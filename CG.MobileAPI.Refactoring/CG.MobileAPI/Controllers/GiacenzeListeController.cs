@@ -41,10 +41,10 @@ namespace CG.MobileAPI.Controllers
             var trovate = true;
             var esito = Esegui("selectAccettazioni", () =>
             {
-                var risultato = Db.SelectAccettazioni(request);
+                var risultato = Db.SelectAccettazioni(request, Societa);
                 trovate = risultato != null;
                 return risultato;
-            }, null);
+            });
 
             return trovate ? esito : NotFound(ResultInfo.Error(404, "Nessuna accettazione trovata", null!));
         }
@@ -54,44 +54,44 @@ namespace CG.MobileAPI.Controllers
         /// <summary>Fasi e padre di un ODL per la stampa verniciatura (ex addInfoOdlStampaVern.php).</summary>
         [HttpPost("addInfoOdlStampaVern")]
         public IActionResult AddInfoOdlStampaVern([FromBody] AddInfoOdlStampaVernRequest request)
-            => Esegui("addInfoOdlStampaVern", () => Db.AddInfoOdlStampaVern(request));
+            => Esegui("addInfoOdlStampaVern", () => Db.AddInfoOdlStampaVern(request, Societa));
 
         /// <summary>Fasi e padre di un ODL per la stampa verniciatura libera (ex addInfoOdlStampaVernLibera.php).</summary>
         [HttpPost("addInfoOdlStampaVernLibera")]
         public IActionResult AddInfoOdlStampaVernLibera([FromBody] AddInfoOdlStampaVernLiberaRequest request)
-            => Esegui("addInfoOdlStampaVernLibera", () => Db.AddInfoOdlStampaVernLibera(request));
+            => Esegui("addInfoOdlStampaVernLibera", () => Db.AddInfoOdlStampaVernLibera(request, Societa));
 
         /// <summary>Descrizione e colore di un padre per la stampa verniciatura libera (ex addInfoPadreStampaVernLibera.php).</summary>
         [HttpPost("addInfoPadreStampaVernLibera")]
         public IActionResult AddInfoPadreStampaVernLibera([FromBody] AddInfoPadreStampaVernLiberaRequest request)
-            => Esegui("addInfoPadreStampaVernLibera", () => Db.AddInfoPadreStampaVernLibera(request));
+            => Esegui("addInfoPadreStampaVernLibera", () => Db.AddInfoPadreStampaVernLibera(request, Societa));
 
         /// <summary>Codice e descrizione del padre di un ODL (ex addPadreDescrizioneFixToMovimento.php).</summary>
         [HttpPost("addPadreDescrizioneFixToMovimento")]
         public IActionResult AddPadreDescrizioneFixToMovimento([FromBody] AddPadreDescrizioneFixToMovimentoRequest request)
-            => Esegui("addPadreDescrizioneFixToMovimento", () => Db.AddPadreDescrizioneFixToMovimento(request));
+            => Esegui("addPadreDescrizioneFixToMovimento", () => Db.AddPadreDescrizioneFixToMovimento(request, Societa));
 
         /// <summary>Fasi di un ODL con destinazione non automatica (ex validateOdlSelectFasi.php).</summary>
         [HttpPost("validateOdlSelectFasi")]
         public IActionResult ValidateOdlSelectFasi([FromBody] ValidateOdlSelectFasiRequest request)
-            => Esegui("validateOdlSelectFasi", () => Db.ValidateOdlSelectFasi(request));
+            => Esegui("validateOdlSelectFasi", () => Db.ValidateOdlSelectFasi(request, Societa));
 
         /// <summary>Cambio ODL: ricerca per ODL, padre o magazzino (ex selectCambioOdl.php).</summary>
         [HttpPost("selectCambioOdl")]
         public IActionResult SelectCambioOdl([FromBody] SelectCambioOdlRequest request)
-            => Esegui("selectCambioOdl", () => Db.SelectCambioOdl(request));
+            => Esegui("selectCambioOdl", () => Db.SelectCambioOdl(request, Societa));
 
         /// <summary>ODL (e ODV) con destinazione il magazzino indicato (ex getOdlListFromMagDest.php).</summary>
         [HttpPost("getOdlListFromMagDest")]
         public IActionResult GetOdlListFromMagDest([FromBody] GetOdlListFromMagDestRequest request)
-            => Esegui("getOdlListFromMagDest", () => Db.GetOdlListFromMagDest(request));
+            => Esegui("getOdlListFromMagDest", () => Db.GetOdlListFromMagDest(request, Societa));
 
         // ----- MANCANTI / RIENTRI ------------------------------------------------------------------------------------
 
         /// <summary>Conteggio mancanti critici per magazzino e data-log (ex countMancantiSearchPage.php).</summary>
         [HttpPost("countMancantiSearchPage")]
         public IActionResult CountMancantiSearchPage()
-            => Esegui("countMancantiSearchPage", () => Db.CountMancantiSearchPage());
+            => Esegui("countMancantiSearchPage", () => Db.CountMancantiSearchPage(Societa));
 
         /// <summary>Ultimo data-log dei mancanti (ex getLatestDtrunHrrun.php).</summary>
         [HttpPost("getLatestDtrunHrrun")]
@@ -101,7 +101,7 @@ namespace CG.MobileAPI.Controllers
         /// <summary>Mancanti / prelievi di un magazzino di impegno (ex selectMancantiDaMag.php).</summary>
         [HttpPost("selectMancantiDaMag")]
         public IActionResult SelectMancantiDaMag([FromBody] SelectMancantiDaMagRequest request)
-            => Esegui("selectMancantiDaMag", () => Db.SelectMancantiDaMag(request));
+            => Esegui("selectMancantiDaMag", () => Db.SelectMancantiDaMag(request, Societa));
 
         /// <summary>Rientri di un magazzino (ex selectRientri.php).</summary>
         [HttpPost("selectRientri")]
@@ -145,7 +145,7 @@ namespace CG.MobileAPI.Controllers
         /// <summary>Crea una lista di inventario a nome dell'utente autenticato (ex writeLista.php).</summary>
         [HttpPost("writeLista")]
         public IActionResult WriteLista([FromBody] WriteListaRequest request)
-            => Esegui("writeLista", () => Db.WriteLista(request, Utente));
+            => Esegui("writeLista", () => Db.WriteLista(request, Utente, Societa));
 
         /// <summary>Cambia lo stato di una lista; utente di chiusura = utente autenticato (ex cambiaStatoLista.php).</summary>
         [HttpPost("cambiaStatoLista")]
@@ -172,7 +172,7 @@ namespace CG.MobileAPI.Controllers
         /// <summary>Dati ODV per il prelievo MGAUT (ex checkOdvListaPrelievoMgaut.php).</summary>
         [HttpPost("checkOdvListaPrelievoMgaut")]
         public IActionResult CheckOdvListaPrelievoMgaut([FromBody] CheckOdvListaPrelievoMgautRequest request)
-            => Esegui("checkOdvListaPrelievoMgaut", () => Db.CheckOdvListaPrelievoMgaut(request));
+            => Esegui("checkOdvListaPrelievoMgaut", () => Db.CheckOdvListaPrelievoMgaut(request, Societa));
 
         /// <summary>Cancella (logicamente) una lista di prelievo Automha (ex deleteListaPrelievo.php).</summary>
         [HttpPost("deleteListaPrelievo")]
@@ -192,51 +192,51 @@ namespace CG.MobileAPI.Controllers
         /// <summary>True se l'articolo dell'attività 0027 è ancora da visualizzare (ex getListaPrelievi0027FromAttivitaCheckScript.php).</summary>
         [HttpPost("getListaPrelievi0027FromAttivitaCheckScript")]
         public IActionResult GetListaPrelievi0027FromAttivitaCheckScript([FromBody] GetListaPrelievi0027FromAttivitaCheckScriptRequest request)
-            => Esegui("getListaPrelievi0027FromAttivitaCheckScript", () => Db.GetListaPrelievi0027FromAttivitaCheckScript(request));
+            => Esegui("getListaPrelievi0027FromAttivitaCheckScript", () => Db.GetListaPrelievi0027FromAttivitaCheckScript(request, Societa));
 
         /// <summary>Righe da trasferire su MGIS001 (ex getListaTrasferimentiMgis001.php).</summary>
         [HttpPost("getListaTrasferimentiMgis001")]
         public IActionResult GetListaTrasferimentiMgis001()
-            => Esegui("getListaTrasferimentiMgis001", () => Db.GetListaTrasferimentiMgis001());
+            => Esegui("getListaTrasferimentiMgis001", () => Db.GetListaTrasferimentiMgis001(Societa));
 
         /// <summary>ODV contenuti in una prebolla (ex mgaut_prel_immediato_get_odv_from_prebolla.php).</summary>
         [HttpPost("mgaut_prel_immediato_get_odv_from_prebolla")]
         public IActionResult MgautPrelImmediatoGetOdvFromPrebolla([FromBody] MgautPrelImmediatoGetOdvFromPrebollaRequest request)
-            => Esegui("mgaut_prel_immediato_get_odv_from_prebolla", () => Db.MgautPrelImmediatoGetOdvFromPrebolla(request));
+            => Esegui("mgaut_prel_immediato_get_odv_from_prebolla", () => Db.MgautPrelImmediatoGetOdvFromPrebolla(request, Societa));
 
         /// <summary>Righe di prebolla di un ODV con giacenze MGAUT (ex mgaut_prel_immediato_get_righe_from_odv.php).</summary>
         [HttpPost("mgaut_prel_immediato_get_righe_from_odv")]
         public IActionResult MgautPrelImmediatoGetRigheFromOdv([FromBody] MgautPrelImmediatoGetRigheFromOdvRequest request)
-            => Esegui("mgaut_prel_immediato_get_righe_from_odv", () => Db.MgautPrelImmediatoGetRigheFromOdv(request));
+            => Esegui("mgaut_prel_immediato_get_righe_from_odv", () => Db.MgautPrelImmediatoGetRigheFromOdv(request, Societa));
 
         /// <summary>Articoli ODL/fase prelevabili da MGAUT (ex mgaut_prel_odl_get_articoli.php).</summary>
         [HttpPost("mgaut_prel_odl_get_articoli")]
         public IActionResult MgautPrelOdlGetArticoli([FromBody] MgautPrelOdlGetArticoliRequest request)
-            => Esegui("mgaut_prel_odl_get_articoli", () => Db.MgautPrelOdlGetArticoli(request));
+            => Esegui("mgaut_prel_odl_get_articoli", () => Db.MgautPrelOdlGetArticoli(request, Societa));
 
         /// <summary>Magazzini di destinazione ODL per un articolo MGAUT (ex mgaut_prel_odl_get_magazzini.php).</summary>
         [HttpPost("mgaut_prel_odl_get_magazzini")]
         public IActionResult MgautPrelOdlGetMagazzini([FromBody] MgautPrelOdlGetMagazziniRequest request)
-            => Esegui("mgaut_prel_odl_get_magazzini", () => Db.MgautPrelOdlGetMagazzini(request));
+            => Esegui("mgaut_prel_odl_get_magazzini", () => Db.MgautPrelOdlGetMagazzini(request, Societa));
 
         /// <summary>ODL prelevabili da MGAUT per un magazzino di destinazione (ex mgaut_prel_odl_get_odl.php).</summary>
         [HttpPost("mgaut_prel_odl_get_odl")]
         public IActionResult MgautPrelOdlGetOdl([FromBody] MgautPrelOdlGetOdlRequest request)
-            => Esegui("mgaut_prel_odl_get_odl", () => Db.MgautPrelOdlGetOdl(request));
+            => Esegui("mgaut_prel_odl_get_odl", () => Db.MgautPrelOdlGetOdl(request, Societa));
 
         /// <summary>Articoli ODV prelevabili da MGAUT (ex mgaut_prel_odv_get_articoli.php).</summary>
         [HttpPost("mgaut_prel_odv_get_articoli")]
         public IActionResult MgautPrelOdvGetArticoli([FromBody] MgautPrelOdvGetArticoliRequest request)
-            => Esegui("mgaut_prel_odv_get_articoli", () => Db.MgautPrelOdvGetArticoli(request));
+            => Esegui("mgaut_prel_odv_get_articoli", () => Db.MgautPrelOdvGetArticoli(request, Societa));
 
         /// <summary>Magazzini di destinazione ODV per un articolo MGAUT (ex mgaut_prel_odv_get_magazzini.php).</summary>
         [HttpPost("mgaut_prel_odv_get_magazzini")]
         public IActionResult MgautPrelOdvGetMagazzini([FromBody] MgautPrelOdvGetMagazziniRequest request)
-            => Esegui("mgaut_prel_odv_get_magazzini", () => Db.MgautPrelOdvGetMagazzini(request));
+            => Esegui("mgaut_prel_odv_get_magazzini", () => Db.MgautPrelOdvGetMagazzini(request, Societa));
 
         /// <summary>ODV prelevabili da MGAUT per un magazzino di destinazione (ex mgaut_prel_odv_get_odv.php).</summary>
         [HttpPost("mgaut_prel_odv_get_odv")]
         public IActionResult MgautPrelOdvGetOdv([FromBody] MgautPrelOdvGetOdvRequest request)
-            => Esegui("mgaut_prel_odv_get_odv", () => Db.MgautPrelOdvGetOdv(request));
+            => Esegui("mgaut_prel_odv_get_odv", () => Db.MgautPrelOdvGetOdv(request, Societa));
     }
 }

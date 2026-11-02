@@ -835,9 +835,9 @@
         "tags": [
           "Dapiws"
         ],
-        "summary": "Aggiorna peso netto e/o lordo di un articolo in anagrafica Diapason (ex dapiws/UpdateArticolo.php).\r\nLa sessione web service viene aperta con l'utente del token, non con il campo `username`.",
+        "summary": "Aggiorna peso netto e/o lordo di un articolo in anagrafica Diapason (ex dapiws/UpdateArticolo.php).\r\nLa sessione web service viene aperta con l'utente e la società del token, non con i campi\r\n`username` e `societa` del body (ignorati).",
         "requestBody": {
-          "description": "Società, articolo e nuovi pesi (JSON).",
+          "description": "Articolo e nuovi pesi (JSON).",
           "content": {
             "application/json": {
               "schema": {
@@ -1521,6 +1521,80 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/giacenze/disegno/{nomeFile}": {
+      "get": {
+        "tags": [
+          "GiacenzeArticoli"
+        ],
+        "summary": "PDF di un disegno dell'archivio di rete. Il link (firmato, con scadenza) arriva da selectSingoloArticolo o\r\ngetPdfList: non serve il token, così il PDF si apre anche nel visualizzatore del telefono.",
+        "parameters": [
+          {
+            "name": "nomeFile",
+            "in": "path",
+            "description": "Nome del PDF.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exp",
+            "in": "query",
+            "description": "Scadenza del link (secondi Unix).",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sig",
+            "in": "query",
+            "description": "Firma del link.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/giacenze/fotoArxivar/{docNumber}": {
+      "get": {
+        "tags": [
+          "GiacenzeArticoli"
+        ],
+        "summary": "Foto ARXivar di un articolo (i link sono in arrayImmagini di selectSingoloArticolo): il jpg viene letto da\r\nARXivar e inviato direttamente, senza copiarlo nella cartella del server.",
+        "parameters": [
+          {
+            "name": "docNumber",
+            "in": "path",
+            "description": "Numero del documento ARXivar.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "articolo",
+            "in": "query",
+            "description": "Codice articolo a cui la foto deve appartenere.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -4866,7 +4940,7 @@
           },
           "societa": {
             "type": "string",
-            "description": "Società.",
+            "description": "Ignorato: la società del movimento è quella del token (ex campo societa di APIMovMagMobileApp[IMM].php).",
             "nullable": true
           }
         },
@@ -5485,7 +5559,7 @@
         "properties": {
           "societa": {
             "type": "string",
-            "description": "Società (default CSPRO).",
+            "description": "Ignorato: la società è quella del token.",
             "nullable": true
           },
           "art": {
@@ -5759,11 +5833,6 @@
             "type": "string",
             "description": "Codice magazzino (gestito solo per i magazzini MISK*).",
             "nullable": true
-          },
-          "societa": {
-            "type": "string",
-            "description": "Società (non usata dal servizio, come nel PHP).",
-            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -5815,11 +5884,6 @@
             "type": "string",
             "description": "Inizio del codice articolo o della descrizione.",
             "nullable": true
-          },
-          "societa": {
-            "type": "string",
-            "description": "Società (default CSPRO).",
-            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -5831,11 +5895,6 @@
           "codiceArticolo": {
             "type": "string",
             "description": "Codice articolo.",
-            "nullable": true
-          },
-          "societa": {
-            "type": "string",
-            "description": "Società (default CSPRO).",
             "nullable": true
           }
         },
@@ -5860,11 +5919,6 @@
           "codiceArticolo": {
             "type": "string",
             "description": "Codice articolo.",
-            "nullable": true
-          },
-          "societa": {
-            "type": "string",
-            "description": "Società (default CSPRO).",
             "nullable": true
           },
           "needCompleteInfo": {
@@ -6156,6 +6210,11 @@
             "type": "string",
             "description": "Ambiente Diapason per la verifica password (default \"P\").",
             "nullable": true
+          },
+          "societa": {
+            "type": "string",
+            "description": "Società con cui lavorare: CSPRO (Casagrande) o IMM00 (IMM). Default CSPRO. Ignorata per gli utenti in lingua inglese (CSUSA).",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -6421,7 +6480,7 @@
           },
           "societa": {
             "type": "string",
-            "description": "Società.",
+            "description": "Ignorato: la società del movimento è quella del token.",
             "nullable": true
           },
           "articolo": {
@@ -7070,7 +7129,7 @@
           },
           "societa": {
             "type": "string",
-            "description": "Società Diapason (es. CSPRO).",
+            "description": "Ignorata: si usa la società del token (CSPRO / IMM00).",
             "nullable": true
           },
           "articolo": {

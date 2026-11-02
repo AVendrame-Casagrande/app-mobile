@@ -129,12 +129,12 @@ class ImpegnoOdlService {
   }
 
   /// null se l'articolo non esiste.
-  /// POST giacenze/selectSingoloArticolo.php {codiceArticolo, societa:'CSPRO', needCompleteInfo:false}
+  /// POST giacenze/selectSingoloArticolo.php {codiceArticolo, societa, needCompleteInfo:false}
   Future<ArticoloDaImpegnare?> getArticolo(String codice) async {
     dynamic res;
     try {
       res = await _api.postJson('${AppConfig.giacenzeUrl}/selectSingoloArticolo',
-          data: {'codiceArticolo': codice, 'societa': 'CSPRO', 'needCompleteInfo': false});
+          data: {'codiceArticolo': codice, 'societa': AuthToken.societa, 'needCompleteInfo': false});
     } on ApiException catch (e) {
       if (e.statusCode == 404) return null;
       rethrow;

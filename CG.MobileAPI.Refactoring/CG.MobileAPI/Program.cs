@@ -135,15 +135,16 @@ builder.Services.Configure<ConfigurationLoader>(
 
 // Servizi dell'app mobile (ex PHP mobile/server)
 builder.Services.Configure<MobileSettings>(builder.Configuration.GetSection("mobile"));
+builder.Services.PostConfigure<MobileSettings>(s => s.Diapason.IsTest = isTest);
 builder.Services.AddSingleton(sp =>
 {
     var conf = sp.GetRequiredService<IConfiguration>();
     return new MobileConnections
     {
         Db2 = isTest ? conf.GetConnectionString("DB2ConnectionTest") : conf.GetConnectionString("DB2ConnectionProd"),
-        Db2Modula = conf.GetConnectionString("MobileDB2Modula") ?? "",
+        Db2Modula = isTest ? conf.GetConnectionString("DB2ConnectionTest") : conf.GetConnectionString("DB2ConnectionProd"),
         Db2Replica = conf.GetConnectionString("DB2ConnectionBCK") ?? "",
-        PgCasagrande = conf.GetConnectionString("PostgreConnection") ?? "",
+        PgCasagrande = isTest ? (conf.GetConnectionString("PostgreConnectionTEST") ?? "") : (conf.GetConnectionString("PostgreConnection") ?? ""),
         PgDb1 = conf.GetConnectionString("MobilePgDB1") ?? "",
         PgCasagrandeDev = conf.GetConnectionString("MobilePgCasagrandeDev") ?? ""
     };
@@ -151,6 +152,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<DiapasonSocket>();
 builder.Services.AddSingleton<DiapasonExe>();
 builder.Services.AddSingleton<StorageTool>();
+builder.Services.AddSingleton<DisegniTool>();
 builder.Services.AddSingleton<EmailTool>();
 
 // Inietta MyDbContext

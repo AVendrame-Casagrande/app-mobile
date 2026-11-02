@@ -209,7 +209,7 @@ namespace CG.MobileAPI.Models
         }
 
         // -------------------------------------------------------------------------------------------------------------
-        // --- Attività (D60STDDB.CSAVVMAG) ----------------------------------------------------------------------------
+        // --- Attività (CSAVVMAG) ----------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -221,11 +221,11 @@ namespace CG.MobileAPI.Models
             var dataCorrente = int.Parse(DateTime.Now.ToString("yyyyMMdd"));
 
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT * FROM D60STDDB.CSAVVMAG
-                  WHERE (D60STDDB.CSAVVMAG.ATTIVO='1' OR (D60STDDB.CSAVVMAG.ATTIVO='2' AND lower(D60STDDB.CSAVVMAG.UTENTE) = ?))
-                  AND D60STDDB.CSAVVMAG.COMPLETATO='0' AND D60STDDB.CSAVVMAG.DEST != '' AND D60STDDB.CSAVVMAG.AVVISO != ?
-                  AND D60STDDB.CSAVVMAG.SCADENZA >= ?
-                  ORDER BY D60STDDB.CSAVVMAG.URGENTE DESC, D60STDDB.CSAVVMAG.SCADENZA DESC, D60STDDB.CSAVVMAG.TIMEST DESC",
+                @"SELECT * FROM CSAVVMAG
+                  WHERE (CSAVVMAG.ATTIVO='1' OR (CSAVVMAG.ATTIVO='2' AND lower(CSAVVMAG.UTENTE) = ?))
+                  AND CSAVVMAG.COMPLETATO='0' AND CSAVVMAG.DEST != '' AND CSAVVMAG.AVVISO != ?
+                  AND CSAVVMAG.SCADENZA >= ?
+                  ORDER BY CSAVVMAG.URGENTE DESC, CSAVVMAG.SCADENZA DESC, CSAVVMAG.TIMEST DESC",
                 utenteCreazionePortale, "Attività cancellata", dataCorrente);
 
             return rows.Select(r => new Dictionary<string, object?>
@@ -247,7 +247,7 @@ namespace CG.MobileAPI.Models
         public object SelectSingoloAvviso(string timest, string utente)
         {
             var r = DbHelper.QueryFirst(_conn.Db2,
-                "SELECT * FROM D60STDDB.CSAVVMAG WHERE TIMEST=? AND UTENTE=? ORDER BY D60STDDB.CSAVVMAG.TIMEST DESC LIMIT 1",
+                "SELECT * FROM CSAVVMAG WHERE TIMEST=? AND UTENTE=? ORDER BY CSAVVMAG.TIMEST DESC LIMIT 1",
                 timest, utente);
 
             if (r == null)
@@ -282,7 +282,7 @@ namespace CG.MobileAPI.Models
             utente = _spazi.Replace(utente, "");
 
             return DbHelper.NonQuery(_conn.Db2Modula,
-                @"INSERT INTO D60STDDB.CSAVVMAG (TIMEST, AVVISO, UTENTE, ATTIVO, URGENTE, DEST, SCADENZA, COMPLETATO)
+                @"INSERT INTO CSAVVMAG (TIMEST, AVVISO, UTENTE, ATTIVO, URGENTE, DEST, SCADENZA, COMPLETATO)
                   VALUES(?, ?, ?, '1', ?, ?, ?, '0')",
                 timest, avviso, utente, urgente, dest, scadenza);
         }
@@ -294,8 +294,8 @@ namespace CG.MobileAPI.Models
         public int ModificaAvviso(string timest, string utente, string avviso, string dest, string urgente, long scadenza)
         {
             return DbHelper.NonQuery(_conn.Db2Modula,
-                @"UPDATE D60STDDB.CSAVVMAG SET D60STDDB.CSAVVMAG.AVVISO=?, D60STDDB.CSAVVMAG.SCADENZA=?, D60STDDB.CSAVVMAG.URGENTE=?, D60STDDB.CSAVVMAG.DEST=?
-                  WHERE D60STDDB.CSAVVMAG.TIMEST=? AND lower(D60STDDB.CSAVVMAG.UTENTE)=?",
+                @"UPDATE CSAVVMAG SET CSAVVMAG.AVVISO=?, CSAVVMAG.SCADENZA=?, CSAVVMAG.URGENTE=?, CSAVVMAG.DEST=?
+                  WHERE CSAVVMAG.TIMEST=? AND lower(CSAVVMAG.UTENTE)=?",
                 avviso, scadenza, urgente, dest, timest, utente);
         }
 
@@ -305,8 +305,8 @@ namespace CG.MobileAPI.Models
         public int CompletaAvviso(string timest, string utente, string dest)
         {
             return DbHelper.NonQuery(_conn.Db2Modula,
-                @"UPDATE D60STDDB.CSAVVMAG SET D60STDDB.CSAVVMAG.COMPLETATO='1'
-                  WHERE D60STDDB.CSAVVMAG.TIMEST = ? AND lower(D60STDDB.CSAVVMAG.UTENTE) = ? AND D60STDDB.CSAVVMAG.DEST = ?",
+                @"UPDATE CSAVVMAG SET CSAVVMAG.COMPLETATO='1'
+                  WHERE CSAVVMAG.TIMEST = ? AND lower(CSAVVMAG.UTENTE) = ? AND CSAVVMAG.DEST = ?",
                 timest, utente, dest);
         }
 
@@ -316,7 +316,7 @@ namespace CG.MobileAPI.Models
         public int EliminaAvviso(string timest, string utente)
         {
             return DbHelper.NonQuery(_conn.Db2Modula,
-                "DELETE FROM D60STDDB.CSAVVMAG WHERE D60STDDB.CSAVVMAG.TIMEST=? AND D60STDDB.CSAVVMAG.UTENTE=?",
+                "DELETE FROM CSAVVMAG WHERE CSAVVMAG.TIMEST=? AND CSAVVMAG.UTENTE=?",
                 timest, utente);
         }
 
@@ -331,8 +331,8 @@ namespace CG.MobileAPI.Models
         public int ImpostaAttivitaSemiCompletata(string timest, string utente, string dest)
         {
             return DbHelper.NonQuery(_conn.Db2Modula,
-                @"UPDATE D60STDDB.CSAVVMAG SET D60STDDB.CSAVVMAG.ATTIVO='2'
-                  WHERE D60STDDB.CSAVVMAG.TIMEST = ? AND lower(D60STDDB.CSAVVMAG.UTENTE) = ? AND D60STDDB.CSAVVMAG.DEST = ?",
+                @"UPDATE CSAVVMAG SET CSAVVMAG.ATTIVO='2'
+                  WHERE CSAVVMAG.TIMEST = ? AND lower(CSAVVMAG.UTENTE) = ? AND CSAVVMAG.DEST = ?",
                 timest, utente, dest);
         }
 
@@ -343,18 +343,19 @@ namespace CG.MobileAPI.Models
         /// <param name="articolo">Articolo dell'attività.</param>
         /// <param name="odl">ODL dell'attività.</param>
         /// <param name="dataOraCreazione">Data e ora di avvio dello script, numerico yyyyMMddHHmmss.</param>
-        public bool VerificaTrasferimentoMgaut01(string articolo, string odl, long dataOraCreazione)
+        /// <param name="societa">Società del token.</param>
+        public bool VerificaTrasferimentoMgaut01(string articolo, string odl, long dataOraCreazione, string societa)
         {
             var rows = DbHelper.Query(_conn.Db2Modula,
                 @"SELECT TRNITM
-                  FROM D60STDDB.MASATRN
-                  WHERE D60STDDB.MASATRN.TRNITM = ?
-                  AND D60STDDB.MASATRN.TORNUOR = ?
-                  AND D60STDDB.MASATRN.TRDATE >= ? AND
-                  D60STDDB.MASATRN.TMACO='ET' AND D60STDDB.MASATRN.TUSCO ='A'
-                  AND D60STDDB.MASATRN.TMAG = 'MGAUT01'
-                  AND D60STDDB.MASATRN.TRNSOC = 'CSPRO'",
-                articolo, odl, dataOraCreazione);
+                  FROM MASATRN
+                  WHERE MASATRN.TRNITM = ?
+                  AND MASATRN.TORNUOR = ?
+                  AND MASATRN.TRDATE >= ? AND
+                  MASATRN.TMACO='ET' AND MASATRN.TUSCO ='A'
+                  AND MASATRN.TMAG = 'MGAUT01'
+                  AND MASATRN.TRNSOC = ?",
+                articolo, odl, dataOraCreazione, societa);
             return rows.Count > 0;
         }
 
@@ -438,14 +439,14 @@ namespace CG.MobileAPI.Models
         }
 
         // -------------------------------------------------------------------------------------------------------------
-        // --- Bolle a destinazione specifica (avvisi speciali, note D60STDDB.OFSAOTX) --------------------------------
+        // --- Bolle a destinazione specifica (avvisi speciali, note OFSAOTX) --------------------------------
         // -------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Bolle a destinazione specifica dell'ultimo anno non ancora completate, ordinate per data
         /// (ex selectAllAvvisiSpeciali.php).
         /// </summary>
-        public List<Dictionary<string, object?>> SelectAllAvvisiSpeciali()
+        public List<Dictionary<string, object?>> SelectAllAvvisiSpeciali(string societa)
         {
             // -1 anno: solo le bolle dell'ultimo anno
             var data = int.Parse(DateTime.Now.ToString("yyyyMMdd")) - 10000;
@@ -454,20 +455,21 @@ namespace CG.MobileAPI.Models
             conn.Open();
 
             var rows = DbHelper.Query(conn, null,
-                @"SELECT a.RIRIPNO, PTUSER, POAMEND, POSTAT1,RFNRORD,RIDEST,RICOFOR,ANINCO,RIDLVNO,RIDTXAB,RICODART,MPDSC,RIDELUM,RIDLVQT/100 AS QTA,D60STDDB.OfSAOTX.PTCOMM,RFNRPOS
-                  FROM D60STDDB.rmsadat a
-                  INNER JOIN D60STDDB.DBSAITE b ON a.RICODART=b.mitem AND a.RICOSC=b.mcosc
-                  INNER JOIN D60STDDB.ansadid c ON a.ricofor=c.ancoco AND a.RICOSC=c.ancoso
-                  INNER JOIN D60STDDB.rmsadac d ON a.RIRIPNO=d.RIRIPNO AND a.RICOSC=d.ricosc
-                  INNER JOIN D60STDDB.OFSALIN ON RFNRORD=POORDNO AND RFNRPOS=POORDLN
-                  inner JOIN D60STDDB.OfSAOTX ON ptcosc=a.ricosc AND ptuser LIKE RFNRORD CONCAT '000000%' AND pttxtc='IM' AND ptseqt=1
-                  WHERE a.RICOSC='CSPRO' AND RITSTLAV='N' AND mtypn<>'N' AND POAMEND=0 AND RIDTXAB>?
+                @"SELECT a.RIRIPNO, PTUSER, POAMEND, POSTAT1,RFNRORD,RIDEST,RICOFOR,ANINCO,RIDLVNO,RIDTXAB,RICODART,MPDSC,RIDELUM,RIDLVQT/100 AS QTA,OfSAOTX.PTCOMM,RFNRPOS
+                  FROM rmsadat a
+                  INNER JOIN DBSAITE b ON a.RICODART=b.mitem AND a.RICOSC=b.mcosc
+                  INNER JOIN ansadid c ON a.ricofor=c.ancoco AND a.RICOSC=c.ancoso
+                  INNER JOIN rmsadac d ON a.RIRIPNO=d.RIRIPNO AND a.RICOSC=d.ricosc
+                  INNER JOIN OFSALIN ON RFNRORD=POORDNO AND RFNRPOS=POORDLN
+                  inner JOIN OfSAOTX ON ptcosc=a.ricosc AND ptuser LIKE RFNRORD CONCAT '000000%' AND pttxtc='IM' AND ptseqt=1
+                  WHERE a.RICOSC=? AND RITSTLAV='N' AND mtypn<>'N' AND POAMEND=0 AND RIDTXAB>?
                   ORDER BY RFNRORD ASC, RFNRPOS DESC",
-                data);
+                societa, data);
 
             // Righe già completate (nota IM con PTCOMM che inizia per '#', vedi CompletaAvvisoSpeciale)
             var completati = DbHelper.Query(conn, null,
-                "SELECT PTUSER FROM D60STDDB.OFSAOTX WHERE PTCOSC='CSPRO' AND PTTXTC='IM' AND PTSEQT=1 AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#' ORDER BY PTUSER")
+                "SELECT PTUSER FROM OFSAOTX WHERE PTCOSC=? AND PTTXTC='IM' AND PTSEQT=1 AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#' ORDER BY PTUSER",
+                societa)
                 .Select(c => Str(c, "PTUSER"))
                 .ToList();
 
@@ -514,10 +516,10 @@ namespace CG.MobileAPI.Models
         }
 
         /// <summary>
-        /// Righe (note CSPRO/IT) di una bolla a destinazione specifica non ancora completate
+        /// Righe (note IT della società del token) di una bolla a destinazione specifica non ancora completate
         /// (ex addInfoAvvisoSpeciale.php).
         /// </summary>
-        public List<Dictionary<string, object?>> AddInfoAvvisoSpeciale(string id)
+        public List<Dictionary<string, object?>> AddInfoAvvisoSpeciale(string id, string societa)
         {
             var prefisso = id + "000";
 
@@ -525,8 +527,8 @@ namespace CG.MobileAPI.Models
             conn.Open();
 
             var rows = DbHelper.Query(conn, null,
-                "SELECT PTUSER,PTCOMM FROM D60STDDB.OFSAOTX WHERE PTUSER LIKE ? AND PTCOSC='CSPRO' AND PTTXTC='IT' AND PTSEQT=1",
-                prefisso + "%");
+                "SELECT PTUSER,PTCOMM FROM OFSAOTX WHERE PTUSER LIKE ? AND PTCOSC=? AND PTTXTC='IT' AND PTSEQT=1",
+                prefisso + "%", societa);
 
             var lista = new List<Dictionary<string, object?>>();
 
@@ -536,8 +538,8 @@ namespace CG.MobileAPI.Models
 
                 // Se esiste la nota IM '#...' la riga è già stata completata: non la mostro
                 var completata = DbHelper.Query(conn, null,
-                    "SELECT PTUSER FROM D60STDDB.OFSAOTX WHERE PTUSER=? AND PTCOSC='CSPRO' AND PTTXTC='IM' AND PTSEQT=1 AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#'",
-                    ptuser).Count > 0;
+                    "SELECT PTUSER FROM OFSAOTX WHERE PTUSER=? AND PTCOSC=? AND PTTXTC='IM' AND PTSEQT=1 AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#'",
+                    ptuser, societa).Count > 0;
 
                 if (!completata)
                 {
@@ -558,7 +560,7 @@ namespace CG.MobileAPI.Models
         /// Restituisce <c>completata</c> seguito da <c>| PTUSER</c> per ogni riga già completata e <c>| n</c>
         /// (righe inserite) per ogni riga completata ora.
         /// </summary>
-        public string CompletaAvvisoSpeciale(string id, string bolla, string utente, int riga)
+        public string CompletaAvvisoSpeciale(string id, string bolla, string utente, int riga, string societa)
         {
             var datacreazione = DateTime.Now.ToString("yyyyMMdd");
             var newPtcomText = "#" + utente + "#" + datacreazione + "#" + bolla;
@@ -572,8 +574,8 @@ namespace CG.MobileAPI.Models
             {
                 // La testata dell'ordine ha la nota IM PTSEQT=1; nelle righe la nota IM la aggiungo io per dire che è completata
                 var esistenti = DbHelper.Query(conn, null,
-                    "SELECT PTUSER FROM D60STDDB.OFSAOTX WHERE PTUSER LIKE ? AND PTCOSC='CSPRO' AND PTSEQT=1 AND PTTXTC='IM' AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#'",
-                    id + "%" + i + "%");
+                    "SELECT PTUSER FROM OFSAOTX WHERE PTUSER LIKE ? AND PTCOSC=? AND PTSEQT=1 AND PTTXTC='IM' AND PTFUNC = '===' AND LEFT(PTCOMM, 1) = '#'",
+                    id + "%" + i + "%", societa);
 
                 foreach (var e in esistenti)
                 {
@@ -586,8 +588,8 @@ namespace CG.MobileAPI.Models
                     var idToInsert = id + i.ToString(CultureInfo.InvariantCulture).PadLeft(6, '0');
 
                     var inserite = DbHelper.NonQuery(conn, null,
-                        "INSERT INTO D60STDDB.OFSAOTX (PTUSER, PTCOSC, PTTXTC, PTSEQT, PTCOMM, PTFUNC) VALUES(?, 'CSPRO', 'IM', 1, ?, '===')",
-                        idToInsert, newPtcomText);
+                        "INSERT INTO OFSAOTX (PTUSER, PTCOSC, PTTXTC, PTSEQT, PTCOMM, PTFUNC) VALUES(?, ?, 'IM', 1, ?, '===')",
+                        idToInsert, societa, newPtcomText);
 
                     response += " | " + inserite;
                 }
@@ -604,7 +606,7 @@ namespace CG.MobileAPI.Models
         /// Componenti CC mancanti degli ODL con l'eventuale ODA e fornitore (ex getMancantiCC.php).
         /// Restituisce le righe della query così come sono.
         /// </summary>
-        public List<Dictionary<string, object?>> GetMancantiCC()
+        public List<Dictionary<string, object?>> GetMancantiCC(string societa)
         {
             // coalesce => sostituisce eventuali NULL con "" (stringa vuota)
             return DbHelper.Query(_conn.PgCasagrande,
@@ -620,23 +622,25 @@ namespace CG.MobileAPI.Models
                   and cs_fabbmanc_oda_impcodl.pos = cs_fabbmanc_oda.pos and cs_fabbmanc_oda_impcodl.sched = cs_fabbmanc_oda.sched
                   and cs_fabbmanc_oda_impcodl.societa = cs_fabbmanc_oda.societa
                   where cs_fabbmanc_odl_comp.articolo like 'CC%' and cs_fabbmanc_odl_comp.ismancvero != '0'
-                  and cs_fabbmanc_odl_comp.societa = 'CSPRO'
-                  order by cs_fabbmanc_oda.nomefornitore, cs_fabbmanc_odl_comp.articolo");
+                  and cs_fabbmanc_odl_comp.societa = ?
+                  order by cs_fabbmanc_oda.nomefornitore, cs_fabbmanc_odl_comp.articolo",
+                societa);
         }
 
         /// <summary>
         /// Bolle fornitore non ancora scaricate con i relativi articoli e il numero di mancanti
         /// (ex getMaterialeInArrivo.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetMaterialeInArrivo()
+        public List<Dictionary<string, object?>> GetMaterialeInArrivo(string societa)
         {
             var rows = DbHelper.Query(_conn.PgCasagrande,
                 @"SELECT cs_bolleriga.bolladt, cs_bolleriga.bollano, cs_soggetti.aninco, cs_bolleriga.pbitem, cs_articoli.mpdsc, cs_bolleriga.pbdlqty, cs_bolleriga.ismancante
                   FROM cs_bolleriga
                   INNER JOIN cs_articoli ON cs_articoli.mcosc = cs_bolleriga.pbcosc AND cs_bolleriga.pbitem = cs_articoli.mitem
                   INNER JOIN cs_soggetti ON cs_bolleriga.pbsupno = cs_soggetti.ancoco
-                  WHERE cs_soggetti.ancoso='CSPRO' AND cs_bolleriga.blscaricata='0' AND cs_articoli.mcosc='CSPRO' AND cs_bolleriga.pbcosc='CSPRO'
-                  ORDER BY cs_bolleriga.bolladt, cs_bolleriga.bollano, cs_bolleriga.pbitem");
+                  WHERE cs_soggetti.ancoso=? AND cs_bolleriga.blscaricata='0' AND cs_articoli.mcosc=? AND cs_bolleriga.pbcosc=?
+                  ORDER BY cs_bolleriga.bolladt, cs_bolleriga.bollano, cs_bolleriga.pbitem",
+                societa, societa, societa);
 
             var lista = new List<Dictionary<string, object?>>();
             Dictionary<string, object?>? bollaCorrente = null;

@@ -34,10 +34,15 @@ dependencies:
   image_picker: ^1.1.2
   gal: ^2.3.3
 
+  # Notifiche locali dei messaggi chat e delle Attività (rimpiazza cordova-plugin-local-notification)
+  flutter_local_notifications: ^18.0.1
+  flutter_foreground_task: ^9.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -61,3 +66,14 @@ flutter:
     - family: Beon
       fonts:
         - asset: assets/fonts/Beon-Regular.otf
+
+# Icona dell'app (generata con: dart run flutter_launcher_icons).
+# Sorgenti in assets/icon, disegnati da genera_icona.ps1 (-OutDir assets/icon): icona.png (completa),
+# icona_primo_piano.png (icona adattiva) e ic_notifica.png (da copiare in android/app/src/main/res/drawable).
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icona.png"
+  adaptive_icon_background: "#007A87"
+  adaptive_icon_foreground: "assets/icon/icona_primo_piano.png"
+  min_sdk_android: 23

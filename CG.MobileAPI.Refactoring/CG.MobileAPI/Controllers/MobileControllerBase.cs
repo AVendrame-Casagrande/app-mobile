@@ -1,4 +1,4 @@
-using CG.MobileAPI.Data;
+﻿using CG.MobileAPI.Data;
 using CG.MobileAPI.Models;
 using CG.MobileAPI.Tools;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +19,9 @@ namespace CG.MobileAPI.Controllers
 
         /// <summary>Claim JWT con il tipo di account (Utente Standard / Magazzino / Produzione / Qualità / Avanzato).</summary>
         public const string CLAIM_ACCOUNT_TYPE = "accountType";
+
+        /// <summary>Claim JWT con la società scelta al login (CSPRO / IMM00).</summary>
+        public const string CLAIM_SOCIETA = "societa";
 
         /// <summary>Il contesto di database.</summary>
         protected readonly MyDbContext _db2Connection;
@@ -51,25 +54,39 @@ namespace CG.MobileAPI.Controllers
         protected string AccountType => User?.FindFirst(CLAIM_ACCOUNT_TYPE)?.Value ?? "";
 
         /// <summary>
+        /// Società scelta al login (claim del token): va passata a tutte le query che filtrano per società.
+        /// Token senza società (emessi prima di questa modifica) = CSPRO.
+        /// </summary>
+        protected string Societa => CodiciSocieta.Normalizza(User?.FindFirst(CLAIM_SOCIETA)?.Value);
+
+        /// <summary>
         /// Esegue l'azione nello scope di log e restituisce <c>Ok(ResultInfo.Success(dati))</c>.
         /// <see cref="MobileException"/> diventa HTTP 400 (404 se il suo Code è 404) con il suo messaggio, ogni altro errore HTTP 500 con codice -100.
         /// </summary>
         /// <param name="action">Valore di LOG_WS_ACTION.</param>
         /// <param name="azione">Funzione che restituisce i dati.</param>
-        /// <param name="societa">Società della richiesta (LOG_CODSOC).</param>
-        protected IActionResult Esegui(string action, Func<object?> azione, string? societa = null)
+        protected IActionResult Esegui(string action, Func<object?> azione)
         {
-            return EseguiAsync(action, () => Task.FromResult(azione()), societa).GetAwaiter().GetResult();
+            return EseguiAsync(action, () => Task.FromResult(azione())).GetAwaiter().GetResult();
         }
 
         /// <summary>
         /// Versione asincrona di <see cref="Esegui"/>.
         /// </summary>
-        protected async Task<IActionResult> EseguiAsync(string action, Func<Task<object?>> azione, string? societa = null)
+        protected Task<IActionResult> EseguiAsync(string action, Func<Task<object?>> azione)
+        {
+            return EseguiRispostaAsync(action, async () => Ok(ResultInfo.Success((await azione())!)));
+        }
+
+        /// <summary>
+        /// Come <see cref="EseguiAsync"/> ma l'azione costruisce da sé la risposta (es. un file), senza la busta
+        /// <see cref="ResultInfo"/>; scope di log e gestione degli errori sono gli stessi.
+        /// </summary>
+        protected async Task<IActionResult> EseguiRispostaAsync(string action, Func<Task<IActionResult>> azione)
         {
             using (_logger.BeginScope(new Dictionary<string, object>
             {
-                ["LOG_CODSOC"] = string.IsNullOrWhiteSpace(societa) ? "CSPRO" : societa,
+                ["LOG_CODSOC"] = Societa,
                 ["LOG_ORIGIN"] = ORIGIN,
                 ["LOG_USER"] = Utente,
 
@@ -79,11 +96,11 @@ namespace CG.MobileAPI.Controllers
             {
                 try
                 {
-                    var response = await azione();
+                    var risposta = await azione();
 
                     _logger.LogInformation("L'utente {Username} ha eseguito {Action}", Utente, action);
 
-                    return Ok(ResultInfo.Success(response!));
+                    return risposta;
                 }
                 catch (MobileException ex)
                 {

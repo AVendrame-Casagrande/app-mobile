@@ -35,13 +35,15 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Casagrande'),
+        title: const Text('Stokky'),
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Text(
-                utente.isOspite ? 'Ospite' : utente.nomeUtente,
+                utente.isOspite
+                    ? 'Ospite'
+                    : '${utente.nomeUtente} · ${utente.societaNome}',
                 style: const TextStyle(fontSize: 14),
               ),
             ),
@@ -58,6 +60,17 @@ class HomePage extends StatelessWidget {
             childAspectRatio: 0.78,
             children: [
               for (final m in modules)
+                if (m == AppModule.chat && app.chat != null)
+                  ListenableBuilder(
+                    listenable: app.chat!,
+                    builder: (context, _) => BlockButton(
+                      label: Translator.translate(m.label),
+                      iconAsset: m.iconAsset,
+                      badge: _badgeChat(app.chat!.totaleNonLetti),
+                      onTap: () => _openModule(context, m),
+                    ),
+                  )
+                else
                 BlockButton(
                   label: Translator.translate(m.label),
                   iconAsset: m.iconAsset,
@@ -79,6 +92,23 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// "+N Mess" in giallo quando ci sono messaggi da leggere (updateUnreadMessagesDisplay).
+  static Widget? _badgeChat(int nonLetti) {
+    if (nonLetti <= 0) return null;
+    return Text(
+      '+$nonLetti ${nonLetti >= 100 ? 'Mes' : 'Mess'}',
+      maxLines: 1,
+      style: const TextStyle(
+        color: Colors.yellow,
+        fontWeight: FontWeight.w500,
+        shadows: [
+          Shadow(blurRadius: 4, color: Colors.black),
+          Shadow(blurRadius: 4, color: Colors.black),
+        ],
       ),
     );
   }

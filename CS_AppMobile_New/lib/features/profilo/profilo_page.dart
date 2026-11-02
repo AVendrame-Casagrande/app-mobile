@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/i18n/translator.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/utente.dart';
 import '../../state/app_state.dart';
 
 /// Modulo Profilo / Login — porting di www/scripts/Profilo.
@@ -37,6 +38,14 @@ class _ProfiloPageState extends State<ProfiloPage> {
                 _sectionTitle(_t('INFO ACCOUNT')),
                 _infoRow(_t('Nome'), utente.nomeUtente),
                 _infoRow(_t('TIPO ACCOUNT'), _t(utente.accountType)),
+                _infoRow(_t('Società'), utente.societaNome),
+                Padding(
+                  padding: const EdgeInsets.only(left: 120, bottom: 4),
+                  child: Text(
+                    _t('Per cambiare società effettua il Logout e un nuovo Login'),
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                ),
                 if (utente.emailUtente.isNotEmpty)
                   _infoRow('Email', utente.emailUtente),
                 if (utente.nomePortale.isNotEmpty)
@@ -90,7 +99,9 @@ class _ProfiloPageState extends State<ProfiloPage> {
           ),
         ),
         title: Text(
-          logged ? app.utenteLoggato.nomeUtente : 'Ospite',
+          logged
+              ? '${app.utenteLoggato.nomeUtente} (${app.utenteLoggato.societaNome})'
+              : 'Ospite',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
@@ -137,9 +148,12 @@ class _ProfiloPageState extends State<ProfiloPage> {
       );
 
   // -------------------------------------------------------------------------
-  // Flusso di Login: codice utente -> password -> verifica.
+  // Flusso di Login: società -> codice utente -> password -> verifica.
   // -------------------------------------------------------------------------
   Future<void> _startLogin(AppState app) async {
+    final societa = await _askSocieta(app.ultimaSocieta);
+    if (societa == null) return;
+
     final codice = await _askText(
       title: _t('ID Utente'),
       hint: _t('Inserisci il tuo Codice Utente per effettuare il Login'),
@@ -154,14 +168,15 @@ class _ProfiloPageState extends State<ProfiloPage> {
     if (password == null || password.isEmpty) return;
 
     setState(() => _busy = true);
-    final result = await app.login(codice, password);
+    final result = await app.login(codice, password, societa: societa);
     setState(() => _busy = false);
 
     switch (result) {
       case LoginResult.success:
         if (!mounted) return;
         _alert(
-          '${_t('Login Effettuato con Successo! Ciao')} ${app.utenteLoggato.nomeUtente}',
+          '${_t('Login Effettuato con Successo! Ciao')} ${app.utenteLoggato.nomeUtente}'
+          '\n${_t('Società')}: ${app.utenteLoggato.societaNome}',
           title: _t('Credenziali Corrette'),
         );
         break;
@@ -179,7 +194,11 @@ class _ProfiloPageState extends State<ProfiloPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(_t('Logout')),
-        content: Text(_t('Vuoi effettuare il Logout da questo Account?')),
+        content: Text(
+          '${_t('Vuoi effettuare il Logout da questo Account?')}\n\n'
+          '${_t('Società')}: ${app.utenteLoggato.societaNome}. '
+          '${_t('Per cambiare società effettua il Logout e un nuovo Login')}',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -203,6 +222,52 @@ class _ProfiloPageState extends State<ProfiloPage> {
   // -------------------------------------------------------------------------
   // Helper UI.
   // -------------------------------------------------------------------------
+
+  /// Scelta della società per il login; [iniziale] è l'ultima usata.
+  Future<String?> _askSocieta(String iniziale) {
+    String scelta = iniziale;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text(_t('Società')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final e in Utente.societaDisponibili.entries)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    e.key == scelta
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    color: e.key == scelta ? AppColors.casagrandeDark : null,
+                  ),
+                  title: Text(e.value),
+                  onTap: () => setLocal(() => scelta = e.key),
+                ),
+              const SizedBox(height: 8),
+              Text(
+                _t('Gli utenti in lingua inglese lavorano sempre su Casagrande USA'),
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(_t('Chiudi')),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, scelta),
+              child: Text(_t('Conferma')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<String?> _askText({
     required String title,
     String? hint,

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ic_notifica è usata solo dal codice Dart (notifiche): non va eliminata dallo shrink delle risorse. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/ic_notifica" />

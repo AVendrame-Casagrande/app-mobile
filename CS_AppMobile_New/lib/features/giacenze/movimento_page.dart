@@ -10,6 +10,8 @@ import '../../models/movimento_giacenza.dart';
 import '../../state/app_state.dart';
 import '../../widgets/last_searched_list.dart';
 import '../scanner/barcode_scanner_page.dart';
+import 'cerca_page.dart';
+import 'inventario_dialogs.dart';
 import 'movimento_service.dart';
 
 /// Pagina Giacenze → Movimento (Stock Mov, scrittura) — porting di
@@ -57,7 +59,7 @@ class _MovimentoPageState extends State<MovimentoPage> {
     final app = context.read<AppState>();
     _service = MovimentoService(app.api);
     _isEnglish = app.utenteLoggato.isEnglish;
-    _societa = _isEnglish ? 'CSUSA' : 'CSPRO';
+    _societa = app.utenteLoggato.societaApi;
     _recenti = LastSearched.get(_sezione);
     final code = widget.codiceArticolo;
     if (code != null && code.trim().isNotEmpty) {
@@ -142,29 +144,108 @@ class _MovimentoPageState extends State<MovimentoPage> {
     });
   }
 
-  void _selezionaDestinazione(String? mag) {
+  /// Porting di changeHtmlCssMagazzino + checkVanoDopoMagazzino
+  /// (Movimento/EventHandlers.js, Movimento.js).
+  /// Se [resetOdl] (scelta manuale del magazzino) l'ODL viene azzerato, come
+  /// in Cordova; quando invece il magazzino arriva dalla scelta di un ODL,
+  /// l'ODL resta impostato.
+  void _selezionaDestinazione(String? mag, {bool resetOdl = true}) {
     setState(() {
-      _aMagazzino = mag;
-      _odl = '';
-      // Vano preferenziale auto-compilato
+      _aMagazzino = (mag == null || mag.isEmpty) ? null : mag;
+      if (resetOdl) _odl = '';
+      // Vano preferenziale auto-compilato: se l'articolo non ha magazzini
+      // preferenziali il vano digitato resta invariato, altrimenti viene
+      // impostato quello preferenziale (o svuotato se il magazzino non lo è).
       final art = _articolo;
-      if (mag != null && art != null) {
+      if (art != null && art.listaMagazziniPreferenziali.isNotEmpty) {
         String vano = '';
         for (final p in art.listaMagazziniPreferenziali) {
-          if (p.codice == mag) vano = p.vano;
+          if (p.codice == _aMagazzino) vano = p.vano;
         }
         _aVanoController.text = vano;
       }
     });
   }
 
-  List<String> get _odlList {
+  // ---------------------------------------------------------------------------
+  // ODL (opzionale) — porting di getOdlList / changeHtmlCssOdl.
+  // La lista arriva da selectArticoloMagazzini (listaPossibiliOdl: ODL dei
+  // mancanti dell'articolo non ancora completamente trasferiti, con il
+  // magazzino di impegno). Regole Cordova:
+  //  - senza magazzino destinazione si propongono tutti gli ODL;
+  //  - scelto un magazzino si propongono solo gli ODL di quel magazzino;
+  //  - scegliendo (o digitando) un ODL presente in lista viene impostato
+  //    automaticamente il suo magazzino come destinazione;
+  //  - cambiando magazzino l'ODL viene azzerato;
+  //  - l'ODL è troncato a 10 caratteri e passato al movimento (campo odl).
+  // ---------------------------------------------------------------------------
+  void _impostaOdl(String valore) {
+    var odl = valore.trim().toUpperCase();
+    if (odl.length > 10) odl = odl.substring(0, 10);
+    String? magOdl;
     final art = _articolo;
-    if (art == null || _aMagazzino == null) return [];
-    return art.listaPossibiliOdl
-        .where((o) => o.magazzino == _aMagazzino || o.magazzino.isEmpty)
-        .map((o) => o.odl)
-        .toList();
+    if (odl.isNotEmpty && art != null) {
+      for (final o in art.listaPossibiliOdl) {
+        if (o.odl == odl) {
+          magOdl = o.magazzino;
+          break;
+        }
+      }
+    }
+    setState(() => _odl = odl);
+    if (magOdl != null && magOdl.isNotEmpty) {
+      _selezionaDestinazione(magOdl, resetOdl: false);
+    }
+  }
+
+  Future<void> _scegliOdlDaLista(ArticoloMovimento art) async {
+    final lista = art.odlPerMagazzino(_aMagazzino);
+    // Senza magazzino scelto mostro anche il magazzino di ogni ODL.
+    final etichette = <String, String>{};
+    for (final o in lista) {
+      final label = (_aMagazzino == null && o.magazzino.isNotEmpty)
+          ? '${o.odl}   →   ${o.magazzino}'
+          : o.odl;
+      etichette.putIfAbsent(label, () => o.odl);
+    }
+    final scelta = await invSelect(
+      context,
+      _aMagazzino == null ? 'ODL possibili' : 'ODL per $_aMagazzino',
+      etichette.keys.toList(),
+      extraButton: _odl.isNotEmpty ? 'Reimposta' : null,
+    );
+    if (scelta == null || !mounted) return;
+    if (scelta == invSelectExtra) {
+      _impostaOdl('');
+      return;
+    }
+    _impostaOdl(etichette[scelta] ?? scelta);
+  }
+
+  Future<void> _digitaOdl() async {
+    final r = await invPrompt(
+      context,
+      'ODL',
+      "Digita Manualmente l'Ordine di Lavoro",
+      ['Reimposta', 'Chiudi', _odl.isEmpty ? 'Aggiungi' : 'Cambia'],
+      initial: _odl,
+      uppercase: true,
+    );
+    if (r == null || !mounted) return;
+    if (r.button == 2) _impostaOdl(r.text);
+    if (r.button == 0) _impostaOdl('');
+  }
+
+  /// Apre la scheda Articolo (pulsante "ART 🔗" di Cordova); tornando
+  /// indietro si ritrova il movimento nello stato in cui era.
+  void _apriSchedaArticolo() {
+    final art = _articolo;
+    if (art == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CercaPage(codiceArticolo: art.articoloId),
+      ),
+    );
   }
 
   bool get _vanoRichiesto =>
@@ -344,7 +425,28 @@ class _MovimentoPageState extends State<MovimentoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Movimento')),
+      appBar: AppBar(
+        title: const Text('Movimento'),
+        actions: [
+          if (_articolo != null) ...[
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Aggiorna giacenze',
+              onPressed: _loading || _submitting
+                  ? null
+                  : () {
+                      _searchController.text = _articolo!.articoloId;
+                      _cerca();
+                    },
+            ),
+            IconButton(
+              icon: const Icon(Icons.link),
+              tooltip: 'Scheda Articolo',
+              onPressed: _submitting ? null : _apriSchedaArticolo,
+            ),
+          ],
+        ],
+      ),
       body: Stack(
         children: [
           Column(
@@ -448,13 +550,22 @@ class _MovimentoPageState extends State<MovimentoPage> {
     return Column(
       children: [
         _articoloHeader(art),
+        _totaliMagazzini(art),
         const Divider(height: 1),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text('Seleziona magazzino di ORIGINE',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                    'Seleziona magazzino di ORIGINE '
+                    '(${art.listaMagazziniArticolo.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              if (art.listaMagazziniPreferenziali.isNotEmpty)
+                const Text('* vano preferenziale',
+                    style: TextStyle(fontSize: 11, color: Colors.black54)),
+            ],
           ),
         ),
         Expanded(
@@ -466,19 +577,40 @@ class _MovimentoPageState extends State<MovimentoPage> {
                   itemBuilder: (_, i) {
                     final m = art.listaMagazziniArticolo[i];
                     final disabled = m.giacente <= 0;
+                    // Asterisco se magazzino/vano è quello preferenziale
+                    // (come nella lista MAG ORIG di Cordova).
+                    final preferenziale = art.listaMagazziniPreferenziali
+                        .any((p) => p.codice == m.codice && p.vano == m.vano);
                     return ListTile(
-                      enabled: !disabled,
+                      // Le righe senza giacenza restano leggibili (mostrano
+                      // l'impegnato) ma non sono selezionabili.
                       leading: Icon(Icons.warehouse,
                           color: disabled ? Colors.black26 : const Color(0xFF5966A8)),
                       title: Text(m.codice,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(m.vano.isNotEmpty ? 'Vano ${m.vano}' : '—'),
-                      trailing: Text('Giac: ${_n(m.giacente)}',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: disabled
-                                  ? Colors.black38
-                                  : const Color(0xFF2E7D32))),
+                              color: disabled ? Colors.black45 : null)),
+                      subtitle: Text(
+                          '${m.vano.isNotEmpty ? 'Vano ${m.vano}' : '—'}'
+                          '${preferenziale ? ' *' : ''}'),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Giac: ${_n(m.giacente)}',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: disabled
+                                      ? Colors.black38
+                                      : const Color(0xFF2E7D32))),
+                          Text('Imp: ${_n(m.impegnato)}',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: m.impegnato > 0
+                                      ? const Color(0xFFC62828)
+                                      : Colors.black45)),
+                        ],
+                      ),
                       onTap: disabled ? null : () => _selezionaOrigine(m),
                     );
                   },
@@ -504,9 +636,110 @@ class _MovimentoPageState extends State<MovimentoPage> {
     );
   }
 
+  /// Riepilogo giacenza / impegnato dell'articolo su tutti i magazzini.
+  Widget _totaliMagazzini(ArticoloMovimento art) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      child: Row(
+        children: [
+          _chipTotale('Giacente tot', _n(art.giacenteTotale),
+              const Color(0xFF2E7D32)),
+          const SizedBox(width: 8),
+          _chipTotale('Impegnato tot', _n(art.impegnatoTotale),
+              const Color(0xFFC62828)),
+          if (art.unitaMisura.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(art.unitaMisura,
+                style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _chipTotale(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text.rich(
+        TextSpan(children: [
+          TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          TextSpan(
+              text: value,
+              style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+        ]),
+      ),
+    );
+  }
+
+  /// Campo ODL opzionale: lista ODL proposti + inserimento manuale.
+  Widget _campoOdl(ArticoloMovimento art) {
+    final proposti = art.odlPerMagazzino(_aMagazzino);
+    final String helper;
+    if (proposti.isEmpty) {
+      helper = _aMagazzino == null
+          ? 'Nessun ODL proposto: puoi digitarlo'
+          : 'Nessun ODL proposto per $_aMagazzino: puoi digitarlo';
+    } else {
+      helper = '${proposti.length} ODL proposti'
+          '${_aMagazzino == null ? '' : ' per $_aMagazzino'}';
+    }
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: 'ODL (opz.)',
+        helperText: helper,
+        border: const OutlineInputBorder(),
+        isDense: true,
+        contentPadding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _odl.isEmpty ? '—' : _odl,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: _odl.isEmpty ? FontWeight.normal : FontWeight.bold,
+                color: _odl.isEmpty ? Colors.black45 : const Color(0xFF2E7D32),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.list_alt),
+            tooltip: 'Scegli ODL',
+            onPressed: proposti.isEmpty ? null : () => _scegliOdlDaLista(art),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Digita ODL',
+            onPressed: _digitaOdl,
+          ),
+          if (_odl.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Reimposta ODL',
+              onPressed: () => _impostaOdl(''),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _form(ArticoloMovimento art) {
     final origine = _origine!;
-    final odlList = _odlList;
+    // Il magazzino impostato da un ODL potrebbe non essere tra quelli
+    // possibili: lo aggiungo agli item per non rompere il dropdown.
+    final magazziniDest = <String>[
+      ...art.listaPossibiliMagazzini.toSet(),
+      if (_aMagazzino != null &&
+          !art.listaPossibiliMagazzini.contains(_aMagazzino))
+        _aMagazzino!,
+    ];
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
@@ -526,9 +759,12 @@ class _MovimentoPageState extends State<MovimentoPage> {
             leading: const Icon(Icons.logout, color: Color(0xFF2E7D32)),
             title: Text('Origine: ${origine.codice}'
                 '${origine.vano.isNotEmpty ? ' / ${origine.vano}' : ''}'),
-            subtitle: Text('Giacenza residua: ${_n(origine.giacente)} ${art.unitaMisura}'),
+            subtitle: Text(
+                'Giacenza residua: ${_n(origine.giacente)} ${art.unitaMisura}'
+                '  ·  Impegnato: ${_n(origine.impegnato)}'),
           ),
         ),
+        _totaliMagazzini(art),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _aMagazzino,
@@ -537,7 +773,7 @@ class _MovimentoPageState extends State<MovimentoPage> {
             border: OutlineInputBorder(),
             isDense: true,
           ),
-          items: art.listaPossibiliMagazzini
+          items: magazziniDest
               .map((m) => DropdownMenuItem(value: m, child: Text(m)))
               .toList(),
           onChanged: (v) => _selezionaDestinazione(v),
@@ -557,21 +793,8 @@ class _MovimentoPageState extends State<MovimentoPage> {
           ),
         ),
         const SizedBox(height: 12),
-        if (odlList.isNotEmpty)
-          DropdownButtonFormField<String>(
-            value: _odl.isEmpty ? null : _odl,
-            decoration: const InputDecoration(
-              labelText: 'ODL (opzionale)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            items: [
-              const DropdownMenuItem(value: '', child: Text('—')),
-              ...odlList.map((o) => DropdownMenuItem(value: o, child: Text(o))),
-            ],
-            onChanged: (v) => setState(() => _odl = v ?? ''),
-          ),
-        if (odlList.isNotEmpty) const SizedBox(height: 12),
+        _campoOdl(art),
+        const SizedBox(height: 12),
         TextField(
           controller: _qtaController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -648,7 +871,9 @@ class _MovimentoPageState extends State<MovimentoPage> {
   }
 
   static String _n(num v) {
-    if (v == v.roundToDouble()) return v.toInt().toString();
-    return v.toString();
+    // Arrotondo a 3 decimali per eliminare il rumore delle somme in double.
+    final r = (v * 1000).roundToDouble() / 1000;
+    if (r == r.roundToDouble()) return r.toInt().toString();
+    return r.toString();
   }
 }

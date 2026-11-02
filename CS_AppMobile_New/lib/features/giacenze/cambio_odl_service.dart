@@ -52,7 +52,6 @@ class CambioOdlService {
     required String societa,
     String causale = 'TNAV2',
     String avano = '',
-    String ambiente = 'PRODUZIONE',
   }) async {
     final datamov = DateFormat('yyyyMMdd').format(DateTime.now());
     final res = await _api.postText(
@@ -69,7 +68,6 @@ class CambioOdlService {
         'odl': odl,
         'commessa': '',
         'nota': '',
-        'ambiente': ambiente,
         'id': utente,
         'societa': societa,
       },

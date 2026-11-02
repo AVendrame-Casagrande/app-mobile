@@ -174,7 +174,7 @@ namespace CG.MobileAPI.Models
     {
         /// <summary>Codice utente Diapason (ignorato: si usa l'utente del token).</summary>
         public string? username { get; set; }
-        /// <summary>Società Diapason (es. CSPRO).</summary>
+        /// <summary>Ignorata: si usa la società del token (CSPRO / IMM00).</summary>
         public string? societa { get; set; }
         /// <summary>Codice articolo (stringa, oppure oggetto con la proprietà <c>articolo</c>).</summary>
         public JsonElement? articolo { get; set; }
@@ -223,15 +223,15 @@ namespace CG.MobileAPI.Models
         /// Aggiunge un articolo a uno scaffale (ex addArticoloScaffale.php).
         /// </summary>
         /// <returns>"error" se l'articolo è già nello scaffale, altrimenti "ok".</returns>
-        public string AddArticoloScaffale(AddArticoloScaffaleRequest request)
+        public string AddArticoloScaffale(AddArticoloScaffaleRequest request, string societa)
         {
             var scaffale = Obbligatorio(request?.scaffale, "scaffale");
             var codiceArticolo = Obbligatorio(request?.codiceArticolo, "codiceArticolo");
 
             var presenti = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.CSASCKB.ARTICOLO
-                  FROM D60STDDB.CSASCKB
-                  WHERE D60STDDB.CSASCKB.SCAFFALE = ? AND D60STDDB.CSASCKB.ARTICOLO = ?",
+                @"SELECT CSASCKB.ARTICOLO
+                  FROM CSASCKB
+                  WHERE CSASCKB.SCAFFALE = ? AND CSASCKB.ARTICOLO = ?",
                 scaffale, codiceArticolo);
 
             if (presenti.Count > 0)
@@ -240,8 +240,8 @@ namespace CG.MobileAPI.Models
             }
 
             DbHelper.NonQuery(_conn.Db2,
-                @"INSERT INTO D60STDDB.CSASCKB (SCAFFALE, SOCIETA, ARTICOLO) VALUES(?, 'CSPRO', ?)",
-                scaffale, codiceArticolo);
+                @"INSERT INTO CSASCKB (SCAFFALE, SOCIETA, ARTICOLO) VALUES(?, ?, ?)",
+                scaffale, societa, codiceArticolo);
 
             return "ok";
         }
@@ -250,18 +250,18 @@ namespace CG.MobileAPI.Models
         /// Elenco degli scaffali in cui è presente un articolo (ex addElencoScaffaliToArticolo.php).
         /// </summary>
         /// <returns>Lista di { codice, descrizione }.</returns>
-        public List<Dictionary<string, object?>> AddElencoScaffaliToArticolo(AddElencoScaffaliToArticoloRequest request)
+        public List<Dictionary<string, object?>> AddElencoScaffaliToArticolo(AddElencoScaffaliToArticoloRequest request, string societa)
         {
             var codiceArticolo = Obbligatorio(request?.codiceArticolo, "codiceArticolo");
 
             var rows = DbHelper.Query(_conn.Db2Modula,
-                @"SELECT D60STDDB.CSASCKB.SCAFFALE, D60STDDB.CSSCFKB.DESCRIZIONE
-                  FROM D60STDDB.CSASCKB
-                  FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSASCKB.ARTICOLO
-                  FULL JOIN D60STDDB.CSSCFKB ON D60STDDB.CSASCKB.SCAFFALE = D60STDDB.CSSCFKB.CODICE
-                  WHERE D60STDDB.DBSAITE.MITEM = ? AND D60STDDB.DBSAITE.MCOSC = 'CSPRO'
+                @"SELECT CSASCKB.SCAFFALE, CSSCFKB.DESCRIZIONE
+                  FROM CSASCKB
+                  FULL JOIN DBSAITE ON DBSAITE.MITEM = CSASCKB.ARTICOLO
+                  FULL JOIN CSSCFKB ON CSASCKB.SCAFFALE = CSSCFKB.CODICE
+                  WHERE DBSAITE.MITEM = ? AND DBSAITE.MCOSC = ?
                   ORDER BY SCAFFALE",
-                codiceArticolo);
+                codiceArticolo, societa);
 
             return rows.Select(r => new Dictionary<string, object?>
             {
@@ -274,20 +274,20 @@ namespace CG.MobileAPI.Models
         /// Giacenza dell'articolo nei magazzini automatici MGAUT00 e MGAUT10 (ex checkKanbanGiacenzeMgaut.php).
         /// </summary>
         /// <returns>Lista di { magazzino, giacenza }.</returns>
-        public List<Dictionary<string, object?>> CheckKanbanGiacenzeMgaut(CheckKanbanGiacenzeMgautRequest request)
+        public List<Dictionary<string, object?>> CheckKanbanGiacenzeMgaut(CheckKanbanGiacenzeMgautRequest request, string societa)
         {
             var codiceArticolo = Obbligatorio(request?.codiceArticolo, "codiceArticolo");
 
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE
-                  FROM D60STDDB.MASAMSL
-                  FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC
-                  FULL JOIN D60STDDB.MASAHED ON D60STDDB.MASAMSL.MLLOC = D60STDDB.MASAHED.MAHMAG AND D60STDDB.MASAHED.MAHCOSC = D60STDDB.MASAMSL.MAHCOSC
-                  WHERE D60STDDB.DBSAITE.MITEM = ? AND D60STDDB.MASAMSL.MAHCOSC = 'CSPRO'
-                    AND (D60STDDB.MASAMSL.MLLOC = 'MGAUT00' OR D60STDDB.MASAMSL.MLLOC = 'MGAUT10')
-                  GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALOHQT
-                  ORDER BY D60STDDB.MASAMSL.MLLOC",
-                codiceArticolo);
+                @"SELECT MASAMSL.MLLOC, MASAMSL.MALOHQT/100 AS GIACENTE
+                  FROM MASAMSL
+                  FULL JOIN DBSAITE ON DBSAITE.MITEM = MASAMSL.MALITEM AND DBSAITE.MCOSC = MASAMSL.MAHCOSC
+                  FULL JOIN MASAHED ON MASAMSL.MLLOC = MASAHED.MAHMAG AND MASAHED.MAHCOSC = MASAMSL.MAHCOSC
+                  WHERE DBSAITE.MITEM = ? AND MASAMSL.MAHCOSC = ?
+                    AND (MASAMSL.MLLOC = 'MGAUT00' OR MASAMSL.MLLOC = 'MGAUT10')
+                  GROUP BY MASAMSL.MLLOC, MASAMSL.MALOHQT
+                  ORDER BY MASAMSL.MLLOC",
+                codiceArticolo, societa);
 
             return rows.Select(r => new Dictionary<string, object?>
             {
@@ -306,7 +306,7 @@ namespace CG.MobileAPI.Models
             var codiceArticolo = Obbligatorio(request?.codiceArticolo, "codiceArticolo");
 
             DbHelper.NonQuery(_conn.Db2,
-                @"DELETE FROM D60STDDB.CSASCKB WHERE D60STDDB.CSASCKB.SCAFFALE = ? AND D60STDDB.CSASCKB.ARTICOLO = ?",
+                @"DELETE FROM CSASCKB WHERE CSASCKB.SCAFFALE = ? AND CSASCKB.ARTICOLO = ?",
                 scaffale, codiceArticolo);
 
             return "ok";
@@ -319,7 +319,7 @@ namespace CG.MobileAPI.Models
         public List<Dictionary<string, object?>> SelectAllScaffali()
         {
             var rows = DbHelper.Query(_conn.Db2,
-                "SELECT CODICE, DESCRIZIONE, MAGAZZINO, SOCIETA FROM D60STDDB.CSSCFKB ORDER BY CODICE");
+                "SELECT CODICE, DESCRIZIONE, MAGAZZINO, SOCIETA FROM CSSCFKB ORDER BY CODICE");
 
             return rows.Select(r => new Dictionary<string, object?>
             {
@@ -334,18 +334,18 @@ namespace CG.MobileAPI.Models
         /// Articoli presenti in uno scaffale (ex selectArticoliScaffale.php).
         /// </summary>
         /// <returns>Lista di { codice, descrizione, fornitore, qtaConfezione, tipo }.</returns>
-        public List<Dictionary<string, object?>> SelectArticoliScaffale(SelectArticoliScaffaleRequest request)
+        public List<Dictionary<string, object?>> SelectArticoliScaffale(SelectArticoliScaffaleRequest request, string societa)
         {
             var codiceScaffale = Obbligatorio(request?.codiceScaffale, "codiceScaffale");
 
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITE.MITEM AS ARTICOLO, D60STDDB.DBSAITE.MPDSC, D60STDDB.CSFORKB.QTACONF, D60STDDB.ANSADID.ANINCO, D60STDDB.DBSAITE.MTYPN
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.CSFORKB ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSFORKB.ARTICOLO
-                  FULL JOIN D60STDDB.ANSADID ON D60STDDB.CSFORKB.FORNITORE = D60STDDB.ANSADID.ANCOCO
-                  FULL JOIN D60STDDB.CSASCKB ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSASCKB.ARTICOLO
-                  WHERE D60STDDB.CSASCKB.SCAFFALE = ? AND D60STDDB.DBSAITE.MCOSC = 'CSPRO'",
-                codiceScaffale);
+                @"SELECT DBSAITE.MITEM AS ARTICOLO, DBSAITE.MPDSC, CSFORKB.QTACONF, ANSADID.ANINCO, DBSAITE.MTYPN
+                  FROM DBSAITE
+                  FULL JOIN CSFORKB ON DBSAITE.MITEM = CSFORKB.ARTICOLO
+                  FULL JOIN ANSADID ON CSFORKB.FORNITORE = ANSADID.ANCOCO
+                  FULL JOIN CSASCKB ON DBSAITE.MITEM = CSASCKB.ARTICOLO
+                  WHERE CSASCKB.SCAFFALE = ? AND DBSAITE.MCOSC = ?",
+                codiceScaffale, societa);
 
             return rows.Select(r => new Dictionary<string, object?>
             {
@@ -362,23 +362,23 @@ namespace CG.MobileAPI.Models
         /// in cui si trova (ex query/kanban/selectSingoloArticolo.php).
         /// </summary>
         /// <returns>L'articolo con <c>listaScaffali</c>; se l'articolo non esiste solo <c>{ listaScaffali: [] }</c>, come il PHP.</returns>
-        public Dictionary<string, object?> SelectSingoloArticolo(SelectSingoloArticoloKanbanRequest request)
+        public Dictionary<string, object?> SelectSingoloArticolo(SelectSingoloArticoloKanbanRequest request, string societa)
         {
             var codiceArticolo = Obbligatorio(request?.codiceArticolo, "codiceArticolo");
             var addScaffali = Vero(request?.addScaffaliPhp);
 
             var r = DbHelper.QueryFirst(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITE.MITEM, D60STDDB.DBSAITE.MCOSC, D60STDDB.DBSAITE.MPDSC,
-                         D60STDDB.CSFORKB.FORNITORE, D60STDDB.CSFORKB.QTACONF, D60STDDB.CSFORKB.IMMAGINE,
-                         D60STDDB.ANSADID.ANINCO, D60STDDB.DBSAITE.MTYPN, D60STDDB.DBSAITE.MUTMS, D60STDDB.CSDBITA.CSTRASU, D60STDDB.CSDBITA.CSCOLOR,
-                         COALESCE(D60STDDB.DBSADAT.MOPSS, 0) AS SCORTA_MINIMA
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.CSFORKB ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSFORKB.ARTICOLO AND D60STDDB.DBSAITE.MCOSC = D60STDDB.CSFORKB.SOCIETA
-                  FULL JOIN D60STDDB.ANSADID ON D60STDDB.CSFORKB.FORNITORE = D60STDDB.ANSADID.ANCOCO AND D60STDDB.DBSAITE.MCOSC = D60STDDB.ANSADID.ANCOSO
-                  FULL JOIN D60STDDB.CSDBITA ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSDBITA.CSITEMA AND D60STDDB.DBSAITE.MCOSC = D60STDDB.CSDBITA.CSCOSCA
-                  FULL JOIN D60STDDB.DBSADAT ON D60STDDB.DBSAITE.MITEM = D60STDDB.DBSADAT.MITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.DBSADAT.MCOSC
-                  WHERE D60STDDB.DBSAITE.MITEM = ? AND D60STDDB.DBSAITE.MCOSC = 'CSPRO'",
-                codiceArticolo);
+                @"SELECT DBSAITE.MITEM, DBSAITE.MCOSC, DBSAITE.MPDSC,
+                         CSFORKB.FORNITORE, CSFORKB.QTACONF, CSFORKB.IMMAGINE,
+                         ANSADID.ANINCO, DBSAITE.MTYPN, DBSAITE.MUTMS, CSDBITA.CSTRASU, CSDBITA.CSCOLOR,
+                         COALESCE(DBSADAT.MOPSS, 0) AS SCORTA_MINIMA
+                  FROM DBSAITE
+                  FULL JOIN CSFORKB ON DBSAITE.MITEM = CSFORKB.ARTICOLO AND DBSAITE.MCOSC = CSFORKB.SOCIETA
+                  FULL JOIN ANSADID ON CSFORKB.FORNITORE = ANSADID.ANCOCO AND DBSAITE.MCOSC = ANSADID.ANCOSO
+                  FULL JOIN CSDBITA ON DBSAITE.MITEM = CSDBITA.CSITEMA AND DBSAITE.MCOSC = CSDBITA.CSCOSCA
+                  FULL JOIN DBSADAT ON DBSAITE.MITEM = DBSADAT.MITEM AND DBSAITE.MCOSC = DBSADAT.MCOSC
+                  WHERE DBSAITE.MITEM = ? AND DBSAITE.MCOSC = ?",
+                codiceArticolo, societa);
 
             var articolo = new Dictionary<string, object?>();
             if (r != null)
@@ -401,15 +401,15 @@ namespace CG.MobileAPI.Models
             if (addScaffali)
             {
                 var scaffali = DbHelper.Query(_conn.Db2,
-                    @"SELECT D60STDDB.CSASCKB.SCAFFALE, D60STDDB.CSSCFKB.DESCRIZIONE, D60STDDB.CSSCFKB.MAGAZZINO
-                      FROM D60STDDB.CSASCKB
-                      FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSASCKB.ARTICOLO
-                      FULL JOIN D60STDDB.CSSCFKB ON D60STDDB.CSASCKB.SCAFFALE = D60STDDB.CSSCFKB.CODICE
-                      WHERE D60STDDB.DBSAITE.MTYPN = 'N' AND D60STDDB.DBSAITE.MITEM = ?
-                        AND D60STDDB.CSSCFKB.SOCIETA = D60STDDB.CSASCKB.SOCIETA
-                        AND D60STDDB.DBSAITE.MCOSC = D60STDDB.CSASCKB.SOCIETA AND D60STDDB.DBSAITE.MCOSC = 'CSPRO'
-                      ORDER BY D60STDDB.CSASCKB.SCAFFALE",
-                    codiceArticolo);
+                    @"SELECT CSASCKB.SCAFFALE, CSSCFKB.DESCRIZIONE, CSSCFKB.MAGAZZINO
+                      FROM CSASCKB
+                      FULL JOIN DBSAITE ON DBSAITE.MITEM = CSASCKB.ARTICOLO
+                      FULL JOIN CSSCFKB ON CSASCKB.SCAFFALE = CSSCFKB.CODICE
+                      WHERE DBSAITE.MTYPN = 'N' AND DBSAITE.MITEM = ?
+                        AND CSSCFKB.SOCIETA = CSASCKB.SOCIETA
+                        AND DBSAITE.MCOSC = CSASCKB.SOCIETA AND DBSAITE.MCOSC = ?
+                      ORDER BY CSASCKB.SCAFFALE",
+                    codiceArticolo, societa);
 
                 listaScaffali.AddRange(scaffali.Select(s => new Dictionary<string, object?>
                 {
@@ -433,10 +433,10 @@ namespace CG.MobileAPI.Models
             var limit = Vero(request?.limitPresent) ? " LIMIT 1" : "";
 
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.CSSCFKB.CODICE, D60STDDB.CSSCFKB.SOCIETA, D60STDDB.CSSCFKB.DESCRIZIONE, D60STDDB.CSSCFKB.MAGAZZINO,
-                         D60STDDB.CSASCKB.ARTICOLO, D60STDDB.CSASCKB.QTACELLA
-                  FROM D60STDDB.CSASCKB
-                  JOIN D60STDDB.CSSCFKB ON D60STDDB.CSASCKB.SCAFFALE = D60STDDB.CSSCFKB.CODICE
+                @"SELECT CSSCFKB.CODICE, CSSCFKB.SOCIETA, CSSCFKB.DESCRIZIONE, CSSCFKB.MAGAZZINO,
+                         CSASCKB.ARTICOLO, CSASCKB.QTACELLA
+                  FROM CSASCKB
+                  JOIN CSSCFKB ON CSASCKB.SCAFFALE = CSSCFKB.CODICE
                   WHERE SCAFFALE = ?" + limit,
                 codiceScaffale);
 
@@ -539,7 +539,7 @@ namespace CG.MobileAPI.Models
         /// ogni articolo (ex writeOrdineRifornimento.php).
         /// </summary>
         /// <returns>L'elenco dei fornitori (senza duplicati) a cui è stato creato un ordine.</returns>
-        public List<string> WriteOrdineRifornimento(WriteOrdineRifornimentoRequest request)
+        public List<string> WriteOrdineRifornimento(WriteOrdineRifornimentoRequest request, string societa)
         {
             var listaRifornimenti = request?.listaRifornimenti ?? throw new MobileException("listaRifornimenti obbligatorio");
 
@@ -582,26 +582,26 @@ namespace CG.MobileAPI.Models
             // Una testata per ogni fornitore
             foreach (var fornitore in listaRifornitori)
             {
-                var odr = Max(conn, "SELECT MAX(ODR) AS ODR FROM D60STDDB.CSORKBT") + 1;
+                var odr = Max(conn, "SELECT MAX(ODR) AS ODR FROM CSORKBT") + 1;
 
                 DbHelper.NonQuery(conn, null,
-                    @"INSERT INTO D60STDDB.CSORKBT
+                    @"INSERT INTO CSORKBT
                       (SOCIETA, ODR, FORNITORE, DTCREAZIONE, HRCREAZIONE, STATO, DTID, HRIT, TERMID, UNIQID)
-                      VALUES('CSPRO', ?, ?, ?, ?, '', ?, ?, ?, ?)",
-                    odr, fornitore, datacreazione, oracreazione, datacreazione, oracreazione, termid, uniqid);
+                      VALUES(?, ?, ?, ?, ?, '', ?, ?, ?, ?)",
+                    societa, odr, fornitore, datacreazione, oracreazione, datacreazione, oracreazione, termid, uniqid);
             }
 
             // Una riga per ogni articolo, collegata all'ultima testata del suo fornitore
             foreach (var r in righe)
             {
-                var odr = Max(conn, "SELECT MAX(ODR) AS ODR FROM D60STDDB.CSORKBT WHERE FORNITORE = ?", r.fornitore);
-                var pos = Max(conn, "SELECT MAX(POS) AS POS FROM D60STDDB.CSORKBR WHERE D60STDDB.CSORKBR.ODR = ?", odr) + 1;
+                var odr = Max(conn, "SELECT MAX(ODR) AS ODR FROM CSORKBT WHERE FORNITORE = ?", r.fornitore);
+                var pos = Max(conn, "SELECT MAX(POS) AS POS FROM CSORKBR WHERE CSORKBR.ODR = ?", odr) + 1;
 
                 DbHelper.NonQuery(conn, null,
-                    @"INSERT INTO D60STDDB.CSORKBR
+                    @"INSERT INTO CSORKBR
                       (SOCIETA, ODR, POS, ARTICOLO, QTACONF, PZCONF, SCAFFALE, COMPLETED)
-                      VALUES('CSPRO', ?, ?, ?, ?, ?, ?, '0')",
-                    odr, pos, r.articolo, r.qtaconf, r.pzconf, r.scaffale);
+                      VALUES(?, ?, ?, ?, ?, ?, ?, '0')",
+                    societa, odr, pos, r.articolo, r.qtaconf, r.pzconf, r.scaffale);
             }
 
             return listaRifornitori;
@@ -615,13 +615,17 @@ namespace CG.MobileAPI.Models
         /// Aggiorna peso netto e/o lordo di un articolo tramite il web service Diapason GFDARTREPV
         /// (ex dapiws/UpdateArticolo.php): login della sessione WS, chiamata CS_DAPIWS_GFDARTREPV_FN, logout.
         /// </summary>
-        /// <param name="request">Società, articolo e nuovi pesi.</param>
+        /// <param name="request">Articolo e nuovi pesi.</param>
         /// <param name="utente">Codice Diapason dell'utente autenticato (usato per la sessione WS).</param>
+        /// <param name="societa">Società del token (usata per la sessione WS al posto di quella del body).</param>
         /// <returns>Il messaggio (fault_string) restituito da Diapason.</returns>
-        public string UpdateArticolo(UpdateArticoloRequest request, string utente)
+        public string UpdateArticolo(UpdateArticoloRequest request, string utente, string societa)
         {
-            var societa = Obbligatorio(request?.societa, "societa");
-            var codiceArticolo = CodiceArticolo(request!.articolo);
+            if (request == null)
+            {
+                throw new MobileException("Richiesta non valida");
+            }
+            var codiceArticolo = CodiceArticolo(request.articolo);
             var pesoNetto = Peso(request.newPesoNetto, "newPesoNetto");
             var pesoLordo = Peso(request.newPesoLordo, "newPesoLordo");
             if (string.IsNullOrWhiteSpace(utente))
@@ -633,11 +637,11 @@ namespace CG.MobileAPI.Models
             conn.Open();
 
             var password = DbHelper.Query(conn, null,
-                "SELECT D60STDDB.DECRYPT(oper_cod) FROM d60stddb.diapoper WHERE oper_cod = ?", utente)
+                "SELECT DECRYPT(oper_cod) FROM diapoper WHERE oper_cod = ?", utente)
                 .FirstOrDefault()?.Values.FirstOrDefault()?.ToString() ?? "";
 
             var ticket = DbHelper.Query(conn, null,
-                "SELECT D60STDDB.CS_SESSIONWS_LOGIN(?, ?, ?, ?) token FROM sysibm.sysdummy1",
+                "SELECT CS_SESSIONWS_LOGIN(?, ?, ?, ?) token FROM sysibm.sysdummy1",
                 utente, password, societa, DIAP_ENVIRONMENT)
                 .FirstOrDefault()?.Values.FirstOrDefault()?.ToString();
 
@@ -681,7 +685,7 @@ namespace CG.MobileAPI.Models
             {
                 try
                 {
-                    DbHelper.Query(conn, null, "SELECT D60STDDB.CS_SESSIONWS_LOGOUT(?) token FROM sysibm.sysdummy1", ticket);
+                    DbHelper.Query(conn, null, "SELECT CS_SESSIONWS_LOGOUT(?) token FROM sysibm.sysdummy1", ticket);
                 }
                 catch (OdbcException)
                 {

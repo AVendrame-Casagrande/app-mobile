@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../models/utente.dart';
 import '../config.dart';
 
 /// Eccezione di rete/server. [message] è il messaggio della busta ResultInfo
@@ -20,6 +21,10 @@ class AuthToken {
 
   /// Token corrente (null se non loggato).
   static String? value;
+
+  /// Società della sessione (contenuta nel token). Il server la legge dal
+  /// token; qui serve solo a mandare nei body un valore coerente.
+  static String societa = Utente.societaDefault;
 
   /// Header di autorizzazione da aggiungere alle richieste.
   static Map<String, String> get headers =>

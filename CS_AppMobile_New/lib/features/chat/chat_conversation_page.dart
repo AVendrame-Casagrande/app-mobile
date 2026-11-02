@@ -20,10 +20,13 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
   bool _segnatiLetti = false;
+  late final ChatController _ctrl;
 
   @override
   void initState() {
     super.initState();
+    // Niente popup per i messaggi della conversazione aperta.
+    _ctrl = context.read<ChatController>()..conversazioneAperta = widget.codiceUtente;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _segnaLetti();
       _scrollInFondo(animato: false);
@@ -32,6 +35,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
 
   @override
   void dispose() {
+    if (_ctrl.conversazioneAperta == widget.codiceUtente) _ctrl.conversazioneAperta = null;
     _input.dispose();
     _scroll.dispose();
     super.dispose();

@@ -34,7 +34,11 @@ const _tabAut01 = 4;
 /// - 02/03: consultazione MGAUT02.
 /// - AUT01: trasferimenti da MGAUT01 (invio WriteMovimentiMultipliAPI + SSE).
 class MgautPage extends StatefulWidget {
-  const MgautPage({super.key});
+  const MgautPage({super.key, this.magazzinoIniziale});
+
+  /// Apre direttamente la lista indicata (MGAUT00 / MGAUT10), es. dopo
+  /// l'aggiunta di un articolo dalla scheda Cerca.
+  final String? magazzinoIniziale;
 
   @override
   State<MgautPage> createState() => _MgautPageState();
@@ -77,8 +81,11 @@ class _MgautPageState extends State<MgautPage> with SingleTickerProviderStateMix
     _accesso0027 = _utente == 'CMA006';
 
     // setMgautPageMagazzinoCorrente(): CMA006 e CTM* partono da AUT01.
-    final iniziale =
-        _utente == 'CMA006' || _utente.startsWith('CTM') ? _tabAut01 : _tabAut00;
+    final iniziale = switch (widget.magazzinoIniziale) {
+      'MGAUT00' => _tabAut00,
+      'MGAUT10' => _tabAut10,
+      _ => _utente == 'CMA006' || _utente.startsWith('CTM') ? _tabAut01 : _tabAut00,
+    };
     _tabs = TabController(length: 5, vsync: this, initialIndex: iniziale);
     _tabPrecedente = iniziale;
     _tabs.addListener(_onTab);

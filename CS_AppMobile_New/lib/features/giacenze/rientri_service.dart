@@ -54,7 +54,6 @@ class RientriService {
     String odl = '',
     String commessa = '',
     String nota = '',
-    String ambiente = 'PRODUZIONE',
   }) async {
     final datamov = DateFormat('yyyyMMdd').format(DateTime.now());
     final res = await _api.postText(
@@ -71,7 +70,6 @@ class RientriService {
         'odl': odl,
         'commessa': commessa,
         'nota': nota,
-        'ambiente': ambiente,
         'id': utente,
         'societa': societa,
       },

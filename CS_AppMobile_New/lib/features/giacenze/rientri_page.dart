@@ -42,7 +42,7 @@ class _RientriPageState extends State<RientriPage> {
     super.initState();
     final app = context.read<AppState>();
     _service = RientriService(app.api);
-    _societa = app.utenteLoggato.isEnglish ? 'CSUSA' : 'CSPRO';
+    _societa = app.utenteLoggato.societaApi;
     _recenti = LastSearched.get(_sezione);
   }
 

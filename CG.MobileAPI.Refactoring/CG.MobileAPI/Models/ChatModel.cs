@@ -325,8 +325,8 @@ namespace CG.MobileAPI.Models
             }
 
             var righe = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DIAPOPER.OPER_COD,D60STDDB.DIAPOPER.OPER_ANAG,D60STDDB.DIAPOPER.OPER_MAIL,D60STDDB.DIAPOPER.OPER_LING
-                  FROM D60STDDB.DIAPOPER ORDER BY D60STDDB.DIAPOPER.OPER_COD ASC");
+                @"SELECT DIAPOPER.OPER_COD,DIAPOPER.OPER_ANAG,DIAPOPER.OPER_MAIL,DIAPOPER.OPER_LING
+                  FROM DIAPOPER ORDER BY DIAPOPER.OPER_COD ASC");
 
             var lista = new List<Dictionary<string, object?>>();
             foreach (var r in righe)
@@ -377,8 +377,8 @@ namespace CG.MobileAPI.Models
             if (appartiene == null) return lista;
 
             var righe = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DIAPOPER.OPER_COD, D60STDDB.DIAPOPER.OPER_ANAG
-                  FROM D60STDDB.DIAPOPER ORDER BY D60STDDB.DIAPOPER.OPER_ANAG ASC");
+                @"SELECT DIAPOPER.OPER_COD, DIAPOPER.OPER_ANAG
+                  FROM DIAPOPER ORDER BY DIAPOPER.OPER_ANAG ASC");
 
             foreach (var r in righe)
             {
@@ -465,11 +465,11 @@ namespace CG.MobileAPI.Models
             }
 
             var nomeInviante = (DbHelper.Query(_conn.Db2,
-                    "SELECT D60STDDB.DIAPOPER.OPER_ANAG FROM D60STDDB.DIAPOPER WHERE D60STDDB.DIAPOPER.OPER_COD=?", senderId)
+                    "SELECT DIAPOPER.OPER_ANAG FROM DIAPOPER WHERE DIAPOPER.OPER_COD=?", senderId)
                 .LastOrDefault()?["OPER_ANAG"]?.ToString() ?? "").Trim();
 
             var emailTarget = (DbHelper.Query(_conn.Db2,
-                    "SELECT D60STDDB.DIAPOPER.OPER_MAIL FROM D60STDDB.DIAPOPER WHERE D60STDDB.DIAPOPER.OPER_COD=?", receiverId ?? "")
+                    "SELECT DIAPOPER.OPER_MAIL FROM DIAPOPER WHERE DIAPOPER.OPER_COD=?", receiverId ?? "")
                 .LastOrDefault()?["OPER_MAIL"]?.ToString() ?? "").Trim();
 
             if (emailTarget == "")

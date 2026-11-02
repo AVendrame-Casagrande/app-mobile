@@ -35,7 +35,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("addArticoloScaffale")]
         public IActionResult AddArticoloScaffale([FromBody] AddArticoloScaffaleRequest request)
         {
-            return Esegui("addArticoloScaffale", () => _db2Connection.DBKANBAN.AddArticoloScaffale(request));
+            return Esegui("addArticoloScaffale", () => _db2Connection.DBKANBAN.AddArticoloScaffale(request, Societa));
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("addElencoScaffaliToArticolo")]
         public IActionResult AddElencoScaffaliToArticolo([FromBody] AddElencoScaffaliToArticoloRequest request)
         {
-            return Esegui("addElencoScaffaliToArticolo", () => _db2Connection.DBKANBAN.AddElencoScaffaliToArticolo(request));
+            return Esegui("addElencoScaffaliToArticolo", () => _db2Connection.DBKANBAN.AddElencoScaffaliToArticolo(request, Societa));
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("checkKanbanGiacenzeMgaut")]
         public IActionResult CheckKanbanGiacenzeMgaut([FromBody] CheckKanbanGiacenzeMgautRequest request)
         {
-            return Esegui("checkKanbanGiacenzeMgaut", () => _db2Connection.DBKANBAN.CheckKanbanGiacenzeMgaut(request));
+            return Esegui("checkKanbanGiacenzeMgaut", () => _db2Connection.DBKANBAN.CheckKanbanGiacenzeMgaut(request, Societa));
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("selectArticoliScaffale")]
         public IActionResult SelectArticoliScaffale([FromBody] SelectArticoliScaffaleRequest request)
         {
-            return Esegui("selectArticoliScaffale", () => _db2Connection.DBKANBAN.SelectArticoliScaffale(request));
+            return Esegui("selectArticoliScaffale", () => _db2Connection.DBKANBAN.SelectArticoliScaffale(request, Societa));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("selectSingoloArticolo")]
         public IActionResult SelectSingoloArticolo([FromBody] SelectSingoloArticoloKanbanRequest request)
         {
-            return Esegui("selectSingoloArticolo", () => _db2Connection.DBKANBAN.SelectSingoloArticolo(request));
+            return Esegui("selectSingoloArticolo", () => _db2Connection.DBKANBAN.SelectSingoloArticolo(request, Societa));
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("writeOrdineRifornimento")]
         public IActionResult WriteOrdineRifornimento([FromBody] WriteOrdineRifornimentoRequest request)
         {
-            return Esegui("writeOrdineRifornimento", () => _db2Connection.DBKANBAN.WriteOrdineRifornimento(request));
+            return Esegui("writeOrdineRifornimento", () => _db2Connection.DBKANBAN.WriteOrdineRifornimento(request, Societa));
         }
     }
 }

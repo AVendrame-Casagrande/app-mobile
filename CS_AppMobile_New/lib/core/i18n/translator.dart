@@ -25,6 +25,9 @@ class Translator {
   static const Map<String, String> _itToEn = {
     'ID Utente': 'User ID',
     'TIPO ACCOUNT': 'ACCOUNT TYPE',
+    'Società': 'Company',
+    'Per cambiare società effettua il Logout e un nuovo Login':
+        'To change company, log out and log in again',
     'Utente Standard': 'Standard User',
     'Utente Produzione': 'Production User',
     'Utente Magazzino': 'Warehouse User',
@@ -47,6 +50,8 @@ class Translator {
     'Password Errata': 'Wrong Password',
     'ID Utente Errato': 'Wrong User ID',
     'ID Utente o Password Errati': 'Wrong User ID or Password',
+    'Gli utenti in lingua inglese lavorano sempre su Casagrande USA':
+        'English-language users always work on Casagrande USA',
     'Credenziali Corrette': 'Correct Credentials',
     'Credenziali Errate': 'Wrong Credentials',
     'Chiudi': 'Close',

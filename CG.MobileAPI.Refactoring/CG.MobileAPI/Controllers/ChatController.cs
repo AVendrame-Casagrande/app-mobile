@@ -63,7 +63,7 @@ namespace CG.MobileAPI.Controllers
 
             using (_logger.BeginScope(new Dictionary<string, object>
             {
-                ["LOG_CODSOC"] = "CSPRO",
+                ["LOG_CODSOC"] = Societa,
                 ["LOG_ORIGIN"] = ORIGIN,
                 ["LOG_USER"] = utente,
                 ["LOG_WS_CONTROLLER"] = "CHAT",

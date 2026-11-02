@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CG.MobileAPI.Controllers
 {
     /// <summary>
-    /// Attività / avvisi dell'app mobile (ex query/avvisi/*.php): attività tra utenti (D60STDDB.CSAVVMAG),
+    /// Attività / avvisi dell'app mobile (ex query/avvisi/*.php): attività tra utenti (CSAVVMAG),
     /// bolle a destinazione specifica, attività legate agli impegni ODL, mancanti CC e materiale in arrivo.
     /// </summary>
     [Route("api/avvisi")]
@@ -150,6 +150,7 @@ namespace CG.MobileAPI.Controllers
                     UtenteAvvisoDiapason = Obbligatorio(request?.utente_avviso_diapason, "utente_avviso_diapason"),
                     Dest = Obbligatorio(request?.dest_avviso, "dest_avviso"),
                     ChatText = request?.chat_text ?? "",
+                    Societa = Societa,
                     DataOraCreazione = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss"), CultureInfo.InvariantCulture)
                 };
 
@@ -167,7 +168,7 @@ namespace CG.MobileAPI.Controllers
                 avvisi.ImpostaAttivitaSemiCompletata(job.Timest, job.UtenteAvviso, job.Dest);
 
                 // Controllo 0: se il trasferimento c'è già completo subito e rispondo con l'id del messaggio
-                if (avvisi.VerificaTrasferimentoMgaut01(job.Articolo, job.Odl, job.DataOraCreazione))
+                if (avvisi.VerificaTrasferimentoMgaut01(job.Articolo, job.Odl, job.DataOraCreazione, job.Societa))
                 {
                     return Completa0027(avvisi, job, 0, _logger);
                 }
@@ -209,7 +210,7 @@ namespace CG.MobileAPI.Controllers
         {
             using var logScope = logger.BeginScope(new Dictionary<string, object>
             {
-                ["LOG_CODSOC"] = "CSPRO",
+                ["LOG_CODSOC"] = job.Societa,
                 ["LOG_ORIGIN"] = ORIGIN,
                 ["LOG_USER"] = job.UtenteCompletante,
                 ["LOG_WS_CONTROLLER"] = "AVVISI",
@@ -241,7 +242,7 @@ namespace CG.MobileAPI.Controllers
                     using var scope = scopeFactory.CreateScope();
                     var avvisi = scope.ServiceProvider.GetRequiredService<MyDbContext>().DBAVVISI;
 
-                    if (avvisi.VerificaTrasferimentoMgaut01(job.Articolo, job.Odl, job.DataOraCreazione))
+                    if (avvisi.VerificaTrasferimentoMgaut01(job.Articolo, job.Odl, job.DataOraCreazione, job.Societa))
                     {
                         Completa0027(avvisi, job, counter, logger);
                         return;
@@ -294,6 +295,8 @@ namespace CG.MobileAPI.Controllers
             public string UtenteAvvisoDiapason { get; init; } = "";
             public string Dest { get; init; } = "";
             public string ChatText { get; init; } = "";
+            /// <summary>Società del token, catturata prima di avviare il job in background.</summary>
+            public string Societa { get; init; } = CodiciSocieta.CASAGRANDE;
             public long DataOraCreazione { get; init; }
         }
 
@@ -358,7 +361,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("selectAllAvvisiSpeciali")]
         public IActionResult SelectAllAvvisiSpeciali()
         {
-            return Esegui("SelectAllAvvisiSpeciali", () => _db2Connection.DBAVVISI.SelectAllAvvisiSpeciali());
+            return Esegui("SelectAllAvvisiSpeciali", () => _db2Connection.DBAVVISI.SelectAllAvvisiSpeciali(Societa));
         }
 
         /// <summary>
@@ -368,7 +371,7 @@ namespace CG.MobileAPI.Controllers
         public IActionResult AddInfoAvvisoSpeciale([FromBody] AddInfoAvvisoSpecialeRequest request)
         {
             return Esegui("AddInfoAvvisoSpeciale", () =>
-                _db2Connection.DBAVVISI.AddInfoAvvisoSpeciale(Obbligatorio(request?.id, "id")));
+                _db2Connection.DBAVVISI.AddInfoAvvisoSpeciale(Obbligatorio(request?.id, "id"), Societa));
         }
 
         /// <summary>
@@ -390,7 +393,8 @@ namespace CG.MobileAPI.Controllers
                     Obbligatorio(request?.id, "id"),
                     request?.bolla ?? "",
                     Utente,
-                    (int)riga);
+                    (int)riga,
+                    Societa);
             });
         }
 
@@ -404,7 +408,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getMancantiCC")]
         public IActionResult GetMancantiCC()
         {
-            return Esegui("GetMancantiCC", () => _db2Connection.DBAVVISI.GetMancantiCC());
+            return Esegui("GetMancantiCC", () => _db2Connection.DBAVVISI.GetMancantiCC(Societa));
         }
 
         /// <summary>
@@ -413,7 +417,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("getMaterialeInArrivo")]
         public IActionResult GetMaterialeInArrivo()
         {
-            return Esegui("GetMaterialeInArrivo", () => _db2Connection.DBAVVISI.GetMaterialeInArrivo());
+            return Esegui("GetMaterialeInArrivo", () => _db2Connection.DBAVVISI.GetMaterialeInArrivo(Societa));
         }
 
         // -------------------------------------------------------------------------------------------------------------

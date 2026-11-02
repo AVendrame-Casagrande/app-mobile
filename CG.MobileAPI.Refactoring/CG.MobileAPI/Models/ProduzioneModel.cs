@@ -68,7 +68,7 @@ namespace CG.MobileAPI.Models
     /// <summary>Richiesta di UpdateSOSACPN (impegno su Diapason).</summary>
     public class UpdateSosacpnRequest
     {
-        /// <summary>Parametri di ConSOSACPN.exe: "ambiente funzione odl articolo fase [qta]" (es. "P ADD 123 ART 0027 5").</summary>
+        /// <summary>Parametri di ConSOSACPN.exe senza ambiente: "funzione odl articolo fase [qta]" (es. "ADD 123 ART 0027 5"). L'ambiente (P/T) lo antepone il server.</summary>
         public string? parametri { get; set; }
     }
 
@@ -136,7 +136,7 @@ namespace CG.MobileAPI.Models
     /// <summary>Richiesta di getQualitaArrivi.</summary>
     public class GetQualitaArriviRequest
     {
-        /// <summary>Società (default CSPRO).</summary>
+        /// <summary>Ignorato: la società è quella del token.</summary>
         public string? societa { get; set; }
         /// <summary>Inizio del codice articolo.</summary>
         public string? art { get; set; }
@@ -364,7 +364,7 @@ namespace CG.MobileAPI.Models
         public const string CARTELLA_PALLINATURA = "mobile/server/storage/pallinatura";
 
         private static readonly Regex _parametriSosacpn =
-            new(@"^[PT] (ADD|REP|DEL) \S{1,30} \S{1,40} \S{1,10}( -?[0-9]+([.,][0-9]+)?([eE][-+]?[0-9]+)?)?$");
+            new(@"^(ADD|REP|DEL) \S{1,30} \S{1,40} \S{1,10}( -?[0-9]+([.,][0-9]+)?([eE][-+]?[0-9]+)?)?$");
 
         private readonly MobileConnections _conn;
 
@@ -385,11 +385,11 @@ namespace CG.MobileAPI.Models
         /// Tipo articolo (MTYPN) da DBSAITE (ex casagrande-app-web/getTipoArticolo.php).
         /// Restituisce <c>{tipoArticolo}</c> oppure <c>{error: "Nessun risultato"}</c>.
         /// </summary>
-        public Dictionary<string, object?> GetTipoArticolo(string? codice)
+        public Dictionary<string, object?> GetTipoArticolo(string? codice, string societa)
         {
             var row = DbHelper.QueryFirst(_conn.Db2,
-                "SELECT MTYPN FROM D60STDDB.DBSAITE WHERE MITEM = ? AND MCOSC = 'CSPRO'",
-                codice ?? "");
+                "SELECT MTYPN FROM DBSAITE WHERE MITEM = ? AND MCOSC = ?",
+                codice ?? "", societa);
             if (row == null)
             {
                 return new Dictionary<string, object?> { ["error"] = "Nessun risultato" };
@@ -399,7 +399,7 @@ namespace CG.MobileAPI.Models
 
         /// <summary>
         /// Controlla che i parametri di UpdateSOSACPN abbiano la forma usata dall'app
-        /// ("P|T ADD|REP|DEL odl articolo fase [qta]"), così il servizio non può essere usato per comandi arbitrari.
+        /// ("ADD|REP|DEL odl articolo fase [qta]", senza ambiente: lo aggiunge il server), così il servizio non può essere usato per comandi arbitrari.
         /// </summary>
         public static string ValidaParametriSosacpn(string? parametri)
         {
@@ -420,18 +420,18 @@ namespace CG.MobileAPI.Models
         /// <summary>
         /// Articoli già impegnati sull'ODL nella fase (ex query/produzione/addArticoliImpegnoOdl.php).
         /// </summary>
-        public List<Dictionary<string, object?>> AddArticoliImpegnoOdl(AddArticoliImpegnoOdlRequest request)
+        public List<Dictionary<string, object?>> AddArticoliImpegnoOdl(AddArticoliImpegnoOdlRequest request, string societa)
         {
-            const string query = @"SELECT D60STDDB.SOSACPN.SOCPKEY, D60STDDB.SOSACPN.SOCRQTY*0.01 AS QTA, D60STDDB.SOSAVPN.VPNMAOP AS FASE, D60STDDB.DBSAITE.MPDSC AS DESCRIZIONE, D60STDDB.DBSAITE.MUTMS AS UM
-FROM D60STDDB.SOSACPN
-FULL JOIN D60STDDB.SOSAVPN ON D60STDDB.SOSAVPN.VPNMAOP = D60STDDB.SOSACPN.SOCMAOP AND D60STDDB.SOSACPN.VRTSOC = D60STDDB.SOSAVPN.VRTSOC AND D60STDDB.SOSACPN.VRTORNO = D60STDDB.SOSAVPN.VRTORNO
-FULL JOIN D60STDDB.SOSAVRT ON D60STDDB.SOSAVPN.VRTSOC = D60STDDB.SOSAVRT.VRTSOC AND D60STDDB.SOSAVPN.VRTORNO = D60STDDB.SOSAVRT.VRTORNO
-FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.SOSACPN.SOCPKEY AND D60STDDB.DBSAITE.MCOSC = D60STDDB.SOSAVRT.VRTSOC
-WHERE D60STDDB.SOSAVPN.VRTORNO=? AND D60STDDB.SOSAVPN.VPNMAOP=? AND D60STDDB.SOSAVPN.VPNSTAT<'90' AND D60STDDB.SOSAVRT.VRTSTAT>'10' AND D60STDDB.SOSAVRT.VRTSTAT<'90' AND D60STDDB.SOSAVPN.VRTSOC='CSPRO'
-ORDER BY D60STDDB.SOSAVPN.VPNMAOP, D60STDDB.SOSACPN.SOCPKEY";
+            const string query = @"SELECT SOSACPN.SOCPKEY, SOSACPN.SOCRQTY*0.01 AS QTA, SOSAVPN.VPNMAOP AS FASE, DBSAITE.MPDSC AS DESCRIZIONE, DBSAITE.MUTMS AS UM
+FROM SOSACPN
+FULL JOIN SOSAVPN ON SOSAVPN.VPNMAOP = SOSACPN.SOCMAOP AND SOSACPN.VRTSOC = SOSAVPN.VRTSOC AND SOSACPN.VRTORNO = SOSAVPN.VRTORNO
+FULL JOIN SOSAVRT ON SOSAVPN.VRTSOC = SOSAVRT.VRTSOC AND SOSAVPN.VRTORNO = SOSAVRT.VRTORNO
+FULL JOIN DBSAITE ON DBSAITE.MITEM = SOSACPN.SOCPKEY AND DBSAITE.MCOSC = SOSAVRT.VRTSOC
+WHERE SOSAVPN.VRTORNO=? AND SOSAVPN.VPNMAOP=? AND SOSAVPN.VPNSTAT<'90' AND SOSAVRT.VRTSTAT>'10' AND SOSAVRT.VRTSTAT<'90' AND SOSAVPN.VRTSOC=?
+ORDER BY SOSAVPN.VPNMAOP, SOSACPN.SOCPKEY";
 
             var lista = new List<Dictionary<string, object?>>();
-            foreach (var row in DbHelper.Query(_conn.Db2, query, request.odl ?? "", request.fase ?? ""))
+            foreach (var row in DbHelper.Query(_conn.Db2, query, request.odl ?? "", request.fase ?? "", societa))
             {
                 var articolo = T(row["SOCPKEY"]);
                 if (articolo == "") continue;
@@ -454,13 +454,13 @@ ORDER BY D60STDDB.SOSAVPN.VPNMAOP, D60STDDB.SOSACPN.SOCPKEY";
         public List<Dictionary<string, object?>> CheckImpegnoGiacenzaArticolo(string? codiceArticolo)
         {
             const string query = @"SELECT
-D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE, D60STDDB.MASAMSL.MALLLQT/100 AS IMPEGNATO
-FROM D60STDDB.MASAMSL
-FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC
-WHERE D60STDDB.DBSAITE.MITEM=?
-AND (D60STDDB.MASAMSL.MLLOC='MGAUT00' OR D60STDDB.MASAMSL.MLLOC='MGAUT10' OR D60STDDB.MASAMSL.MLLOC LIKE 'MISK%')
-GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT, D60STDDB.MASAMSL.MALLLQT
-ORDER BY D60STDDB.MASAMSL.MLLOC,D60STDDB.MASAMSL.MALLOC";
+MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT/100 AS GIACENTE, MASAMSL.MALLLQT/100 AS IMPEGNATO
+FROM MASAMSL
+FULL JOIN DBSAITE ON DBSAITE.MITEM = MASAMSL.MALITEM AND DBSAITE.MCOSC = MASAMSL.MAHCOSC
+WHERE DBSAITE.MITEM=?
+AND (MASAMSL.MLLOC='MGAUT00' OR MASAMSL.MLLOC='MGAUT10' OR MASAMSL.MLLOC LIKE 'MISK%')
+GROUP BY MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT, MASAMSL.MALLLQT
+ORDER BY MASAMSL.MLLOC,MASAMSL.MALLOC";
 
             return DbHelper.Query(_conn.Db2, query, codiceArticolo ?? "")
                 .Select(row => new Dictionary<string, object?>
@@ -475,15 +475,15 @@ ORDER BY D60STDDB.MASAMSL.MLLOC,D60STDDB.MASAMSL.MALLOC";
         /// <summary>
         /// Magazzino di destinazione dell'ODL nella fase, 'Nessuno' se non c'è (ex query/produzione/returnMagazzinoFromImpegnoOdl.php).
         /// </summary>
-        public string ReturnMagazzinoFromImpegnoOdl(ReturnMagazzinoFromImpegnoOdlRequest request)
+        public string ReturnMagazzinoFromImpegnoOdl(ReturnMagazzinoFromImpegnoOdlRequest request, string societa)
         {
-            const string query = @"SELECT DISTINCT D60STDDB.SOSACPN.SOCDLOC
-FROM D60STDDB.SOSACPN
-FULL JOIN D60STDDB.SOSAVPN ON D60STDDB.SOSAVPN.VPNMAOP = D60STDDB.SOSACPN.SOCMAOP AND D60STDDB.SOSACPN.VRTSOC = D60STDDB.SOSAVPN.VRTSOC AND D60STDDB.SOSACPN.VRTORNO = D60STDDB.SOSAVPN.VRTORNO
-WHERE D60STDDB.SOSACPN.SOCDLOC IS NOT NULL AND D60STDDB.SOSACPN.SOCDLOC != '' AND D60STDDB.SOSAVPN.VPNMAOP=? AND D60STDDB.SOSAVPN.VRTORNO=? AND D60STDDB.SOSAVPN.VRTSOC='CSPRO' LIMIT 1";
+            const string query = @"SELECT DISTINCT SOSACPN.SOCDLOC
+FROM SOSACPN
+FULL JOIN SOSAVPN ON SOSAVPN.VPNMAOP = SOSACPN.SOCMAOP AND SOSACPN.VRTSOC = SOSAVPN.VRTSOC AND SOSACPN.VRTORNO = SOSAVPN.VRTORNO
+WHERE SOSACPN.SOCDLOC IS NOT NULL AND SOSACPN.SOCDLOC != '' AND SOSAVPN.VPNMAOP=? AND SOSAVPN.VRTORNO=? AND SOSAVPN.VRTSOC=? LIMIT 1";
 
             var magazzino = "Nessuno";
-            foreach (var row in DbHelper.Query(_conn.Db2, query, request.fase ?? "", request.odl ?? ""))
+            foreach (var row in DbHelper.Query(_conn.Db2, query, request.fase ?? "", request.odl ?? "", societa))
             {
                 magazzino = T(row["SOCDLOC"]);
             }
@@ -494,66 +494,67 @@ WHERE D60STDDB.SOSACPN.SOCDLOC IS NOT NULL AND D60STDDB.SOSACPN.SOCDLOC != '' AN
         /// ODL/fasi su cui l'utente può impegnare, cercando il codice come ODL, poi come padre, poi come magazzino
         /// (ex query/produzione/selectImpegniOdl.php). Le fasi visibili dipendono dal codice utente.
         /// </summary>
-        public List<Dictionary<string, object?>> SelectImpegniOdl(string? codiceOdlPadreMag, string? fase, string utente)
+        public List<Dictionary<string, object?>> SelectImpegniOdl(string? codiceOdlPadreMag, string? fase, string utente, string societa)
         {
             var codice = codiceOdlPadreMag ?? "";
-            var lista = GetListaImpegniOdl(codice, "odl", fase ?? "", utente);
+            var lista = GetListaImpegniOdl(codice, "odl", fase ?? "", utente, societa);
             if (lista.Count == 0)
             {
-                lista = GetListaImpegniOdl(codice, "Padre", fase ?? "", utente);
+                lista = GetListaImpegniOdl(codice, "Padre", fase ?? "", utente, societa);
             }
             if (lista.Count == 0)
             {
-                lista = GetListaImpegniOdl(codice, "Magazzino", fase ?? "", utente);
+                lista = GetListaImpegniOdl(codice, "Magazzino", fase ?? "", utente, societa);
             }
             return lista;
         }
 
-        private List<Dictionary<string, object?>> GetListaImpegniOdl(string codice, string tipoCodice, string fase, string utente)
+        private List<Dictionary<string, object?>> GetListaImpegniOdl(string codice, string tipoCodice, string fase, string utente, string societa)
         {
             var whereQuery = tipoCodice switch
             {
-                "odl" => "AND D60STDDB.SOSAVPN.VRTORNO=?",
-                "Padre" => "AND D60STDDB.SOSAVRT.VRTITEM=?",
-                _ => "AND D60STDDB.SOSACPN.SOCDLOC=?"
+                "odl" => "AND SOSAVPN.VRTORNO=?",
+                "Padre" => "AND SOSAVRT.VRTITEM=?",
+                _ => "AND SOSACPN.SOCDLOC=?"
             };
 
             var valori = new List<object?>();
 
             // Tutti gli utenti hanno accesso solo alla Fase 0027
-            var whereFase = "D60STDDB.SOSAVPN.VPNMAOP='0027'";
+            var whereFase = "SOSAVPN.VPNMAOP='0027'";
             var prefisso = utente.Length >= 3 ? utente.Substring(0, 3) : utente;
 
             if (utente == "CPR011" || utente == "CAM015" || utente == "CAP" || utente == "CAP001" || prefisso == "CMA" || prefisso == "CTM")
             {
-                whereFase = "(D60STDDB.SOSAVPN.VPNMAOP='0027' OR D60STDDB.SOSAVPN.VPNMAOP='0065' OR D60STDDB.SOSAVPN.VPNMAOP='0066' OR D60STDDB.SOSAVPN.VPNMAOP='0067' OR D60STDDB.SOSAVPN.VPNMAOP='0068' OR D60STDDB.SOSAVPN.VPNMAOP='0069' OR D60STDDB.SOSAVPN.VPNMAOP LIKE '003%')";
+                whereFase = "(SOSAVPN.VPNMAOP='0027' OR SOSAVPN.VPNMAOP='0065' OR SOSAVPN.VPNMAOP='0066' OR SOSAVPN.VPNMAOP='0067' OR SOSAVPN.VPNMAOP='0068' OR SOSAVPN.VPNMAOP='0069' OR SOSAVPN.VPNMAOP LIKE '003%')";
             }
             else if (utente == "CPR010" || utente == "CPR026" || utente == "CPR017")
             {
                 // Fabbro, Cattaruzza e da Pieve hanno accesso anche alla 0065 (e simili)
-                whereFase = "(D60STDDB.SOSAVPN.VPNMAOP='0027' OR D60STDDB.SOSAVPN.VPNMAOP='0065' OR D60STDDB.SOSAVPN.VPNMAOP='0066' OR D60STDDB.SOSAVPN.VPNMAOP='0067' OR D60STDDB.SOSAVPN.VPNMAOP='0068' OR D60STDDB.SOSAVPN.VPNMAOP='0069')";
+                whereFase = "(SOSAVPN.VPNMAOP='0027' OR SOSAVPN.VPNMAOP='0065' OR SOSAVPN.VPNMAOP='0066' OR SOSAVPN.VPNMAOP='0067' OR SOSAVPN.VPNMAOP='0068' OR SOSAVPN.VPNMAOP='0069')";
             }
             else if (utente == "CPR013")
             {
                 // Solo il CPR013 accede alla 003x (materiale elettrico) e solo a quella
-                whereFase = "D60STDDB.SOSAVPN.VPNMAOP LIKE '003%'";
+                whereFase = "SOSAVPN.VPNMAOP LIKE '003%'";
             }
 
             if (fase != "")
             {
-                whereFase = "D60STDDB.SOSAVPN.VPNMAOP=?";
+                whereFase = "SOSAVPN.VPNMAOP=?";
                 valori.Add(fase);
             }
+            valori.Add(societa);
             valori.Add(codice);
 
-            var query = $@"SELECT DISTINCT D60STDDB.SOSAVPN.VRTORNO, D60STDDB.SOSAVRT.VRTITEM, D60STDDB.SOSAVPN.VPNMAOP, D60STDDB.SOSAVPN.VPNDESC, D60STDDB.SOSAVPN.VPNSTAT, D60STDDB.SOSAVRT.VRTPDSC, D60STDDB.SOSAVRT.VRTRESP, D60STDDB.SOSAVRT.VRTSTAT, D60STDDB.SOSAVRT.VRTRESP,
-	COALESCE(D60STDDB.SOSACPN.SOCDLOC, D60STDDB.RESABRT.BRTPHLI) SOCDLOC, COALESCE(D60STDDB.SOSACPN.SOCDLOC, D60STDDB.RESABRT.BRTPHLI) SOCDLOC
-    FROM D60STDDB.SOSACPN
-    FULL JOIN D60STDDB.SOSAVPN ON D60STDDB.SOSAVPN.VPNMAOP = D60STDDB.SOSACPN.SOCMAOP AND D60STDDB.SOSACPN.VRTSOC = D60STDDB.SOSAVPN.VRTSOC AND D60STDDB.SOSACPN.VRTORNO = D60STDDB.SOSAVPN.VRTORNO
-    FULL JOIN D60STDDB.SOSAVRT ON D60STDDB.SOSAVPN.VRTSOC = D60STDDB.SOSAVRT.VRTSOC AND D60STDDB.SOSAVPN.VRTORNO = D60STDDB.SOSAVRT.VRTORNO
-	FULL JOIN D60STDDB.RESABRT ON RESABRT.BRTSOC=SOSAVPN.VRTSOC AND RESABRT.BRTBKEY=SOSAVPN.VPNPCNO
-    WHERE {whereFase} AND D60STDDB.SOSAVPN.VPNSTAT<'90' AND D60STDDB.SOSAVRT.VRTSTAT>'10' AND D60STDDB.SOSAVRT.VRTSTAT<'90' AND D60STDDB.SOSAVPN.VRTSOC='CSPRO' {whereQuery}
-    ORDER BY D60STDDB.SOSAVPN.VRTORNO,D60STDDB.SOSAVPN.VPNMAOP";
+            var query = $@"SELECT DISTINCT SOSAVPN.VRTORNO, SOSAVRT.VRTITEM, SOSAVPN.VPNMAOP, SOSAVPN.VPNDESC, SOSAVPN.VPNSTAT, SOSAVRT.VRTPDSC, SOSAVRT.VRTRESP, SOSAVRT.VRTSTAT, SOSAVRT.VRTRESP,
+	COALESCE(SOSACPN.SOCDLOC, RESABRT.BRTPHLI) SOCDLOC, COALESCE(SOSACPN.SOCDLOC, RESABRT.BRTPHLI) SOCDLOC
+    FROM SOSACPN
+    FULL JOIN SOSAVPN ON SOSAVPN.VPNMAOP = SOSACPN.SOCMAOP AND SOSACPN.VRTSOC = SOSAVPN.VRTSOC AND SOSACPN.VRTORNO = SOSAVPN.VRTORNO
+    FULL JOIN SOSAVRT ON SOSAVPN.VRTSOC = SOSAVRT.VRTSOC AND SOSAVPN.VRTORNO = SOSAVRT.VRTORNO
+	FULL JOIN RESABRT ON RESABRT.BRTSOC=SOSAVPN.VRTSOC AND RESABRT.BRTBKEY=SOSAVPN.VPNPCNO
+    WHERE {whereFase} AND SOSAVPN.VPNSTAT<'90' AND SOSAVRT.VRTSTAT>'10' AND SOSAVRT.VRTSTAT<'90' AND SOSAVPN.VRTSOC=? {whereQuery}
+    ORDER BY SOSAVPN.VRTORNO,SOSAVPN.VPNMAOP";
 
             return DbHelper.Query(_conn.Db2, query, valori.ToArray())
                 .Select(row => new Dictionary<string, object?>
@@ -640,7 +641,7 @@ ORDER BY cs_fabbmanc_odl.duedate asc";
         /// <summary>
         /// Situazione dei componenti critici dell'ODL, con note e data di conferma dell'OdA (ex query/produzione/selectSituazioneOdl.php).
         /// </summary>
-        public List<Dictionary<string, object?>> SelectSituazioneOdl(string? odl)
+        public List<Dictionary<string, object?>> SelectSituazioneOdl(string? odl, string societa)
         {
             const string query = @"SELECT cs_fabbmanc_odl_comp.tipoarticolo, cs_fabbmanc_odl_comp.numero, cs_fabbmanc_odl_comp.magazzino, cs_fabbmanc_odl_comp.articolo, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl_comp.stato, cs_fabbmanc_odl_comp.fabbdate, cs_fabbmanc_odl_comp.statopick, cs_fabbmanc_odl_comp.descarticolo, cs_fabbmanc_odl_comp.qtares , cs_fabbmanc_odl_comp.giacmag,
 cs_fabbmanc_odl_dispo.magdispo, cs_fabbmanc_odl_comp.umis, cs_fabbmanc_odl.articolo as padre, cs_fabbmanc_odl.descarticolo as descpadre, cs_fabbmanc_odl.qtares as qtarespadre, cs_fabbmanc_odl.stato as statopadre, cs_odaschedule.psdesdt, cs_fabbmanc_odl_comp_impsoda.numsoda, cs_fabbmanc_odl_comp_impsoda.statosoda, cs_soggetti.aninco,
@@ -660,7 +661,7 @@ ORDER BY cs_fabbmanc_odl_comp.numero, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl
 
             const string queryRisposta = @"SELECT cs_fabbmanc_risp_soda2.dtconf, cs_fabbmanc_risp_soda2.note
         FROM cs_fabbmanc_risp_soda2
-        WHERE cs_fabbmanc_risp_soda2.societa='CSPRO' AND cs_fabbmanc_risp_soda2.sched=? AND cs_fabbmanc_risp_soda2.pos=? AND cs_fabbmanc_risp_soda2.numero=?";
+        WHERE cs_fabbmanc_risp_soda2.societa=? AND cs_fabbmanc_risp_soda2.sched=? AND cs_fabbmanc_risp_soda2.pos=? AND cs_fabbmanc_risp_soda2.numero=?";
 
             using var conn = new OdbcConnection(_conn.PgCasagrande);
             conn.Open();
@@ -671,7 +672,7 @@ ORDER BY cs_fabbmanc_odl_comp.numero, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl
                 // Note e data di conferma della risposta all'OdA (vince l'ultima riga, come nel PHP)
                 object? dtconf = "";
                 object? note = "";
-                foreach (var risp in DbHelper.Query(conn, null, queryRisposta,
+                foreach (var risp in DbHelper.Query(conn, null, queryRisposta, societa,
                              (decimal)F(row["pslino"]), (decimal)F(row["psordln"]), S(row["psordno"])))
                 {
                     dtconf = risp["dtconf"];
@@ -758,7 +759,7 @@ ORDER BY cs_fabbmanc_odl_comp.numero, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl
         /// <summary>
         /// Codici R ricondizionati arrivati nei magazzini MIRC, con lo stato di conferma qualità (ex query/produzione/getQualita.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetQualita()
+        public List<Dictionary<string, object?>> GetQualita(string societa)
         {
             // Confermati: per (articolo, bolla) vince l'ultima riga, come nel ciclo del PHP
             var confermati = new Dictionary<(string, string), Dictionary<string, object?>>();
@@ -767,18 +768,18 @@ ORDER BY cs_fabbmanc_odl_comp.numero, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl
                 confermati[(S(c["articolo"]), S(c["bolla"]))] = c;
             }
 
-            const string query = @"SELECT D60STDDB.MASATRN.TDTVER, D60STDDB.MASATRN.TTRAN, D60STDDB.MASATRN.TRDATE, D60STDDB.CSDBITA.CSCOLOR, D60STDDB.MASATRN.TCHNU AS FORN, D60STDDB.MASATRN.TNBOL AS BOLLA, D60STDDB.MASAMSL.MALITEM AS ARTICOLO, D60STDDB.DBSAITE.MPDSC AS DESCRIZIONE, D60STDDB.MASAMSL.MLLOC AS MAGAZZINO, D60STDDB.MASAMSL.MALLOC AS VANO, D60STDDB.MASAMSL.MALOHQT*0.01 AS QTA_GIAC, D60STDDB.MASAMSL.MALDTVE AS DATA_MOV, D60STDDB.MASATRN.TMACO AS TIPO_MOV, D60STDDB.MASATRN.TUSCO AS MOV, D60STDDB.MASATRN.TQUAN/100 AS QTA_MOV, D60STDDB.MASATRN.TORNUOR AS ORDINE, D60STDDB.ANSADID.ANINCO, D60STDDB.DBSAITE.MPALLET/100 AS PESO_LORDO, D60STDDB.DBSAITE.DIPRO, D60STDDB.DBSAITE.MUTMS, D60STDDB.CSDBITA.CSTRASU
-FROM D60STDDB.MASATRN
-INNER JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASATRN.TRNITM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASATRN.TRNSOC
-INNER JOIN D60STDDB.MASAMSL ON D60STDDB.MASATRN.TMAG = D60STDDB.MASAMSL.MLLOC AND D60STDDB.MASATRN.TRNSOC = D60STDDB.MASAMSL.MAHCOSC AND D60STDDB.MASATRN.TRNITM = D60STDDB.MASAMSL.MALITEM
-LEFT JOIN D60STDDB.ANSADID ON D60STDDB.MASATRN.TRNSOC = D60STDDB.ANSADID.ANCOSO AND D60STDDB.MASATRN.TCHNU = D60STDDB.ANSADID.ANCOCO
-LEFT JOIN D60STDDB.CSDBITA ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSDBITA.CSITEMA
-WHERE D60STDDB.DBSAITE.MITEM LIKE 'R%' AND TRIM(BOTH FROM D60STDDB.MASATRN.TNBOL) != '' AND D60STDDB.MASAMSL.MLLOC LIKE 'MIRC%' AND D60STDDB.MASATRN.TMACO = 'EA'
-AND D60STDDB.MASAMSL.MAHCOSC='CSPRO' AND D60STDDB.MASATRN.TRNSOC='CSPRO' AND D60STDDB.DBSAITE.MCOSC='CSPRO' AND D60STDDB.DBSAITE.MCOSC='CSPRO'
-ORDER BY D60STDDB.MASAMSL.MALITEM ASC";
+            const string query = @"SELECT MASATRN.TDTVER, MASATRN.TTRAN, MASATRN.TRDATE, CSDBITA.CSCOLOR, MASATRN.TCHNU AS FORN, MASATRN.TNBOL AS BOLLA, MASAMSL.MALITEM AS ARTICOLO, DBSAITE.MPDSC AS DESCRIZIONE, MASAMSL.MLLOC AS MAGAZZINO, MASAMSL.MALLOC AS VANO, MASAMSL.MALOHQT*0.01 AS QTA_GIAC, MASAMSL.MALDTVE AS DATA_MOV, MASATRN.TMACO AS TIPO_MOV, MASATRN.TUSCO AS MOV, MASATRN.TQUAN/100 AS QTA_MOV, MASATRN.TORNUOR AS ORDINE, ANSADID.ANINCO, DBSAITE.MPALLET/100 AS PESO_LORDO, DBSAITE.DIPRO, DBSAITE.MUTMS, CSDBITA.CSTRASU
+FROM MASATRN
+INNER JOIN DBSAITE ON DBSAITE.MITEM = MASATRN.TRNITM AND DBSAITE.MCOSC = MASATRN.TRNSOC
+INNER JOIN MASAMSL ON MASATRN.TMAG = MASAMSL.MLLOC AND MASATRN.TRNSOC = MASAMSL.MAHCOSC AND MASATRN.TRNITM = MASAMSL.MALITEM
+LEFT JOIN ANSADID ON MASATRN.TRNSOC = ANSADID.ANCOSO AND MASATRN.TCHNU = ANSADID.ANCOCO
+LEFT JOIN CSDBITA ON DBSAITE.MITEM = CSDBITA.CSITEMA
+WHERE DBSAITE.MITEM LIKE 'R%' AND TRIM(BOTH FROM MASATRN.TNBOL) != '' AND MASAMSL.MLLOC LIKE 'MIRC%' AND MASATRN.TMACO = 'EA'
+AND MASAMSL.MAHCOSC=? AND MASATRN.TRNSOC=? AND DBSAITE.MCOSC=? AND DBSAITE.MCOSC=?
+ORDER BY MASAMSL.MALITEM ASC";
 
             var lista = new List<Dictionary<string, object?>>();
-            foreach (var row in DbHelper.Query(_conn.Db2, query))
+            foreach (var row in DbHelper.Query(_conn.Db2, query, societa, societa, societa, societa))
             {
                 var articolo = T(row["ARTICOLO"]);
                 var bolla = T(row["BOLLA"]);
@@ -827,9 +828,9 @@ ORDER BY D60STDDB.MASAMSL.MALITEM ASC";
         /// <summary>
         /// Arrivi di merce filtrati per articolo, ragione sociale e data (ex query/produzione/getQualitaArrivi.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetQualitaArrivi(GetQualitaArriviRequest request)
+        public List<Dictionary<string, object?>> GetQualitaArrivi(GetQualitaArriviRequest request, string societa)
         {
-            var societa = string.IsNullOrEmpty(request.societa) ? "CSPRO" : request.societa;
+            // request.societa è ignorato: la società è quella del token
             var valori = new List<object?> { societa };
             var filtri = new StringBuilder();
 
@@ -862,14 +863,14 @@ ORDER BY D60STDDB.MASAMSL.MALITEM ASC";
 	dac.RFNRORD AS ORDINE,
 	dat.RIDTXAB AS DATA_BOLLA,
 	dat.RIDLVNO AS NUMERO_BOLLA
-FROM D60STDDB.RMSADAT dat
+FROM RMSADAT dat
 INNER JOIN ANSADID did ON
 	dat.RICOSC = did.ANCOSO AND
 	dat.RICOFOR = did.ANCOCO
 INNER JOIN DBSAITE ite ON
 	ite.MCOSC = dat.RICOSC AND
 	dat.RICODART = ite.MITEM
-INNER JOIN D60STDDB.RMSADAC dac ON
+INNER JOIN RMSADAC dac ON
 dat.RICOSC = dac.RICOSC AND
 dat.RIRIPNO = dac.RIRIPNO
 WHERE dat.RISTAT3 <> 'D' AND dat.RICOSC=?{filtri}

@@ -81,6 +81,30 @@ class ArticoloMovimento {
 
   bool get trovato => articoloId.isNotEmpty;
 
+  /// Giacenza totale dell'articolo su tutti i magazzini elencati.
+  num get giacenteTotale =>
+      listaMagazziniArticolo.fold<num>(0, (s, m) => s + m.giacente);
+
+  /// Quantità impegnata totale dell'articolo su tutti i magazzini elencati.
+  num get impegnatoTotale =>
+      listaMagazziniArticolo.fold<num>(0, (s, m) => s + m.impegnato);
+
+  /// ODL possibili per il magazzino di destinazione (Movimento.js →
+  /// getOdlList): se il magazzino non è scelto li propone tutti.
+  /// Duplicati rimossi mantenendo l'ordine del server.
+  List<OdlMagazzino> odlPerMagazzino(String? magDest) {
+    final visti = <String>{};
+    final out = <OdlMagazzino>[];
+    for (final o in listaPossibiliOdl) {
+      if (o.odl.isEmpty) continue;
+      if (magDest != null && magDest.isNotEmpty && o.magazzino != magDest) {
+        continue;
+      }
+      if (visti.add('${o.odl}|${o.magazzino}')) out.add(o);
+    }
+    return out;
+  }
+
   static List<T> _list<T>(dynamic raw, T Function(Map<String, dynamic>) f) {
     if (raw is! List) return [];
     return raw
@@ -129,7 +153,6 @@ class MovimentoApi {
   final String avano;
   final String odl;
   final String commessa;
-  final String ambiente;
   final String nota;
   final String sezione;
 
@@ -152,7 +175,6 @@ class MovimentoApi {
     this.avano = '',
     this.odl = '',
     this.commessa = '',
-    this.ambiente = 'PRODUZIONE',
     this.nota = '',
     this.sezione = 'mov_singolo',
     this.rifprel = '',
@@ -184,7 +206,6 @@ class MovimentoApi {
         'avano': avano,
         'odl': odl,
         'commessa': commessa,
-        'ambiente': ambiente,
         'nota': nota,
         'sezione': sezione,
         // Campi extra previsti dalla classe MovimentoAPI (liste di prelievo)

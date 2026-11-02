@@ -370,9 +370,14 @@ namespace CG.MobileAPI.Models
 
         /// <summary>
         /// Situazione delle righe degli ordini di vendita il cui numero inizia per or_om, raggruppate per ordine,
-        /// con lo stato di ogni riga (disponibile, disponibile_prel, in_oda, in_odl, mancante) (ex getSituazioneOdv.php).
+        /// con lo stato di ogni riga (disponibile, disponibile_prel, in_oda, in_odl, mancante) (ex getSituazioneOdv.php
+        /// e getSituazioneOdvIMM.php). Le righe sono filtrate per la società del token: la variante IMM filtrava
+        /// cs_fabbmanc_rodv.societa (e ripeteva la società su ogni join, condizioni già implicate dai join per societa),
+        /// quella Casagrande non filtrava affatto.
         /// </summary>
-        public List<Dictionary<string, object?>> GetSituazioneOdv(GetSituazioneOdvRequest request)
+        /// <param name="request">Numero ordine.</param>
+        /// <param name="societa">Società del token.</param>
+        public List<Dictionary<string, object?>> GetSituazioneOdv(GetSituazioneOdvRequest request, string societa)
         {
             if (string.IsNullOrWhiteSpace(request.or_om))
             {
@@ -395,11 +400,11 @@ left join cs_fabbmanc_rodv_impodl on (cs_fabbmanc_rodv.seq = cs_fabbmanc_rodv_im
 left join cs_fabbmanc_rodv_impsrda on (cs_fabbmanc_rodv.seq = cs_fabbmanc_rodv_impsrda.seq) and (cs_fabbmanc_rodv.pos = cs_fabbmanc_rodv_impsrda.pos) and (cs_fabbmanc_rodv.numero = cs_fabbmanc_rodv_impsrda.numero) and (cs_fabbmanc_rodv.societa = cs_fabbmanc_rodv_impsrda.societa)
 left join cs_fabbmanc_odl on (cs_fabbmanc_rodv_impodl.numodl = cs_fabbmanc_odl.numero) and (cs_fabbmanc_rodv_impodl.societa = cs_fabbmanc_odl.societa)
 inner join cs_fabbmanc_odv on cs_fabbmanc_odv.societa = cs_fabbmanc_rodv.societa and cs_fabbmanc_odv.numero = cs_fabbmanc_rodv.numero
-where cs_fabbmanc_rodv.numero like ?
+where cs_fabbmanc_rodv.societa = ? and cs_fabbmanc_rodv.numero like ?
 and cs_fabbmanc_odv.causale != 'J' and cs_fabbmanc_odv.causale != 'L' and cs_fabbmanc_odv.causale != 'N'
 order by cs_fabbmanc_rodv.numero, cs_fabbmanc_rodv.pos";
 
-            var rows = DbHelper.Query(_conn.PgCasagrande, query, request.or_om + "%");
+            var rows = DbHelper.Query(_conn.PgCasagrande, query, societa, request.or_om + "%");
 
             var listaOdv = new List<Dictionary<string, object?>>();
             Dictionary<string, object?>? odvCorrente = null;
@@ -513,9 +518,12 @@ order by cs_fabbmanc_rodv.numero, cs_fabbmanc_rodv.pos";
         // -------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Indica se il magazzino esiste in D60STDDB.MASAHED per la società CSPRO (ex queryDesktop/giacenze/checkMagazzinoExists.php).
+        /// Indica se il magazzino esiste in MASAHED per la società del token
+        /// (ex queryDesktop/giacenze/checkMagazzinoExists.php e checkMagazzinoExistsIMM.php).
         /// </summary>
-        public bool CheckMagazzinoExists(CheckMagazzinoExistsRequest request)
+        /// <param name="request">Codice magazzino.</param>
+        /// <param name="societa">Società del token.</param>
+        public bool CheckMagazzinoExists(CheckMagazzinoExistsRequest request, string societa)
         {
             if (request.magazzino == null)
             {
@@ -523,24 +531,35 @@ order by cs_fabbmanc_rodv.numero, cs_fabbmanc_rodv.pos";
             }
 
             return DbHelper.Query(_conn.Db2,
-                @"SELECT DISTINCT D60STDDB.MASAHED.MAHMAG
-FROM D60STDDB.MASAHED
-WHERE D60STDDB.MASAHED.MAHCOSC='CSPRO' AND D60STDDB.MASAHED.MAHMAG = ?", request.magazzino).Count > 0;
+                @"SELECT DISTINCT MASAHED.MAHMAG
+FROM MASAHED
+WHERE MASAHED.MAHCOSC = ? AND MASAHED.MAHMAG = ?", societa, request.magazzino).Count > 0;
         }
 
         /// <summary>
-        /// Indica se il vano esiste in D60STDDB.MASAHLO (ex queryDesktop/giacenze/checkVanoExists.php).
+        /// Indica se il vano esiste in MASAHLO (ex queryDesktop/giacenze/checkVanoExists.php e checkVanoExistsIMM.php).
+        /// La versione Casagrande non filtrava la società, la variante IMM sì (MASAHLO.MAHCOSC='IMM00'): il filtro
+        /// è applicato solo per IMM, così per Casagrande il comportamento resta quello del PHP.
         /// </summary>
-        public bool CheckVanoExists(CheckVanoExistsRequest request)
+        /// <param name="request">Codice vano.</param>
+        /// <param name="societa">Società del token.</param>
+        public bool CheckVanoExists(CheckVanoExistsRequest request, string societa)
         {
             if (request.vano == null)
             {
                 throw new MobileException("Vano obbligatorio");
             }
 
+            if (societa == CodiciSocieta.IMM)
+            {
+                return DbHelper.Query(_conn.Db2,
+                    @"SELECT DISTINCT MASAHLO.MLHLOC
+FROM MASAHLO WHERE MASAHLO.MAHCOSC = ? AND MASAHLO.MLHLOC = ?", societa, request.vano).Count > 0;
+            }
+
             return DbHelper.Query(_conn.Db2,
-                @"SELECT DISTINCT D60STDDB.MASAHLO.MLHLOC
-FROM D60STDDB.MASAHLO WHERE D60STDDB.MASAHLO.MLHLOC = ?", request.vano).Count > 0;
+                @"SELECT DISTINCT MASAHLO.MLHLOC
+FROM MASAHLO WHERE MASAHLO.MLHLOC = ?", request.vano).Count > 0;
         }
 
         /// <summary>

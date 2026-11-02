@@ -139,4 +139,23 @@ C:\Users\a.vendrame\Desktop\AV\009 - APP MOBILE\CG.MobileAPI.Refactoring\CG.Mobi
 C:\Users\a.vendrame\Desktop\AV\009 - APP MOBILE\CG.MobileAPI.Refactoring\CG.MobileAPI\bin\Debug\net8.0\SixLabors.Fonts.dll
 C:\Users\a.vendrame\Desktop\AV\009 - APP MOBILE\CG.MobileAPI.Refactoring\CG.MobileAPI\bin\Debug\net8.0\System.IO.Packaging.dll
 C:\Users\a.vendrame\Desktop\AV\009 - APP MOBILE\CG.MobileAPI.Refactoring\CG.MobileAPI\bin\Debug\net8.0\config.json
-C:\Users\a.vendrame\Desktop\AV\009 - APP MOBILE\CG.MobileAPI.Refactoring\CG.MobileAPI\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\appsettings.Development.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\appsettings.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\config.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.staticwebassets.endpoints.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.exe
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.deps.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.runtimeconfig.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.dll
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.pdb
+C:\Users\a.vendrame\AppData\Local\Temp\claude\C--Users-a-vendrame-Desktop-AV-009---APP-MOBILE\e8383c1f-6915-4b82-8c23-59e7dfdd34b2\scratchpad\buildcheck\CG.MobileAPI.xml
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\appsettings.Development.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\appsettings.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\config.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.staticwebassets.endpoints.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.exe
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.deps.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.runtimeconfig.json
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.dll
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.pdb
+C:\Users\a.vendrame\AppData\Local\Temp\claude\buildcheck_amb\CG.MobileAPI.xml

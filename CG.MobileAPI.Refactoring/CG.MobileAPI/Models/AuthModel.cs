@@ -1,4 +1,4 @@
-using CG.MobileAPI.Data;
+﻿using CG.MobileAPI.Data;
 
 namespace CG.MobileAPI.Models
 {
@@ -13,8 +13,8 @@ namespace CG.MobileAPI.Models
         /// <summary>Password Diapason.</summary>
         public string Password { get; set; } = "";
 
-        /// <summary>Ambiente Diapason per la verifica password (default "P").</summary>
-        public string Ambiente { get; set; } = "P";
+        /// <summary>Società con cui lavorare: CSPRO (Casagrande) o IMM00 (IMM). Default CSPRO. Ignorata per gli utenti in lingua inglese (CSUSA).</summary>
+        public string? Societa { get; set; }
     }
 
     /// <summary>
@@ -40,6 +40,8 @@ namespace CG.MobileAPI.Models
         public List<object> elencoGruppiChat { get; set; } = new();
         /// <summary>Sempre false (il login istantaneo non è più supportato).</summary>
         public bool instantLogin { get; set; }
+        /// <summary>Società della sessione (CSPRO / IMM00 / CSUSA per gli utenti in inglese), la stessa del token.</summary>
+        public string societa { get; set; } = CodiciSocieta.CASAGRANDE;
     }
 
     /// <summary>
@@ -72,13 +74,13 @@ namespace CG.MobileAPI.Models
         }
 
         /// <summary>
-        /// Legge l'utente da D60STDDB.DIAPOPER e calcola tipo account e nome portale (ex query/login.php).
+        /// Legge l'utente da DIAPOPER e calcola tipo account e nome portale (ex query/login.php).
         /// Restituisce null se l'utente non esiste.
         /// </summary>
         public UtenteLoggatoModel? GetUtente(string codiceUtente)
         {
             var row = DbHelper.QueryFirst(_conn.Db2,
-                "SELECT OPER_COD, OPER_ANAG, OPER_MAIL, OPER_LING FROM D60STDDB.DIAPOPER WHERE OPER_COD = ?",
+                "SELECT OPER_COD, OPER_ANAG, OPER_MAIL, OPER_LING FROM DIAPOPER WHERE OPER_COD = ?",
                 codiceUtente.Trim());
             if (row == null)
             {

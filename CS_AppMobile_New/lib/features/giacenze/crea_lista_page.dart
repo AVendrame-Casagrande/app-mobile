@@ -37,7 +37,7 @@ class _CreaListaPageState extends State<CreaListaPage> {
     super.initState();
     final app = context.read<AppState>();
     _service = CreaListaService(app.api);
-    _societa = app.utenteLoggato.isEnglish ? 'CSUSA' : 'CSPRO';
+    _societa = app.utenteLoggato.societaApi;
     _utente = app.utenteLoggato.codiceUtente;
     _caricaDaStorage();
   }

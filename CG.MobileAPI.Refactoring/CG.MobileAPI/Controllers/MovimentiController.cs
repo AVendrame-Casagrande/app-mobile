@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using CG.MobileAPI.Data;
 using CG.MobileAPI.Models;
@@ -49,8 +49,7 @@ namespace CG.MobileAPI.Controllers
         public Task<IActionResult> APIMovMagMobileApp([FromBody] APIMovMagMobileAppRequest request)
         {
             return EseguiAsync("APIMovMagMobileApp",
-                async () => await _db2Connection.DBMOVIMENTI.APIMovMagMobileAppAsync(request, Utente, _diapasonSocket),
-                request?.societa);
+                async () => await _db2Connection.DBMOVIMENTI.APIMovMagMobileAppAsync(request, Utente, Societa, _diapasonSocket));
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace CG.MobileAPI.Controllers
         public Task<IActionResult> WriteListaMagazzinoAutomatico([FromBody] WriteListaMagazzinoAutomaticoRequest request)
         {
             return EseguiAsync("WriteListaMagazzinoAutomatico",
-                async () => await _db2Connection.DBMOVIMENTI.WriteListaMagazzinoAutomaticoAsync(request, Utente, _settings.Diapason, _logger));
+                async () => await _db2Connection.DBMOVIMENTI.WriteListaMagazzinoAutomaticoAsync(request, Utente, Societa, _settings.Diapason, _logger));
         }
 
         /// <summary>
@@ -91,6 +90,7 @@ namespace CG.MobileAPI.Controllers
                 _db2Connection.DBMOVIMENTI.ValidaMovimentiMultipli(request);
 
                 var utente = Utente;
+                var societa = Societa; // catturata qui: il job gira fuori dalla richiesta
                 var logger = _logger;
                 var scopeFactory = _scopeFactory;
 
@@ -98,7 +98,7 @@ namespace CG.MobileAPI.Controllers
                 {
                     using var logScope = logger.BeginScope(new Dictionary<string, object>
                     {
-                        ["LOG_CODSOC"] = "CSPRO",
+                        ["LOG_CODSOC"] = societa,
                         ["LOG_ORIGIN"] = ORIGIN,
                         ["LOG_USER"] = utente,
                         ["LOG_WS_CONTROLLER"] = "MOVIMENTI",
@@ -109,7 +109,7 @@ namespace CG.MobileAPI.Controllers
                         using var scope = scopeFactory.CreateScope();
                         var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
                         var socket = scope.ServiceProvider.GetRequiredService<DiapasonSocket>();
-                        await db.DBMOVIMENTI.WriteMovimentiMultipliAPIAsync(request, utente, socket, logger);
+                        await db.DBMOVIMENTI.WriteMovimentiMultipliAPIAsync(request, utente, societa, socket, logger);
                         logger.LogInformation("Invio multiplo {IdApi} completato", request.dataObject?.id_api);
                     }
                     catch (Exception ex)
@@ -134,7 +134,7 @@ namespace CG.MobileAPI.Controllers
         {
             using (_logger.BeginScope(new Dictionary<string, object>
             {
-                ["LOG_CODSOC"] = "CSPRO",
+                ["LOG_CODSOC"] = Societa,
                 ["LOG_ORIGIN"] = ORIGIN,
                 ["LOG_USER"] = Utente,
                 ["LOG_WS_CONTROLLER"] = "MOVIMENTI",

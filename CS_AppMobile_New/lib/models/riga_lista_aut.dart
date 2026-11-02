@@ -1,3 +1,4 @@
+import '../core/network/api_client.dart';
 // Righe delle liste di prelievo verso il magazzino automatico — porting delle
 // classi Automha_Ordine (liste MGAUT00/MGAUT10) e RigaPrelievo24_34
 // (liste da Attività fase 0027/0034) di
@@ -78,7 +79,7 @@ class RigaListaAut {
 
   /// Stessi nomi delle proprietà della classe JS (letti dal PHP).
   Map<String, dynamic> toJson() => {
-        'societa': 'CSPRO',
+        'societa': AuthToken.societa,
         'tipoprel': tipoprel,
         'rifprel': rifprel,
         'subrifprel': subrifprel,

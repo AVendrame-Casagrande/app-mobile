@@ -7,6 +7,7 @@ import '../../models/giacenza_inventario.dart';
 import '../../state/app_state.dart';
 import '../../widgets/last_searched_list.dart';
 import '../scanner/barcode_scanner_page.dart';
+import 'cerca_page.dart';
 import 'giacenza_inventario_service.dart';
 
 /// Pagina Giacenze → Giacenza Inventario (read-only) — porting di
@@ -34,6 +35,9 @@ class _GiacenzaInventarioPageState extends State<GiacenzaInventarioPage> {
   String _vanoFiltro = '';
   String _ricercaArticolo = '';
   List<LastSearchedItem> _recenti = [];
+
+  /// True mentre si scarica il costo per il popup di dettaglio.
+  bool _caricamentoDettaglio = false;
 
   @override
   void initState() {
@@ -105,6 +109,9 @@ class _GiacenzaInventarioPageState extends State<GiacenzaInventarioPage> {
         children: [
           _searchBar(),
           if (_tutte.isNotEmpty) _filtriRiga(),
+          if (_caricamentoDettaglio)
+            const LinearProgressIndicator(
+                minHeight: 2, color: AppColors.spinner),
           Expanded(child: _buildBody()),
         ],
       ),
@@ -240,10 +247,130 @@ class _GiacenzaInventarioPageState extends State<GiacenzaInventarioPage> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Dettaglio articolo (porting di activeListaGiacenzeListeners in
+  // GiacenzaInventario/EventHandlers.js): click sulla riga → costo da
+  // addInfoCostoGiacenzaInventario → popup con le quantità e "Link Articolo".
+  // ---------------------------------------------------------------------------
+
+  /// Il costo è visibile solo agli utenti CMA* o "Utente Avanzato".
+  bool get _puoVedereCosto {
+    final u = context.read<AppState>().utenteLoggato;
+    return u.codiceUtente.toUpperCase().startsWith('CMA') ||
+        u.accountType == 'Utente Avanzato';
+  }
+
+  /// Costo formattato come in Cordova: 1 decimale al massimo, virgola per i
+  /// decimali e punto per le migliaia (es. 12.345,6 €).
+  static String _formatCosto(double costo) {
+    final arrotondato = double.parse(costo.toStringAsFixed(1));
+    var s = arrotondato == arrotondato.roundToDouble()
+        ? arrotondato.toInt().toString()
+        : arrotondato.toString();
+    final negativo = s.startsWith('-');
+    if (negativo) s = s.substring(1);
+    final parti = s.split('.');
+    final intero = parti[0].replaceAllMapped(
+        RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.');
+    final decimali = parti.length > 1 ? ',${parti[1]}' : '';
+    return '${negativo ? '-' : ''}$intero$decimali';
+  }
+
+  Future<void> _apriDettaglio(GiacenzaInventario g) async {
+    if (_caricamentoDettaglio) return;
+    final mostraCosto = _puoVedereCosto;
+    double? costo;
+    if (mostraCosto) {
+      setState(() => _caricamentoDettaglio = true);
+      try {
+        costo = await _service.getCosto(g.articolo);
+      } catch (_) {
+        // In Cordova l'errore veniva solo loggato: qui apro comunque il
+        // dettaglio, senza costo.
+        costo = null;
+      }
+      if (!mounted) return;
+      setState(() => _caricamentoDettaglio = false);
+    }
+
+    final apriArticolo = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Articolo ${g.articolo}'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Desc: ${g.descrizione}'),
+              const SizedBox(height: 12),
+              _rigaDettaglio('Q.tà Giacente Tot', g.giacenteTot),
+              _rigaDettaglio('In Ordine Acquisto', g.inOrdineAcq),
+              _rigaDettaglio('In Ordine Produzione', g.inOrdinePrd),
+              const SizedBox(height: 12),
+              _rigaDettaglio('Impegnata su ${g.magazzino}', g.impegnato),
+              _rigaDettaglio('Impegnata su altri Magazzini',
+                  formatQtaGiacenza(g.impegnataAltriMagazzini)),
+              const SizedBox(height: 12),
+              _rigaDettaglio('Q.tà Disponibile Totale', g.disponibile,
+                  bold: true),
+              if (mostraCosto && costo != null) ...[
+                const SizedBox(height: 12),
+                _rigaDettaglio('Costo', '${_formatCosto(costo)} €'),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Link Articolo 🔗'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Chiudi'),
+          ),
+        ],
+      ),
+    );
+
+    if (apriArticolo == true && mounted) {
+      // Apro la scheda Articolo sopra questa pagina: tornando indietro si
+      // ritrova la lista Giacenze con ricerca, filtri e scroll invariati
+      // (equivalente del pulsante "torna a Giacenze" di Cordova).
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => CercaPage(codiceArticolo: g.articolo),
+        ),
+      );
+    }
+  }
+
+  Widget _rigaDettaglio(String label, String value, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: Text('$label:')),
+          const SizedBox(width: 8),
+          Text(
+            value.isEmpty ? '-' : value,
+            style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _giacenzaTile(GiacenzaInventario g) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _apriDettaglio(g),
+        child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,8 +408,26 @@ class _GiacenzaInventarioPageState extends State<GiacenzaInventarioPage> {
                 _qta('Disp', g.disponibile, const Color(0xFF2E7D32)),
               ],
             ),
+            const SizedBox(height: 4),
+            // Magazzino e date ultimo ingresso/uscita (colonne "M" e
+            // "Ing / Usc" della lista Cordova).
+            Row(
+              children: [
+                Expanded(
+                  child: Text('Mag ${g.magazzino}',
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.black54)),
+                ),
+                Text('Ing ${g.ultimoVersamento}  ·  Usc ${g.ultimoConsumo}',
+                    style:
+                        const TextStyle(fontSize: 11, color: Colors.black54)),
+                const Icon(Icons.chevron_right,
+                    size: 18, color: Colors.black38),
+              ],
+            ),
           ],
         ),
+      ),
       ),
     );
   }

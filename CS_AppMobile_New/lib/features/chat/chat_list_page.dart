@@ -17,13 +17,20 @@ class ChatListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.read<AppState>();
-    return ChangeNotifierProvider(
-      create: (_) => ChatController(
-        service: ChatService(app.api),
-        utenteLoggato: app.utenteLoggato,
-      )..caricaTutto(),
-      child: const _ChatListView(),
-    );
+    final chat = app.chat;
+    if (chat == null) {
+      // Senza sessione (ospite) non c'è la chat globale: controller locale.
+      return ChangeNotifierProvider(
+        create: (_) => ChatController(
+          service: ChatService(app.api),
+          utenteLoggato: app.utenteLoggato,
+        )..caricaTutto(),
+        child: const _ChatListView(),
+      );
+    }
+    // Chat della sessione (già collegata allo stream dall'AppState).
+    if (!chat.caricato && !chat.loading) Future.microtask(chat.caricaTutto);
+    return ChangeNotifierProvider.value(value: chat, child: const _ChatListView());
   }
 }
 

@@ -381,7 +381,7 @@ namespace CG.MobileAPI.Models
                 string query = "WITH DB (LEVEL, MITEM, SPCOMP, SPQTY, SPPHAN, SPSQNO, CHIAVE, SPPON, MCOSC) AS " +
                     "(    SELECT 1, ROOT.MITEM, ROOT.SPCOMP, ROOT.SPQTY, ROOT.SPPHAN, ROOT.SPSQNO,  " +
                     "     TRIM(ROOT.MITEM) CONCAT '.' CONCAT TRIM(ROOT.SPSQNO) CONCAT '.' CONCAT  TRIM(ROOT.SPCOMP) AS" +
-                    $"    CHIAVE, ROOT.SPPON, '{societa}' FROM D60STDDB.DBSAPRD ROOT  WHERE ROOT.MITEM = '{articolo}' AND" +
+                    $"    CHIAVE, ROOT.SPPON, '{societa}' FROM DBSAPRD ROOT  WHERE ROOT.MITEM = '{articolo}' AND" +
                     $"    SPADDDT <= INTEGER(REPLACE(SUBSTR(TO_CHAR(CURRENT DATE), 1, 10), '-', '')) AND ROOT.MCOSC = '{societa}'" +
                     "     AND (SPDELDT = 0 OR SPDELDT > INTEGER(REPLACE(SUBSTR(TO_CHAR(CURRENT DATE), 1, 10), '-', '')))" +
                     "     UNION ALL" +

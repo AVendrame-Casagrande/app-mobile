@@ -26,4 +26,15 @@ class GiacenzaInventarioService {
         (a, b) => a.articolo.toUpperCase().compareTo(b.articolo.toUpperCase()));
     return lista;
   }
+
+  /// Ultimo costo CATT dell'articolo (0 se non trovato).
+  /// POST /giacenze/addInfoCostoGiacenzaInventario data: {articolo}
+  Future<double> getCosto(String articolo) async {
+    final res = await _api.postJson(
+      '${AppConfig.giacenzeUrl}/addInfoCostoGiacenzaInventario',
+      data: {'articolo': articolo},
+    );
+    if (res is num) return res.toDouble();
+    return double.tryParse((res ?? '').toString()) ?? 0;
+  }
 }

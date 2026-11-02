@@ -1,4 +1,4 @@
-using System.Data.Odbc;
+﻿using System.Data.Odbc;
 using System.Globalization;
 using System.Net.Mail;
 using System.Text.Json;
@@ -105,8 +105,7 @@ namespace CG.MobileAPI.Models
         /// <summary>Codice magazzino (gestito solo per i magazzini MISK*).</summary>
         public string? magazzino { get; set; }
 
-        /// <summary>Società (non usata dal servizio, come nel PHP).</summary>
-        public string? societa { get; set; }
+        // Il campo societa inviato dal client non è più letto (non lo usava neanche il PHP).
     }
 
     /// <summary>
@@ -117,8 +116,7 @@ namespace CG.MobileAPI.Models
         /// <summary>Inizio del codice articolo o della descrizione.</summary>
         public string? inputArticoloDesc { get; set; }
 
-        /// <summary>Società (default CSPRO).</summary>
-        public string? societa { get; set; }
+        // Il campo societa inviato dal client è ignorato: vale la società del token.
     }
 
     /// <summary>
@@ -129,8 +127,7 @@ namespace CG.MobileAPI.Models
         /// <summary>Codice articolo.</summary>
         public string? codiceArticolo { get; set; }
 
-        /// <summary>Società (default CSPRO).</summary>
-        public string? societa { get; set; }
+        // Il campo societa inviato dal client è ignorato: vale la società del token.
     }
 
     /// <summary>
@@ -150,8 +147,7 @@ namespace CG.MobileAPI.Models
         /// <summary>Codice articolo.</summary>
         public string? codiceArticolo { get; set; }
 
-        /// <summary>Società (default CSPRO).</summary>
-        public string? societa { get; set; }
+        // Il campo societa inviato dal client è ignorato: vale la società del token.
 
         /// <summary>"true" per la scheda completa (note, ordini, impegni, prezzi, movimenti, foto, PDF...).</summary>
         public string? needCompleteInfo { get; set; }
@@ -268,8 +264,6 @@ namespace CG.MobileAPI.Models
         // Cartelle relative alla radice del web server (StorageTool) e URL pubblici corrispondenti.
         private const string CARTELLA_FOTO_TECNICO = "applicazioni/tecnico/foto";
         private const string URL_FOTO_TECNICO = "http://app.casagrandegroup.local/applicazioni/tecnico/foto/";
-        private const string CARTELLA_DISEGNI = "draw";
-        private const string URL_DISEGNI = "http://app.casagrandegroup.local/draw/";
         private const string CARTELLA_AO_SCHEDA = "archive";
         private const string URL_AO_SCHEDA = "http://app.casagrandegroup.local/archive/";
         private const string CARTELLA_AO_PDF_LIST = "archivio_ao";
@@ -284,6 +278,7 @@ namespace CG.MobileAPI.Models
         // Classe documentale ARXivar delle foto ricambi (DM_PROFILE: DOCUMENTTYPE = 2, TIPO2 = 3, AOO CSG).
         private const int ARX_CLASSE_PADRE_FOTO = 2;
         private const int ARX_CLASSE_FOTO = 3;
+        // Società/AOO di ARXivar, non è un codice società Diapason: resta fissa qualunque sia la società del token.
         private const string ARX_SOCIETA = "CSG";
 
         private static readonly Regex _spaziMultipli = new(@"\s\s+");
@@ -308,40 +303,41 @@ namespace CG.MobileAPI.Models
         /// <summary>
         /// Ultimo costo CATT dell'articolo da MVSACPE (ex addInfoCostoGiacenzaInventario.php). 0 se non trovato.
         /// </summary>
-        public double AddInfoCostoGiacenzaInventario(GiacArtAddInfoCostoGiacenzaInventarioRequest req)
+        public double AddInfoCostoGiacenzaInventario(GiacArtAddInfoCostoGiacenzaInventarioRequest req, string societa)
         {
             var costo = DbHelper.Scalar(_conn.Db2,
-                @"SELECT D60STDDB.MVSACPE.COSTUN*0.0001 AS COSTO FROM D60STDDB.MVSACPE
-                  WHERE D60STDDB.MVSACPE.CODITM=? AND D60STDDB.MVSACPE.CODCOS='CATT' AND CODSOC='CSPRO'
-                  ORDER BY D60STDDB.MVSACPE.DTPERI DESC, D60STDDB.MVSACPE.DTVALI DESC LIMIT 1",
-                req.articolo ?? "");
+                @"SELECT MVSACPE.COSTUN*0.0001 AS COSTO FROM MVSACPE
+                  WHERE MVSACPE.CODITM=? AND MVSACPE.CODCOS='CATT' AND CODSOC=?
+                  ORDER BY MVSACPE.DTPERI DESC, MVSACPE.DTVALI DESC LIMIT 1",
+                req.articolo ?? "", societa);
             return PhpFloat(costo);
         }
 
         /// <summary>
-        /// Indica se il magazzino esiste in MASAHED per CSPRO (ex checkMagazzinoExists.php).
+        /// Indica se il magazzino esiste in MASAHED per la società del token
+        /// (ex checkMagazzinoExists.php / checkMagazzinoExistsIMM.php).
         /// </summary>
-        public bool CheckMagazzinoExists(GiacArtCheckMagazzinoRequest req)
+        public bool CheckMagazzinoExists(GiacArtCheckMagazzinoRequest req, string societa)
         {
-            return EsisteMagazzino(Obbligatorio(req.magazzino, "magazzino"));
+            return EsisteMagazzino(Obbligatorio(req.magazzino, "magazzino"), societa);
         }
 
         /// <summary>
-        /// Indica se il magazzino esiste e se ha vani (MGRICAM escluso) (ex checkMagazzinoExistsAndCheckVani.php).
-        /// Chiavi: magazzinoFound, magazzino_has_vani.
+        /// Indica se il magazzino esiste (per la società del token) e se ha vani (MGRICAM escluso)
+        /// (ex checkMagazzinoExistsAndCheckVani.php). Chiavi: magazzinoFound, magazzino_has_vani.
         /// </summary>
-        public Dictionary<string, object?> CheckMagazzinoExistsAndCheckVani(GiacArtCheckMagazzinoRequest req)
+        public Dictionary<string, object?> CheckMagazzinoExistsAndCheckVani(GiacArtCheckMagazzinoRequest req, string societa)
         {
             var magazzino = Obbligatorio(req.magazzino, "magazzino");
 
             var haVani = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAHLO.MLHLOC
-                  FROM D60STDDB.MASAHLO WHERE MAHMAG=? AND MAHMAG!= 'MGRICAM' LIMIT 1",
+                @"SELECT MASAHLO.MLHLOC
+                  FROM MASAHLO WHERE MAHMAG=? AND MAHMAG!= 'MGRICAM' LIMIT 1",
                 magazzino).Count > 0;
 
             return new Dictionary<string, object?>
             {
-                ["magazzinoFound"] = EsisteMagazzino(magazzino),
+                ["magazzinoFound"] = EsisteMagazzino(magazzino, societa),
                 ["magazzino_has_vani"] = haVani
             };
         }
@@ -350,21 +346,21 @@ namespace CG.MobileAPI.Models
         /// Magazzini e vani dell'articolo con disponibile sufficiente per il movimento
         /// (ex getMagazziniVaniPerModificaPrelievi.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetMagazziniVaniPerModificaPrelievi(GiacArtGetMagazziniVaniPerModificaPrelieviRequest req)
+        public List<Dictionary<string, object?>> GetMagazziniVaniPerModificaPrelievi(GiacArtGetMagazziniVaniPerModificaPrelieviRequest req, string societa)
         {
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE, D60STDDB.MASAMSL.MALLLQT/100 AS IMPEGNATO
-                  FROM D60STDDB.MASAMSL
-                  FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC
-                  WHERE D60STDDB.DBSAITE.MITEM=?
-                  AND D60STDDB.MASAMSL.MLLOC NOT LIKE 'MEF%'
-                  AND D60STDDB.MASAMSL.MLLOC NOT LIKE 'MC%'
-                  AND D60STDDB.MASAMSL.MLLOC NOT LIKE 'MN%'
-                  AND D60STDDB.MASAMSL.MLLOC NOT LIKE 'MGFURG%'
-                  AND D60STDDB.MASAMSL.MAHCOSC='CSPRO'
-                  GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT, D60STDDB.MASAMSL.MALLLQT
-                  ORDER BY D60STDDB.MASAMSL.MLLOC,D60STDDB.MASAMSL.MALLOC",
-                req.codiceArticolo ?? "");
+                @"SELECT MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT/100 AS GIACENTE, MASAMSL.MALLLQT/100 AS IMPEGNATO
+                  FROM MASAMSL
+                  FULL JOIN DBSAITE ON DBSAITE.MITEM = MASAMSL.MALITEM AND DBSAITE.MCOSC = MASAMSL.MAHCOSC
+                  WHERE DBSAITE.MITEM=?
+                  AND MASAMSL.MLLOC NOT LIKE 'MEF%'
+                  AND MASAMSL.MLLOC NOT LIKE 'MC%'
+                  AND MASAMSL.MLLOC NOT LIKE 'MN%'
+                  AND MASAMSL.MLLOC NOT LIKE 'MGFURG%'
+                  AND MASAMSL.MAHCOSC=?
+                  GROUP BY MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT, MASAMSL.MALLLQT
+                  ORDER BY MASAMSL.MLLOC,MASAMSL.MALLOC",
+                req.codiceArticolo ?? "", societa);
 
             var lista = new List<Dictionary<string, object?>>();
             foreach (var r in rows)
@@ -388,14 +384,14 @@ namespace CG.MobileAPI.Models
         /// <summary>
         /// Vano preferenziale dell'articolo su MGRICAM, stringa vuota se assente (ex getMgricamVanoPreferenziale.php).
         /// </summary>
-        public string GetMgricamVanoPreferenziale(GiacArtGetMgricamVanoPreferenzialeRequest req)
+        public string GetMgricamVanoPreferenziale(GiacArtGetMgricamVanoPreferenzialeRequest req, string societa)
         {
             var vano = DbHelper.Scalar(_conn.Db2,
-                @"SELECT D60STDDB.MASAVAN.MVCELLA
-                  FROM D60STDDB.MASAVAN
-                  WHERE D60STDDB.MASAVAN.MVLOC='MGRICAM' AND D60STDDB.MASAVAN.MVVCOSC='CSPRO' AND D60STDDB.MASAVAN.MVFIRST = '*'
-                  AND D60STDDB.MASAVAN.MVVITEM=? LIMIT 1",
-                req.articolo ?? "");
+                @"SELECT MASAVAN.MVCELLA
+                  FROM MASAVAN
+                  WHERE MASAVAN.MVLOC='MGRICAM' AND MASAVAN.MVVCOSC=? AND MASAVAN.MVFIRST = '*'
+                  AND MASAVAN.MVVITEM=? LIMIT 1",
+                societa, req.articolo ?? "");
             return (vano ?? "").Trim();
         }
 
@@ -427,10 +423,10 @@ namespace CG.MobileAPI.Models
             {
                 var (inizio, lunghezza, soloNumeriche) = sezioni[i];
                 var rows = DbHelper.Query(_conn.Db2,
-                    $@"SELECT DISTINCT SUBSTR(D60STDDB.MASAHLO.MLHLOC,{inizio},{lunghezza}) AS SEZIONE
-                       FROM D60STDDB.MASAHLO
-                       WHERE D60STDDB.MASAHLO.MAHMAG = ?
-                       GROUP BY D60STDDB.MASAHLO.MLHLOC",
+                    $@"SELECT DISTINCT SUBSTR(MASAHLO.MLHLOC,{inizio},{lunghezza}) AS SEZIONE
+                       FROM MASAHLO
+                       WHERE MASAHLO.MAHMAG = ?
+                       GROUP BY MASAHLO.MLHLOC",
                     magazzino);
 
                 var lista = (List<string>)vani["sezione_" + (i + 1)]!;
@@ -454,7 +450,7 @@ namespace CG.MobileAPI.Models
         /// Righe della lista di inventario (DB_1.liste_righe) e giacenze del magazzino / vano
         /// (ex getInventarioFullQuery.php). Chiavi: listaRighe, listaGiacenze.
         /// </summary>
-        public Dictionary<string, object?> GetInventarioFullQuery(GiacArtGetInventarioFullQueryRequest req)
+        public Dictionary<string, object?> GetInventarioFullQuery(GiacArtGetInventarioFullQueryRequest req, string societa)
         {
             if (!int.TryParse((req.id ?? "").Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
             {
@@ -468,16 +464,16 @@ namespace CG.MobileAPI.Models
             return new Dictionary<string, object?>
             {
                 ["listaRighe"] = righe,
-                ["listaGiacenze"] = GetListaGiacenze(req.nome_lista ?? "", "inventario", req.tipo_lista)
+                ["listaGiacenze"] = GetListaGiacenze(req.nome_lista ?? "", "inventario", req.tipo_lista, societa)
             };
         }
 
         /// <summary>
         /// Giacenze del magazzino (o dei vani che iniziano con il codice) (ex selectGiacenzeInventario.php).
         /// </summary>
-        public List<Dictionary<string, object?>> SelectGiacenzeInventario(GiacArtSelectGiacenzeInventarioRequest req)
+        public List<Dictionary<string, object?>> SelectGiacenzeInventario(GiacArtSelectGiacenzeInventarioRequest req, string societa)
         {
-            return GetListaGiacenze(req.magazzino ?? "", "giacenze", null);
+            return GetListaGiacenze(req.magazzino ?? "", "giacenze", null, societa);
         }
 
         /// <summary>
@@ -694,26 +690,25 @@ namespace CG.MobileAPI.Models
         /// Ricerca articoli per inizio codice (o codice contenuto per i fantasma 'D'), altrimenti per inizio descrizione
         /// (ex selectArticoloLike.php). Elementi: codice, descrizione.
         /// </summary>
-        public List<Dictionary<string, object?>> SelectArticoloLike(GiacArtSelectArticoloLikeRequest req)
+        public List<Dictionary<string, object?>> SelectArticoloLike(GiacArtSelectArticoloLikeRequest req, string societa)
         {
             var input = (req.inputArticoloDesc ?? "").ToUpperInvariant();
-            var societa = req.societa ?? "CSPRO";
             var inputSenzaPrimo = input.StartsWith('2') ? input.Substring(1) : input;
 
             var rows = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITE.MITEM, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.MCOSC
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.MASAINV ON (D60STDDB.MASAINV.MALITEM = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.MASAINV.MAHCOSC = D60STDDB.DBSAITE.MCOSC)
-                  WHERE (D60STDDB.DBSAITE.MITEM LIKE ? OR (D60STDDB.DBSAITE.MITEM LIKE ? AND D60STDDB.DBSAITE.MTYPN = 'D' )) AND D60STDDB.MASAINV.MAHCOSC=?",
+                @"SELECT DBSAITE.MITEM, DBSAITE.MPDSC, DBSAITE.MCOSC
+                  FROM DBSAITE
+                  FULL JOIN MASAINV ON (MASAINV.MALITEM = DBSAITE.MITEM) AND (MASAINV.MAHCOSC = DBSAITE.MCOSC)
+                  WHERE (DBSAITE.MITEM LIKE ? OR (DBSAITE.MITEM LIKE ? AND DBSAITE.MTYPN = 'D' )) AND MASAINV.MAHCOSC=?",
                 input + "%", "%" + inputSenzaPrimo + "%", societa);
 
             if (rows.Count == 0)
             {
                 rows = DbHelper.Query(_conn.Db2,
-                    @"SELECT D60STDDB.DBSAITE.MITEM, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.MCOSC
-                      FROM D60STDDB.DBSAITE
-                      FULL JOIN D60STDDB.MASAINV ON (D60STDDB.MASAINV.MALITEM = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.MASAINV.MAHCOSC = D60STDDB.DBSAITE.MCOSC)
-                      WHERE D60STDDB.DBSAITE.MPDSC LIKE ? AND D60STDDB.MASAINV.MAHCOSC=?",
+                    @"SELECT DBSAITE.MITEM, DBSAITE.MPDSC, DBSAITE.MCOSC
+                      FROM DBSAITE
+                      FULL JOIN MASAINV ON (MASAINV.MALITEM = DBSAITE.MITEM) AND (MASAINV.MAHCOSC = DBSAITE.MCOSC)
+                      WHERE DBSAITE.MPDSC LIKE ? AND MASAINV.MAHCOSC=?",
                     input + "%", societa);
             }
 
@@ -728,20 +723,19 @@ namespace CG.MobileAPI.Models
         /// Dati dell'articolo per i movimenti: magazzini con giacenza, magazzini possibili, magazzini preferenziali,
         /// mancanti e possibili ODL (ex selectArticoloMagazzini.php).
         /// </summary>
-        public Dictionary<string, object?> SelectArticoloMagazzini(GiacArtSelectArticoloMagazziniRequest req)
+        public Dictionary<string, object?> SelectArticoloMagazzini(GiacArtSelectArticoloMagazziniRequest req, string societa)
         {
             var codiceArticolo = req.codiceArticolo ?? "";
-            var societa = req.societa ?? "CSPRO";
 
             // Se l'articolo non esiste il PHP restituiva un oggetto con le sole liste.
             var movimento = new Dictionary<string, object?>();
             var articolo = DbHelper.QueryFirst(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITE.MITEM, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAITE.MPALLET,
-                  D60STDDB.CSDBITA.CSCOLOR
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.MASAINV ON (D60STDDB.MASAINV.MALITEM = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.MASAINV.MAHCOSC = D60STDDB.DBSAITE.MCOSC)
-                  FULL JOIN D60STDDB.CSDBITA ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSDBITA.CSITEMA
-                  WHERE D60STDDB.DBSAITE.MITEM=? AND D60STDDB.MASAINV.MAHCOSC=?",
+                @"SELECT DBSAITE.MITEM, DBSAITE.MPDSC, DBSAITE.MUTMS, DBSAITE.MPALLET,
+                  CSDBITA.CSCOLOR
+                  FROM DBSAITE
+                  FULL JOIN MASAINV ON (MASAINV.MALITEM = DBSAITE.MITEM) AND (MASAINV.MAHCOSC = DBSAITE.MCOSC)
+                  FULL JOIN CSDBITA ON DBSAITE.MITEM = CSDBITA.CSITEMA
+                  WHERE DBSAITE.MITEM=? AND MASAINV.MAHCOSC=?",
                 codiceArticolo, societa);
             if (articolo != null)
             {
@@ -753,15 +747,15 @@ namespace CG.MobileAPI.Models
             }
 
             movimento["listaMagazziniArticolo"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE, D60STDDB.MASAMSL.MALLLQT/100 AS IMPEGNATO
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.MASAMSL ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM
-                  FULL JOIN D60STDDB.MASAHED ON D60STDDB.MASAMSL.MLLOC = D60STDDB.MASAHED.MAHMAG
-                  WHERE D60STDDB.DBSAITE.MITEM=?
-                  AND D60STDDB.MASAMSL.MAHCOSC=?
-                  AND D60STDDB.MASAHED.MAHTYMAG='ST'
-                  AND D60STDDB.MASAHED.MAHMAG NOT LIKE 'MGAUT%'
-                  GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT, D60STDDB.MASAMSL.MALLLQT ORDER BY D60STDDB.MASAMSL.MLLOC",
+                @"SELECT MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT/100 AS GIACENTE, MASAMSL.MALLLQT/100 AS IMPEGNATO
+                  FROM DBSAITE
+                  FULL JOIN MASAMSL ON DBSAITE.MITEM = MASAMSL.MALITEM
+                  FULL JOIN MASAHED ON MASAMSL.MLLOC = MASAHED.MAHMAG
+                  WHERE DBSAITE.MITEM=?
+                  AND MASAMSL.MAHCOSC=?
+                  AND MASAHED.MAHTYMAG='ST'
+                  AND MASAHED.MAHMAG NOT LIKE 'MGAUT%'
+                  GROUP BY MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT, MASAMSL.MALLLQT ORDER BY MASAMSL.MLLOC",
                 codiceArticolo, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -772,25 +766,25 @@ namespace CG.MobileAPI.Models
                 }).ToList();
 
             movimento["listaPossibiliMagazzini"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAHED.MAHMAG
-                  FROM D60STDDB.MASAHED
-                  WHERE D60STDDB.MASAHED.MAHCOSC=?
-                  AND D60STDDB.MASAHED.MAHTYMAG='ST'
-                  AND D60STDDB.MASAHED.MAHMAG NOT LIKE 'MGAUT%'
-                  ORDER BY D60STDDB.MASAHED.MAHMAG",
+                @"SELECT MASAHED.MAHMAG
+                  FROM MASAHED
+                  WHERE MASAHED.MAHCOSC=?
+                  AND MASAHED.MAHTYMAG='ST'
+                  AND MASAHED.MAHMAG NOT LIKE 'MGAUT%'
+                  ORDER BY MASAHED.MAHMAG",
                 societa)
                 .Select(r => new Dictionary<string, object?> { ["codice"] = S(r, "MAHMAG") }).ToList();
 
             movimento["listaMagazziniPreferenziali"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAHED.MAHMAG, D60STDDB.MASAHED.MAHTYMAG,
-                  D60STDDB.MASAVAN.MVCELLA, D60STDDB.MASAVAN.MVVITEM
-                  FROM D60STDDB.MASAHED
-                  FULL JOIN D60STDDB.MASAVAN ON D60STDDB.MASAHED.MAHMAG = D60STDDB.MASAVAN.MVLOC
-                  WHERE D60STDDB.MASAHED.MAHCOSC=?
-                  AND D60STDDB.MASAHED.MAHTYMAG='ST'
-                  AND D60STDDB.MASAHED.MAHMAG NOT LIKE 'MGAUT%'
-                  AND D60STDDB.MASAVAN.MVFIRST = '*'
-                  AND D60STDDB.MASAVAN.MVVITEM=?",
+                @"SELECT MASAHED.MAHMAG, MASAHED.MAHTYMAG,
+                  MASAVAN.MVCELLA, MASAVAN.MVVITEM
+                  FROM MASAHED
+                  FULL JOIN MASAVAN ON MASAHED.MAHMAG = MASAVAN.MVLOC
+                  WHERE MASAHED.MAHCOSC=?
+                  AND MASAHED.MAHTYMAG='ST'
+                  AND MASAHED.MAHMAG NOT LIKE 'MGAUT%'
+                  AND MASAVAN.MVFIRST = '*'
+                  AND MASAVAN.MVVITEM=?",
                 societa, codiceArticolo)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -849,19 +843,19 @@ namespace CG.MobileAPI.Models
             if (JsonVero(req.solamenteCheckFigli))
             {
                 var sqlFigli = esplosione
-                    ? @"SELECT D60STDDB.DBSAPRD.SPCOMP AS COMPONENTE
-                        FROM D60STDDB.DBSAITE AS DBSAITE_1
-                        INNER JOIN (D60STDDB.DBSAPRD INNER JOIN D60STDDB.DBSAITE ON (D60STDDB.DBSAPRD.SPCOMP = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.DBSAPRD.MCOSC = D60STDDB.DBSAITE.MCOSC)) ON (DBSAITE_1.MCOSC = D60STDDB.DBSAPRD.MCOSC) AND (DBSAITE_1.MITEM = D60STDDB.DBSAPRD.MITEM)
-                        GROUP BY D60STDDB.DBSAPRD.MITEM, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.SPCOMP, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY, D60STDDB.DBSAPRD.SPADDDT, D60STDDB.DBSAPRD.SPDELDT, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.DIPRO
-                        HAVING (D60STDDB.DBSAPRD.SPADDDT<= ? AND D60STDDB.DBSAPRD.SPDELDT>? AND D60STDDB.DBSAPRD.MITEM = ?)
-                        OR (D60STDDB.DBSAPRD.SPADDDT<= ? AND D60STDDB.DBSAPRD.SPDELDT=0 AND D60STDDB.DBSAPRD.MITEM = ?)"
-                    : @"SELECT D60STDDB.DBSAPRD.SPCOMP AS COMPONENTE
-                        FROM D60STDDB.DBSAPRD
-                        INNER JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAPRD.SPCOMP = D60STDDB.DBSAITE.MITEM AND D60STDDB.DBSAPRD.MCOSC = D60STDDB.DBSAITE.MCOSC
-                        INNER JOIN D60STDDB.DBSAITE AS DBSAITE_1 ON DBSAITE_1.MCOSC = D60STDDB.DBSAPRD.MCOSC AND D60STDDB.DBSAPRD.MITEM = DBSAITE_1.MITEM
-                        GROUP BY D60STDDB.DBSAPRD.MITEM, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.SPCOMP, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY, D60STDDB.DBSAPRD.SPADDDT, D60STDDB.DBSAPRD.SPDELDT, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.DIPRO
-                        HAVING (D60STDDB.DBSAPRD.SPCOMP=? AND D60STDDB.DBSAPRD.SPADDDT<=? AND D60STDDB.DBSAPRD.SPDELDT>?)
-                        OR (D60STDDB.DBSAPRD.SPCOMP=? AND D60STDDB.DBSAPRD.SPADDDT<=? AND D60STDDB.DBSAPRD.SPDELDT=0)";
+                    ? @"SELECT DBSAPRD.SPCOMP AS COMPONENTE
+                        FROM DBSAITE AS DBSAITE_1
+                        INNER JOIN (DBSAPRD INNER JOIN DBSAITE ON (DBSAPRD.SPCOMP = DBSAITE.MITEM) AND (DBSAPRD.MCOSC = DBSAITE.MCOSC)) ON (DBSAITE_1.MCOSC = DBSAPRD.MCOSC) AND (DBSAITE_1.MITEM = DBSAPRD.MITEM)
+                        GROUP BY DBSAPRD.MITEM, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO, DBSAPRD.SPCOMP, DBSAITE.MUTMS, DBSAPRD.SPQTY, DBSAPRD.SPADDDT, DBSAPRD.SPDELDT, DBSAITE.MPDSC, DBSAITE.DIPRO
+                        HAVING (DBSAPRD.SPADDDT<= ? AND DBSAPRD.SPDELDT>? AND DBSAPRD.MITEM = ?)
+                        OR (DBSAPRD.SPADDDT<= ? AND DBSAPRD.SPDELDT=0 AND DBSAPRD.MITEM = ?)"
+                    : @"SELECT DBSAPRD.SPCOMP AS COMPONENTE
+                        FROM DBSAPRD
+                        INNER JOIN DBSAITE ON DBSAPRD.SPCOMP = DBSAITE.MITEM AND DBSAPRD.MCOSC = DBSAITE.MCOSC
+                        INNER JOIN DBSAITE AS DBSAITE_1 ON DBSAITE_1.MCOSC = DBSAPRD.MCOSC AND DBSAPRD.MITEM = DBSAITE_1.MITEM
+                        GROUP BY DBSAPRD.MITEM, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO, DBSAPRD.SPCOMP, DBSAITE.MUTMS, DBSAPRD.SPQTY, DBSAPRD.SPADDDT, DBSAPRD.SPDELDT, DBSAITE.MPDSC, DBSAITE.DIPRO
+                        HAVING (DBSAPRD.SPCOMP=? AND DBSAPRD.SPADDDT<=? AND DBSAPRD.SPDELDT>?)
+                        OR (DBSAPRD.SPCOMP=? AND DBSAPRD.SPADDDT<=? AND DBSAPRD.SPDELDT=0)";
 
                 var valoriFigli = esplosione
                     ? new object?[] { oggi, oggi, codiceArticolo, oggi, codiceArticolo }
@@ -873,25 +867,25 @@ namespace CG.MobileAPI.Models
             }
 
             var sql = esplosione
-                ? @"SELECT D60STDDB.DBSAPRD.MITEM AS ASSIEME, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO AS POS, D60STDDB.DBSAPRD.SPCOMP AS COMPONENTE, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY AS QUANTITA, D60STDDB.DBSAITE.MPDSC AS DESCRIZIONE, D60STDDB.DBSAITE.DIPRO AS DISEGNO,
-                    COALESCE(MAX(D60STDDB.DBSAMTA.NUMESP), 0) AS EM
-                    FROM D60STDDB.DBSAITE AS DBSAITE_1
-                    INNER JOIN (D60STDDB.DBSAPRD INNER JOIN D60STDDB.DBSAITE ON (D60STDDB.DBSAPRD.SPCOMP = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.DBSAPRD.MCOSC = D60STDDB.DBSAITE.MCOSC)) ON (DBSAITE_1.MCOSC = D60STDDB.DBSAPRD.MCOSC) AND (DBSAITE_1.MITEM = D60STDDB.DBSAPRD.MITEM)
-                    LEFT JOIN D60STDDB.DBSAMTA ON D60STDDB.DBSAPRD.SPCOMP = D60STDDB.DBSAMTA.CODITM
-                    GROUP BY D60STDDB.DBSAPRD.MITEM, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.SPCOMP, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY, D60STDDB.DBSAPRD.SPADDDT, D60STDDB.DBSAPRD.SPDELDT, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.DIPRO, D60STDDB.DBSAPRD.SPMATCH
-                    HAVING (D60STDDB.DBSAPRD.SPADDDT<= ? AND D60STDDB.DBSAPRD.SPDELDT>? AND D60STDDB.DBSAPRD.MITEM = ?)
-                    OR (D60STDDB.DBSAPRD.SPADDDT<= ? AND D60STDDB.DBSAPRD.SPDELDT=0 AND D60STDDB.DBSAPRD.MITEM = ?)
-                    ORDER BY D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.SPCOMP ASC"
-                : @"SELECT D60STDDB.DBSAPRD.MITEM AS ASSIEME, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO AS POS, D60STDDB.DBSAPRD.SPCOMP AS COMPONENTE, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY AS QUANTITA, D60STDDB.DBSAITE.MPDSC AS DESCRIZIONE, DBSAITE_1.DIPRO AS DISEGNO,
-                    COALESCE(MAX(D60STDDB.DBSAMTA.NUMESP), 0) AS EM
-                    FROM D60STDDB.DBSAPRD
-                    INNER JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAPRD.SPCOMP = D60STDDB.DBSAITE.MITEM AND D60STDDB.DBSAPRD.MCOSC = D60STDDB.DBSAITE.MCOSC
-                    INNER JOIN D60STDDB.DBSAITE AS DBSAITE_1 ON DBSAITE_1.MCOSC = D60STDDB.DBSAPRD.MCOSC AND D60STDDB.DBSAPRD.MITEM = DBSAITE_1.MITEM
-                    LEFT JOIN D60STDDB.DBSAMTA ON D60STDDB.DBSAPRD.MITEM = D60STDDB.DBSAMTA.CODITM
-                    GROUP BY D60STDDB.DBSAPRD.MITEM, DBSAITE_1.DIPRO, DBSAITE_1.MPDSC, D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.SPCOMP, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAPRD.SPQTY, D60STDDB.DBSAPRD.SPADDDT, D60STDDB.DBSAPRD.SPDELDT, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAPRD.SPMATCH
-                    HAVING (D60STDDB.DBSAPRD.SPCOMP=? AND D60STDDB.DBSAPRD.SPADDDT<=? AND D60STDDB.DBSAPRD.SPDELDT>?)
-                    OR (D60STDDB.DBSAPRD.SPCOMP=? AND D60STDDB.DBSAPRD.SPADDDT<=? AND D60STDDB.DBSAPRD.SPDELDT=0)
-                    ORDER BY D60STDDB.DBSAPRD.SPSQNO, D60STDDB.DBSAPRD.MITEM ASC";
+                ? @"SELECT DBSAPRD.MITEM AS ASSIEME, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO AS POS, DBSAPRD.SPCOMP AS COMPONENTE, DBSAITE.MUTMS, DBSAPRD.SPQTY AS QUANTITA, DBSAITE.MPDSC AS DESCRIZIONE, DBSAITE.DIPRO AS DISEGNO,
+                    COALESCE(MAX(DBSAMTA.NUMESP), 0) AS EM
+                    FROM DBSAITE AS DBSAITE_1
+                    INNER JOIN (DBSAPRD INNER JOIN DBSAITE ON (DBSAPRD.SPCOMP = DBSAITE.MITEM) AND (DBSAPRD.MCOSC = DBSAITE.MCOSC)) ON (DBSAITE_1.MCOSC = DBSAPRD.MCOSC) AND (DBSAITE_1.MITEM = DBSAPRD.MITEM)
+                    LEFT JOIN DBSAMTA ON DBSAPRD.SPCOMP = DBSAMTA.CODITM
+                    GROUP BY DBSAPRD.MITEM, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO, DBSAPRD.SPCOMP, DBSAITE.MUTMS, DBSAPRD.SPQTY, DBSAPRD.SPADDDT, DBSAPRD.SPDELDT, DBSAITE.MPDSC, DBSAITE.DIPRO, DBSAPRD.SPMATCH
+                    HAVING (DBSAPRD.SPADDDT<= ? AND DBSAPRD.SPDELDT>? AND DBSAPRD.MITEM = ?)
+                    OR (DBSAPRD.SPADDDT<= ? AND DBSAPRD.SPDELDT=0 AND DBSAPRD.MITEM = ?)
+                    ORDER BY DBSAPRD.SPSQNO, DBSAPRD.SPCOMP ASC"
+                : @"SELECT DBSAPRD.MITEM AS ASSIEME, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO AS POS, DBSAPRD.SPCOMP AS COMPONENTE, DBSAITE.MUTMS, DBSAPRD.SPQTY AS QUANTITA, DBSAITE.MPDSC AS DESCRIZIONE, DBSAITE_1.DIPRO AS DISEGNO,
+                    COALESCE(MAX(DBSAMTA.NUMESP), 0) AS EM
+                    FROM DBSAPRD
+                    INNER JOIN DBSAITE ON DBSAPRD.SPCOMP = DBSAITE.MITEM AND DBSAPRD.MCOSC = DBSAITE.MCOSC
+                    INNER JOIN DBSAITE AS DBSAITE_1 ON DBSAITE_1.MCOSC = DBSAPRD.MCOSC AND DBSAPRD.MITEM = DBSAITE_1.MITEM
+                    LEFT JOIN DBSAMTA ON DBSAPRD.MITEM = DBSAMTA.CODITM
+                    GROUP BY DBSAPRD.MITEM, DBSAITE_1.DIPRO, DBSAITE_1.MPDSC, DBSAPRD.SPSQNO, DBSAPRD.SPCOMP, DBSAITE.MUTMS, DBSAPRD.SPQTY, DBSAPRD.SPADDDT, DBSAPRD.SPDELDT, DBSAITE.MPDSC, DBSAPRD.SPMATCH
+                    HAVING (DBSAPRD.SPCOMP=? AND DBSAPRD.SPADDDT<=? AND DBSAPRD.SPDELDT>?)
+                    OR (DBSAPRD.SPCOMP=? AND DBSAPRD.SPADDDT<=? AND DBSAPRD.SPDELDT=0)
+                    ORDER BY DBSAPRD.SPSQNO, DBSAPRD.MITEM ASC";
 
             var valori = esplosione
                 ? new object?[] { oggi, oggi, codiceArticolo, oggi, codiceArticolo }
@@ -916,7 +910,7 @@ namespace CG.MobileAPI.Models
         /// <summary>
         /// Elenco dei PDF del disegno (archivio disegni) e dell'ultimo PDF AO dell'articolo (ex getPdfList.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetPdfList(GiacArtGetPdfListRequest req, StorageTool storage)
+        public List<Dictionary<string, object?>> GetPdfList(GiacArtGetPdfListRequest req, string societa, StorageTool storage, DisegniTool disegni, string urlApi)
         {
             var codiceArticolo = req.codiceArticolo ?? "";
             var codiceDisegno = req.codiceDisegno;
@@ -925,17 +919,17 @@ namespace CG.MobileAPI.Models
             if (!JsonVero(req.codiceDisegnoIsPreciso))
             {
                 var row = DbHelper.QueryFirst(_conn.Db2,
-                    @"SELECT D60STDDB.DBSAITE.DIPRO
-                      FROM D60STDDB.DBSAITE
-                      WHERE D60STDDB.DBSAITE.MITEM=? AND D60STDDB.DBSAITE.MCOSC='CSPRO'",
-                    codiceArticolo);
+                    @"SELECT DBSAITE.DIPRO
+                      FROM DBSAITE
+                      WHERE DBSAITE.MITEM=? AND DBSAITE.MCOSC=?",
+                    codiceArticolo, societa);
                 if (row != null)
                 {
                     codiceDisegno = S(row, "DIPRO");
                 }
             }
 
-            var pdf = GetDisegniPdf(codiceDisegno, storage);
+            var pdf = GetDisegniPdf(codiceDisegno, disegni, urlApi);
 
             // Ultimo PDF AO dell'articolo.
             var articoloLink = codiceArticolo.Replace("/", "-");
@@ -961,21 +955,20 @@ namespace CG.MobileAPI.Models
         /// fabbisogni, magazzino/vano preferenziale, mancanti, foto (ARXivar e archivio tecnico) e PDF (disegni, AO, D9).
         /// Solleva <see cref="MobileException"/> (codice 404) se l'articolo non esiste.
         /// </summary>
-        public async Task<Dictionary<string, object?>> SelectSingoloArticoloAsync(GiacArtSelectSingoloArticoloRequest req, StorageTool storage)
+        public async Task<Dictionary<string, object?>> SelectSingoloArticoloAsync(GiacArtSelectSingoloArticoloRequest req, string societa, StorageTool storage, DisegniTool disegni, string urlApi)
         {
             var codiceArticolo = req.codiceArticolo ?? "";
-            var societa = req.societa ?? "CSPRO";
 
             // --- QUERY 0: informazioni base (vale l'ultima riga, come nel PHP) ---
             var base0 = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITE.MITEM, D60STDDB.DBSAITE.MPDSC, D60STDDB.DBSAITE.MCOSC, D60STDDB.DBSAITE.MTYPN, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAITE.MWEIGHT, D60STDDB.DBSAITE.MPALLET, D60STDDB.DBSAITE.TIPOMAT, D60STDDB.DBSAITE.DIPRO,
-                  D60STDDB.MASAINV.MALQT/100 AS IMPEGNATO_TOTALE, D60STDDB.MASAINV.MAVAL/100 AS DISPONIBILE_TOTALE, D60STDDB.MASAINV.MOHTQ/100 AS GIACENTE_TOTALE, D60STDDB.MASAINV.MPRPQ/100 AS IN_ORDINE_PRD, D60STDDB.MASAINV.MPUPQ/100 AS IN_ORDINE_ACQ, D60STDDB.MASAINV.MRLD AS ULTIMO_VERSAMENTO, D60STDDB.MASAINV.MILD AS ULTIMO_CONSUMO,
-                  D60STDDB.CSDBITA.CSCOLOR, D60STDDB.CSDBITA.CSTRASU
-                  FROM D60STDDB.DBSAITE
-                  FULL JOIN D60STDDB.MASAINV ON (D60STDDB.MASAINV.MALITEM = D60STDDB.DBSAITE.MITEM) AND (D60STDDB.MASAINV.MAHCOSC = D60STDDB.DBSAITE.MCOSC)
-                  FULL JOIN D60STDDB.MASAMSL ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM
-                  FULL JOIN D60STDDB.CSDBITA ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSDBITA.CSITEMA
-                  WHERE D60STDDB.DBSAITE.MITEM=? AND D60STDDB.MASAINV.MAHCOSC=?",
+                @"SELECT DBSAITE.MITEM, DBSAITE.MPDSC, DBSAITE.MCOSC, DBSAITE.MTYPN, DBSAITE.MUTMS, DBSAITE.MWEIGHT, DBSAITE.MPALLET, DBSAITE.TIPOMAT, DBSAITE.DIPRO,
+                  MASAINV.MALQT/100 AS IMPEGNATO_TOTALE, MASAINV.MAVAL/100 AS DISPONIBILE_TOTALE, MASAINV.MOHTQ/100 AS GIACENTE_TOTALE, MASAINV.MPRPQ/100 AS IN_ORDINE_PRD, MASAINV.MPUPQ/100 AS IN_ORDINE_ACQ, MASAINV.MRLD AS ULTIMO_VERSAMENTO, MASAINV.MILD AS ULTIMO_CONSUMO,
+                  CSDBITA.CSCOLOR, CSDBITA.CSTRASU
+                  FROM DBSAITE
+                  FULL JOIN MASAINV ON (MASAINV.MALITEM = DBSAITE.MITEM) AND (MASAINV.MAHCOSC = DBSAITE.MCOSC)
+                  FULL JOIN MASAMSL ON DBSAITE.MITEM = MASAMSL.MALITEM
+                  FULL JOIN CSDBITA ON DBSAITE.MITEM = CSDBITA.CSITEMA
+                  WHERE DBSAITE.MITEM=? AND MASAINV.MAHCOSC=?",
                 codiceArticolo, societa).LastOrDefault();
 
             if (base0 == null)
@@ -1007,13 +1000,13 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 1: magazzini ---
             articolo["listaMagazzini"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE, D60STDDB.MASAMSL.MALLLQT/100 AS IMPEGNATO, D60STDDB.MASAHED.MAHTYMAG AS CATEGORIA
-                  FROM D60STDDB.MASAMSL
-                  FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC
-                  FULL JOIN D60STDDB.MASAHED ON D60STDDB.MASAMSL.MLLOC = D60STDDB.MASAHED.MAHMAG AND D60STDDB.MASAHED.MAHCOSC = D60STDDB.MASAMSL.MAHCOSC
-                  WHERE D60STDDB.DBSAITE.MITEM=? AND D60STDDB.MASAMSL.MAHCOSC=?
-                  GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALOHQT, D60STDDB.MASAMSL.MALLLQT, D60STDDB.MASAHED.MAHTYMAG
-                  ORDER BY D60STDDB.MASAMSL.MLLOC",
+                @"SELECT MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT/100 AS GIACENTE, MASAMSL.MALLLQT/100 AS IMPEGNATO, MASAHED.MAHTYMAG AS CATEGORIA
+                  FROM MASAMSL
+                  FULL JOIN DBSAITE ON DBSAITE.MITEM = MASAMSL.MALITEM AND DBSAITE.MCOSC = MASAMSL.MAHCOSC
+                  FULL JOIN MASAHED ON MASAMSL.MLLOC = MASAHED.MAHMAG AND MASAHED.MAHCOSC = MASAMSL.MAHCOSC
+                  WHERE DBSAITE.MITEM=? AND MASAMSL.MAHCOSC=?
+                  GROUP BY MASAMSL.MLLOC, MASAMSL.MALLOC, MASAMSL.MALOHQT, MASAMSL.MALLLQT, MASAHED.MAHTYMAG
+                  ORDER BY MASAMSL.MLLOC",
                 codiceArticolo, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1031,12 +1024,12 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 2: note ---
             articolo["listaNote"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.DBSAITX.PPUSER AS CODICE, D60STDDB.DBSAITX.PPTXTC AS TIPO_NOTA, D60STDDB.DBSAITX.PPSEQT AS RIGA, D60STDDB.DBSAITX.PPCOMM AS NOTA, D60STDDB.DBSAITE.MPDSC
-                  FROM D60STDDB.DBSAITX FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITX.PPUSER = D60STDDB.DBSAITE.MITEM
-                  WHERE D60STDDB.DBSAITX.PPUSER=?
-                  AND (D60STDDB.DBSAITX.PPTXTC='IT' OR D60STDDB.DBSAITX.PPTXTC='IA')
-                  AND D60STDDB.DBSAITX.PPCOMM NOT LIKE 'END%' AND D60STDDB.DBSAITE.MCOSC=?
-                  ORDER BY D60STDDB.DBSAITX.PPUSER, D60STDDB.DBSAITX.PPTXTC, D60STDDB.DBSAITX.PPSEQT",
+                @"SELECT DBSAITX.PPUSER AS CODICE, DBSAITX.PPTXTC AS TIPO_NOTA, DBSAITX.PPSEQT AS RIGA, DBSAITX.PPCOMM AS NOTA, DBSAITE.MPDSC
+                  FROM DBSAITX FULL JOIN DBSAITE ON DBSAITX.PPUSER = DBSAITE.MITEM
+                  WHERE DBSAITX.PPUSER=?
+                  AND (DBSAITX.PPTXTC='IT' OR DBSAITX.PPTXTC='IA')
+                  AND DBSAITX.PPCOMM NOT LIKE 'END%' AND DBSAITE.MCOSC=?
+                  ORDER BY DBSAITX.PPUSER, DBSAITX.PPTXTC, DBSAITX.PPSEQT",
                 codiceArticolo, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1046,11 +1039,11 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 3: ordini di acquisto ---
             var listaOrdini = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.OFSAOSC.PSSUPNO AS FORNITORE, D60STDDB.ANSADID.ANINCO AS RAGIONE_SOCIALE, D60STDDB.OFSAOSC.PSORDNO AS NUMERO_ORDINE, D60STDDB.OFSAOSC.PSITEM AS ARTICOLO, (D60STDDB.OFSAOSC.PSORQTY-D60STDDB.OFSAOSC.PSDLQTY)/100 AS QTA_IN_ORDINE, D60STDDB.OFSAOSC.PSDESDT AS DATA_CONSEGNA, D60STDDB.OFSAOSC.PSORDLN, D60STDDB.OFSAOSC.PSLINO
-                  FROM D60STDDB.OFSALIN FULL JOIN ((D60STDDB.OFSAOSC FULL JOIN D60STDDB.ANSADID ON (D60STDDB.ANSADID.ANCOSO = D60STDDB.OFSAOSC.PSCOSC) AND (D60STDDB.OFSAOSC.PSSUPNO = D60STDDB.ANSADID.ANCOCO))
-                  FULL JOIN D60STDDB.DBSAITE ON (D60STDDB.OFSAOSC.PSCOSC = D60STDDB.DBSAITE.MCOSC) AND (D60STDDB.OFSAOSC.PSITEM = D60STDDB.DBSAITE.MITEM)) ON (D60STDDB.OFSALIN.POORDLN = D60STDDB.OFSAOSC.PSORDLN) AND (D60STDDB.OFSALIN.POCOSC = D60STDDB.OFSAOSC.PSCOSC) AND (D60STDDB.OFSALIN.POORDNO = D60STDDB.OFSAOSC.PSORDNO)
-                  WHERE (((D60STDDB.OFSAOSC.PSITEM)=?) AND ((D60STDDB.OFSAOSC.PSCOSC)=?) AND ((D60STDDB.OFSALIN.POCOSC)=?) AND ((D60STDDB.OFSAOSC.PSSTATUS)='F' Or (D60STDDB.OFSAOSC.PSSTATUS)='R' Or (D60STDDB.OFSAOSC.PSSTATUS)='P') AND ((D60STDDB.OFSAOSC.PSAMEND)=0) AND ((D60STDDB.OFSALIN.POAMEND)=0))
-                  ORDER BY D60STDDB.OFSAOSC.PSDESDT",
+                @"SELECT OFSAOSC.PSSUPNO AS FORNITORE, ANSADID.ANINCO AS RAGIONE_SOCIALE, OFSAOSC.PSORDNO AS NUMERO_ORDINE, OFSAOSC.PSITEM AS ARTICOLO, (OFSAOSC.PSORQTY-OFSAOSC.PSDLQTY)/100 AS QTA_IN_ORDINE, OFSAOSC.PSDESDT AS DATA_CONSEGNA, OFSAOSC.PSORDLN, OFSAOSC.PSLINO
+                  FROM OFSALIN FULL JOIN ((OFSAOSC FULL JOIN ANSADID ON (ANSADID.ANCOSO = OFSAOSC.PSCOSC) AND (OFSAOSC.PSSUPNO = ANSADID.ANCOCO))
+                  FULL JOIN DBSAITE ON (OFSAOSC.PSCOSC = DBSAITE.MCOSC) AND (OFSAOSC.PSITEM = DBSAITE.MITEM)) ON (OFSALIN.POORDLN = OFSAOSC.PSORDLN) AND (OFSALIN.POCOSC = OFSAOSC.PSCOSC) AND (OFSALIN.POORDNO = OFSAOSC.PSORDNO)
+                  WHERE (((OFSAOSC.PSITEM)=?) AND ((OFSAOSC.PSCOSC)=?) AND ((OFSALIN.POCOSC)=?) AND ((OFSAOSC.PSSTATUS)='F' Or (OFSAOSC.PSSTATUS)='R' Or (OFSAOSC.PSSTATUS)='P') AND ((OFSAOSC.PSAMEND)=0) AND ((OFSALIN.POAMEND)=0))
+                  ORDER BY OFSAOSC.PSDESDT",
                 codiceArticolo, societa, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1065,10 +1058,10 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 3.5: ordini di lavoro ---
             articolo["listaOrdiniOdl"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.SOSAVRT.VRTORNO, D60STDDB.SOSAVRT.VRTITEM, D60STDDB.SOSAVRT.VRTPDSC, D60STDDB.SOSAVRT.VRTUM, D60STDDB.SOSAVRT.VRTCURQ/100 AS QTA, D60STDDB.SOSAVRT.VRTSTAT, D60STDDB.SOSAVRT.VRTRESP, D60STDDB.SOSAVRT.VRTEBED AS INIZIO, D60STDDB.SOSAVRT.VRTDUED AS CONSEGNA, D60STDDB.SOSAVRT.VRTSHLOC
-                  FROM D60STDDB.SOSAVRT
-                  WHERE D60STDDB.SOSAVRT.VRTSOC=? AND D60STDDB.SOSAVRT.VRTITEM=? AND D60STDDB.SOSAVRT.VRTTYPE='M' AND D60STDDB.SOSAVRT.VRTSTAT<'90'
-                  ORDER BY D60STDDB.SOSAVRT.VRTDUED",
+                @"SELECT SOSAVRT.VRTORNO, SOSAVRT.VRTITEM, SOSAVRT.VRTPDSC, SOSAVRT.VRTUM, SOSAVRT.VRTCURQ/100 AS QTA, SOSAVRT.VRTSTAT, SOSAVRT.VRTRESP, SOSAVRT.VRTEBED AS INIZIO, SOSAVRT.VRTDUED AS CONSEGNA, SOSAVRT.VRTSHLOC
+                  FROM SOSAVRT
+                  WHERE SOSAVRT.VRTSOC=? AND SOSAVRT.VRTITEM=? AND SOSAVRT.VRTTYPE='M' AND SOSAVRT.VRTSTAT<'90'
+                  ORDER BY SOSAVRT.VRTDUED",
                 societa, codiceArticolo)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1083,12 +1076,12 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 4: impegni ODL ---
             articolo["listaImpegniOdl"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.SOSACPN.SOCDLOC AS mag, D60STDDB.SOSACPN.SOCDATE AS fabb, D60STDDB.SOSACPN.SOCQDEL/100 AS imp, D60STDDB.SOSACPN.SOCQMOVD/100 AS copertura, D60STDDB.SOSACPN.VRTORNO AS odl, D60STDDB.SOSACPN.SOCMAOP AS fase,
-                  D60STDDB.SOSAVRT.VRTITEM AS padre, D60STDDB.SOSAVRT.VRTPDSC AS descr, D60STDDB.SOSAVRT.VRTTYPE AS t, D60STDDB.SOSACPN.SOCPIOS AS stato_comp
-                  FROM (D60STDDB.SOSAVRT FULL JOIN D60STDDB.SOSACPN ON (D60STDDB.SOSAVRT.VRTSOC = D60STDDB.SOSACPN.VRTSOC) AND (D60STDDB.SOSAVRT.VRTORNO = D60STDDB.SOSACPN.VRTORNO))
-                  FULL JOIN D60STDDB.DBSAITE ON (D60STDDB.SOSACPN.VRTSOC = D60STDDB.DBSAITE.MCOSC) AND (D60STDDB.SOSACPN.SOCPKEY = D60STDDB.DBSAITE.MITEM)
-                  WHERE (((D60STDDB.SOSACPN.SOCPKEY)=?) AND ((D60STDDB.SOSAVRT.VRTSTAT)<'90') AND ((D60STDDB.SOSACPN.VRTSOC)=?) AND ((D60STDDB.SOSACPN.SOCPIOS)<'90'))
-                  ORDER BY D60STDDB.SOSACPN.SOCDATE, D60STDDB.SOSACPN.SOCDLOC, D60STDDB.SOSACPN.SOCPKEY",
+                @"SELECT SOSACPN.SOCDLOC AS mag, SOSACPN.SOCDATE AS fabb, SOSACPN.SOCQDEL/100 AS imp, SOSACPN.SOCQMOVD/100 AS copertura, SOSACPN.VRTORNO AS odl, SOSACPN.SOCMAOP AS fase,
+                  SOSAVRT.VRTITEM AS padre, SOSAVRT.VRTPDSC AS descr, SOSAVRT.VRTTYPE AS t, SOSACPN.SOCPIOS AS stato_comp
+                  FROM (SOSAVRT FULL JOIN SOSACPN ON (SOSAVRT.VRTSOC = SOSACPN.VRTSOC) AND (SOSAVRT.VRTORNO = SOSACPN.VRTORNO))
+                  FULL JOIN DBSAITE ON (SOSACPN.VRTSOC = DBSAITE.MCOSC) AND (SOSACPN.SOCPKEY = DBSAITE.MITEM)
+                  WHERE (((SOSACPN.SOCPKEY)=?) AND ((SOSAVRT.VRTSTAT)<'90') AND ((SOSACPN.VRTSOC)=?) AND ((SOSACPN.SOCPIOS)<'90'))
+                  ORDER BY SOSACPN.SOCDATE, SOSACPN.SOCDLOC, SOSACPN.SOCPKEY",
                 codiceArticolo, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1106,11 +1099,11 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 5: impegni ODV ---
             articolo["listaImpegniOdv"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.OCSASCD.OCCORDN AS ORDINE, D60STDDB.OCSASCD.OCCITEM AS ARTICOLO, D60STDDB.OCSASCD.OCCPRDT AS DATA_CONS, D60STDDB.OCSASCD.OCCIMQT/100 AS IMPEGNATA, D60STDDB.OCSASCD.OCCSTAT AS STATO, D60STDDB.ANSADID.ANINCO
-                  FROM (D60STDDB.OCSASCD FULL JOIN D60STDDB.OCSAORH ON (D60STDDB.OCSASCD.OCCAMND = D60STDDB.OCSAORH.OCHAMND) AND (D60STDDB.OCSASCD.OCCCOSC = D60STDDB.OCSAORH.OCHCOSC) AND (D60STDDB.OCSASCD.OCCORDN = D60STDDB.OCSAORH.OCHORDN))
-                  FULL JOIN D60STDDB.ANSADID ON (D60STDDB.OCSAORH.OCHCOSC = D60STDDB.ANSADID.ANCOSO) AND (D60STDDB.OCSAORH.OCHCLII = D60STDDB.ANSADID.ANCOCO)
-                  WHERE (((D60STDDB.OCSASCD.OCCITEM)=?) AND ((D60STDDB.OCSASCD.OCCAMND)=0) AND ((D60STDDB.OCSASCD.OCCCOSC)=?) AND ((D60STDDB.OCSASCD.OCCSTAT)='R' Or (D60STDDB.OCSASCD.OCCSTAT)='F') AND ((D60STDDB.ANSADID.ANCOSO)=?) AND ((D60STDDB.OCSAORH.OCHCOSC)=?))
-                  ORDER BY D60STDDB.OCSASCD.OCCPRDT, D60STDDB.ANSADID.ANINCO",
+                @"SELECT OCSASCD.OCCORDN AS ORDINE, OCSASCD.OCCITEM AS ARTICOLO, OCSASCD.OCCPRDT AS DATA_CONS, OCSASCD.OCCIMQT/100 AS IMPEGNATA, OCSASCD.OCCSTAT AS STATO, ANSADID.ANINCO
+                  FROM (OCSASCD FULL JOIN OCSAORH ON (OCSASCD.OCCAMND = OCSAORH.OCHAMND) AND (OCSASCD.OCCCOSC = OCSAORH.OCHCOSC) AND (OCSASCD.OCCORDN = OCSAORH.OCHORDN))
+                  FULL JOIN ANSADID ON (OCSAORH.OCHCOSC = ANSADID.ANCOSO) AND (OCSAORH.OCHCLII = ANSADID.ANCOCO)
+                  WHERE (((OCSASCD.OCCITEM)=?) AND ((OCSASCD.OCCAMND)=0) AND ((OCSASCD.OCCCOSC)=?) AND ((OCSASCD.OCCSTAT)='R' Or (OCSASCD.OCCSTAT)='F') AND ((ANSADID.ANCOSO)=?) AND ((OCSAORH.OCHCOSC)=?))
+                  ORDER BY OCSASCD.OCCPRDT, ANSADID.ANINCO",
                 codiceArticolo, societa, societa, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1123,10 +1116,10 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 6: prezzi ---
             articolo["listaPrezzi"] = DbHelper.Query(_conn.Db2,
-                @"SELECT D60STDDB.ANSADID.ANINCO AS ragione_sociale, D60STDDB.OFSAQUO.SQQC AS TQ, D60STDDB.OFSAQUO.SQCURRC AS VALUTA, D60STDDB.OFSAQUO.SQIUM AS UM, D60STDDB.OFSAQUO.SQNPR/10000 AS prezzo_netto, D60STDDB.OFSAQUO.SQMATF AS tf, D60STDDB.OFSAQUO.SQESD AS inizio, D60STDDB.OFSAQUO.SQDQV AS fine
-                  FROM D60STDDB.OFSAQUO FULL JOIN D60STDDB.ANSADID ON (D60STDDB.ANSADID.ANCOSO = D60STDDB.OFSAQUO.SQCOSC) AND (D60STDDB.OFSAQUO.SQSUPNO = D60STDDB.ANSADID.ANCOCO)
-                  WHERE (((D60STDDB.OFSAQUO.SQITMNO)=?) AND ((D60STDDB.OFSAQUO.SQQC)<>'P' Or (D60STDDB.OFSAQUO.SQQC)='G') AND ((D60STDDB.OFSAQUO.SQMATF)<>'E') AND ((D60STDDB.OFSAQUO.SQDQV)>20192202) AND ((D60STDDB.OFSAQUO.SQCOSC)=?) AND ((D60STDDB.ANSADID.ANCOSO)=?))
-                  ORDER BY D60STDDB.OFSAQUO.SQESD, D60STDDB.ANSADID.ANINCO DESC",
+                @"SELECT ANSADID.ANINCO AS ragione_sociale, OFSAQUO.SQQC AS TQ, OFSAQUO.SQCURRC AS VALUTA, OFSAQUO.SQIUM AS UM, OFSAQUO.SQNPR/10000 AS prezzo_netto, OFSAQUO.SQMATF AS tf, OFSAQUO.SQESD AS inizio, OFSAQUO.SQDQV AS fine
+                  FROM OFSAQUO FULL JOIN ANSADID ON (ANSADID.ANCOSO = OFSAQUO.SQCOSC) AND (OFSAQUO.SQSUPNO = ANSADID.ANCOCO)
+                  WHERE (((OFSAQUO.SQITMNO)=?) AND ((OFSAQUO.SQQC)<>'P' Or (OFSAQUO.SQQC)='G') AND ((OFSAQUO.SQMATF)<>'E') AND ((OFSAQUO.SQDQV)>20192202) AND ((OFSAQUO.SQCOSC)=?) AND ((ANSADID.ANCOSO)=?))
+                  ORDER BY OFSAQUO.SQESD, ANSADID.ANINCO DESC",
                 codiceArticolo, societa, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1143,13 +1136,13 @@ namespace CG.MobileAPI.Models
             var dataLimite = int.Parse(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture) - 20000;
             articolo["listaMovimenti"] = DbHelper.Query(_conn.Db2,
                 @"SELECT
-                  D60STDDB.MASATRN.TRNITM, D60STDDB.MASATRN.TNBOL AS BOLLA, D60STDDB.MASATRN.TPARE, D60STDDB.MASATRN.TDTVER, D60STDDB.MASATRN.TTRAN, D60STDDB.MASATRN.TQUAN/100 AS QTA, D60STDDB.MASATRN.TMAG, D60STDDB.MASATRN.TLOC, D60STDDB.MASATRN.TCHNU, D60STDDB.MASATRN.TMACO, D60STDDB.MASATRN.TUSCO, D60STDDB.MASATRN.TTRAN, D60STDDB.MASATRN.TORNUOR, D60STDDB.MASATRN.TRNI, D60STDDB.MASATRN.TUSDES,D60STDDB.MASATRN.TRESP,
-                  DBSAITE_1.MPDSC, D60STDDB.ANSADID.ANINCO, D60STDDB.MASATRN.TRDATE
-                  FROM (D60STDDB.MASATRN FULL JOIN D60STDDB.DBSAITE ON (D60STDDB.MASATRN.TRNSOC = D60STDDB.DBSAITE.MCOSC) AND (D60STDDB.MASATRN.TRNITM = D60STDDB.DBSAITE.MITEM))
-                  FULL JOIN D60STDDB.DBSAITE AS DBSAITE_1 ON (D60STDDB.MASATRN.TPARE = DBSAITE_1.MITEM) AND (D60STDDB.MASATRN.TRNSOC = DBSAITE_1.MCOSC)
-                  FULL JOIN D60STDDB.ANSADID ON D60STDDB.MASATRN.TCHNU = D60STDDB.ANSADID.ANCOCO
-                  WHERE (((D60STDDB.MASATRN.TRNITM)=?) AND ((D60STDDB.MASATRN.TDTVER)>?) AND ((D60STDDB.MASATRN.TMACO)<>'MV') AND ((D60STDDB.MASATRN.TRNSOC)=?) AND ((D60STDDB.DBSAITE.MCOSC)=?) AND ((D60STDDB.ANSADID.ANCOSO=? OR D60STDDB.ANSADID.ANCOSO IS NULL)))
-                  ORDER BY D60STDDB.MASATRN.TDTVER DESC, D60STDDB.MASATRN.TMACO ASC",
+                  MASATRN.TRNITM, MASATRN.TNBOL AS BOLLA, MASATRN.TPARE, MASATRN.TDTVER, MASATRN.TTRAN, MASATRN.TQUAN/100 AS QTA, MASATRN.TMAG, MASATRN.TLOC, MASATRN.TCHNU, MASATRN.TMACO, MASATRN.TUSCO, MASATRN.TTRAN, MASATRN.TORNUOR, MASATRN.TRNI, MASATRN.TUSDES,MASATRN.TRESP,
+                  DBSAITE_1.MPDSC, ANSADID.ANINCO, MASATRN.TRDATE
+                  FROM (MASATRN FULL JOIN DBSAITE ON (MASATRN.TRNSOC = DBSAITE.MCOSC) AND (MASATRN.TRNITM = DBSAITE.MITEM))
+                  FULL JOIN DBSAITE AS DBSAITE_1 ON (MASATRN.TPARE = DBSAITE_1.MITEM) AND (MASATRN.TRNSOC = DBSAITE_1.MCOSC)
+                  FULL JOIN ANSADID ON MASATRN.TCHNU = ANSADID.ANCOCO
+                  WHERE (((MASATRN.TRNITM)=?) AND ((MASATRN.TDTVER)>?) AND ((MASATRN.TMACO)<>'MV') AND ((MASATRN.TRNSOC)=?) AND ((DBSAITE.MCOSC)=?) AND ((ANSADID.ANCOSO=? OR ANSADID.ANCOSO IS NULL)))
+                  ORDER BY MASATRN.TDTVER DESC, MASATRN.TMACO ASC",
                 codiceArticolo, dataLimite, societa, societa, societa)
                 .Select(r => new Dictionary<string, object?>
                 {
@@ -1175,11 +1168,11 @@ namespace CG.MobileAPI.Models
 
             // --- QUERY 8: fabbisogni ---
             articolo["listaFabbisogni"] = DbHelper.Query(_conn.Db2,
-                @"SELECT DISTINCT D60STDDB.PMSAGRQ.GRITEM AS ARTICOLO, D60STDDB.PMSAGRQ.GRDUEDT AS DATA_FABB, D60STDDB.PMSAGRQ.GRPARENT AS GRUPPO, D60STDDB.PMSAGRQ.GRQTTOT/100 AS FABB,
-                  D60STDDB.DBSAITE.MPDSC AS GRUPPO_DESC
-                  FROM D60STDDB.PMSAGRQ
-                  FULL JOIN D60STDDB.DBSAITE ON D60STDDB.PMSAGRQ.GRPARENT = D60STDDB.DBSAITE.MITEM
-                  WHERE (((D60STDDB.PMSAGRQ.GRITEM)=?) AND ((D60STDDB.PMSAGRQ.GRSOC)=?) AND ((D60STDDB.PMSAGRQ.GRNUPLAN)=1))
+                @"SELECT DISTINCT PMSAGRQ.GRITEM AS ARTICOLO, PMSAGRQ.GRDUEDT AS DATA_FABB, PMSAGRQ.GRPARENT AS GRUPPO, PMSAGRQ.GRQTTOT/100 AS FABB,
+                  DBSAITE.MPDSC AS GRUPPO_DESC
+                  FROM PMSAGRQ
+                  FULL JOIN DBSAITE ON PMSAGRQ.GRPARENT = DBSAITE.MITEM
+                  WHERE (((PMSAGRQ.GRITEM)=?) AND ((PMSAGRQ.GRSOC)=?) AND ((PMSAGRQ.GRNUPLAN)=1))
                   ORDER BY DATA_FABB, FABB",
                 codiceArticolo, societa)
                 .Select(r => new Dictionary<string, object?>
@@ -1251,23 +1244,8 @@ namespace CG.MobileAPI.Models
 
             // --- Foto: ARXivar (max 10 jpg) + archivio tecnico <articolo>_<n>.jpg/.jpeg ---
             var articoloLink = codiceArticolo.Replace("/", "-");
-            var immagini = await GetFotoArxivarAsync(articoloLink, storage);
-            for (int numeroFoto = 1; ; numeroFoto++)
-            {
-                var nome = articoloLink + "_" + numeroFoto;
-                if (EsisteFile(storage, CARTELLA_FOTO_TECNICO, nome + ".jpg"))
-                {
-                    immagini.Add(URL_FOTO_TECNICO + nome + ".jpg");
-                }
-                else if (EsisteFile(storage, CARTELLA_FOTO_TECNICO, nome + ".jpeg"))
-                {
-                    immagini.Add(URL_FOTO_TECNICO + nome + ".jpeg");
-                }
-                else
-                {
-                    break;
-                }
-            }
+            var immagini = await GetFotoArxivarAsync(articoloLink, urlApi + "/fotoArxivar");
+            
             articolo["arrayImmagini"] = immagini;
 
             // --- PDF: disegni (codice disegno, altrimenti classifica UNI), ultimo AO, archivio D9 ---
@@ -1276,7 +1254,7 @@ namespace CG.MobileAPI.Models
             {
                 codicePdf = (string)articolo["classificaUNI"]!;
             }
-            var arrayPdf = codicePdf != "" ? GetDisegniPdf(codicePdf, storage) : new List<Dictionary<string, object?>>();
+            var arrayPdf = codicePdf != "" ? GetDisegniPdf(codicePdf, disegni, urlApi) : new List<Dictionary<string, object?>>();
 
             var ultimoAo = GetUltimoPdfAo(articoloLink, storage);
             if (ultimoAo != null)
@@ -1294,16 +1272,18 @@ namespace CG.MobileAPI.Models
         // --- Funzioni condivise --------------------------------------------------------------------------------------
         // -------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Ex shared_functions/getListaGiacenze.php.</summary>
-        private List<Dictionary<string, object?>> GetListaGiacenze(string magazzino, string sezione, string? tipoListaInventario)
+        /// <summary>
+        /// Ex shared_functions/getListaGiacenze.php e getListaGiacenzeIMM.php (identici salvo il codice società).
+        /// </summary>
+        private List<Dictionary<string, object?>> GetListaGiacenze(string magazzino, string sezione, string? tipoListaInventario, string societa)
         {
-            var condizione = "D60STDDB.MASAMSL.MLLOC=?";
+            var condizione = "MASAMSL.MLLOC=?";
             var valori = new List<object?> { magazzino };
-            var orderBy = "D60STDDB.MASAMSL.MALITEM";
+            var orderBy = "MASAMSL.MALITEM";
 
             if (sezione == "giacenze")
             {
-                condizione = "D60STDDB.MASAMSL.MLLOC=? OR D60STDDB.MASAMSL.MALLOC LIKE ?";
+                condizione = "MASAMSL.MLLOC=? OR MASAMSL.MALLOC LIKE ?";
                 valori = new List<object?> { magazzino, magazzino + "%" };
             }
             else if (sezione == "inventario")
@@ -1311,28 +1291,28 @@ namespace CG.MobileAPI.Models
                 switch (tipoListaInventario)
                 {
                     case "magazzino":
-                        orderBy = "D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALITEM";
+                        orderBy = "MASAMSL.MALLOC, MASAMSL.MALITEM";
                         break;
                     case "vano_preciso":
-                        condizione = "D60STDDB.MASAMSL.MALLOC=?";
+                        condizione = "MASAMSL.MALLOC=?";
                         break;
                     case "vano_radice":
-                        condizione = "D60STDDB.MASAMSL.MALLOC LIKE ?";
+                        condizione = "MASAMSL.MALLOC LIKE ?";
                         valori = new List<object?> { magazzino + "%" };
-                        orderBy = "D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MALITEM";
+                        orderBy = "MASAMSL.MALLOC, MASAMSL.MALITEM";
                         break;
                 }
             }
 
             var rows = DbHelper.Query(_conn.Db2,
-                $@"SELECT D60STDDB.MASAMSL.MALITEM, D60STDDB.DBSAITE.MUTMS, D60STDDB.DBSAITE.MPDSC, D60STDDB.MASAMSL.MALLLQT*0.01 AS IMPEGNATO, D60STDDB.MASAINV.MAVAL*0.01 AS DISPONIBILE,
-                   D60STDDB.MASAINV.MOHTQ*0.01 AS GIACENTE_TOT, D60STDDB.MASAINV.MPRPQ*0.01 AS IN_ORDINE_PRD, D60STDDB.MASAINV.MPUPQ*0.01 AS IN_ORDINE_ACQ,
-                   D60STDDB.MASAINV.MRLD AS ULTIMO_VERSAMENTO, D60STDDB.MASAINV.MILD AS ULTIMO_CONSUMO, D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALOHQT*0.01 AS QTA_GIAC, D60STDDB.MASAMSL.MALLOC, D60STDDB.DBSAITE.MTYPN
-                   FROM D60STDDB.DBSAITE INNER JOIN (D60STDDB.MASAMSL INNER JOIN D60STDDB.MASAINV ON (D60STDDB.MASAMSL.MAHCOSC = D60STDDB.MASAINV.MAHCOSC) AND (D60STDDB.MASAMSL.MALITEM = D60STDDB.MASAINV.MALITEM)) ON (D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC) AND (D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM)
-                   GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALITEM, D60STDDB.DBSAITE.MPDSC, D60STDDB.MASAMSL.MALLLQT*0.01, D60STDDB.MASAINV.MAVAL*0.01, D60STDDB.MASAINV.MOHTQ*0.01, D60STDDB.MASAINV.MPRPQ*0.01, D60STDDB.MASAINV.MPUPQ*0.01, D60STDDB.MASAINV.MRLD, D60STDDB.MASAINV.MILD, D60STDDB.MASAMSL.MALOHQT*0.01, D60STDDB.MASAMSL.MALLOC, D60STDDB.MASAMSL.MAHCOSC, D60STDDB.DBSAITE.MTYPN, D60STDDB.DBSAITE.MUTMS
-                   HAVING D60STDDB.MASAMSL.MALOHQT*0.01>0 AND ({condizione}) AND D60STDDB.MASAMSL.MAHCOSC='CSPRO' AND D60STDDB.DBSAITE.MTYPN != 'N'
+                $@"SELECT MASAMSL.MALITEM, DBSAITE.MUTMS, DBSAITE.MPDSC, MASAMSL.MALLLQT*0.01 AS IMPEGNATO, MASAINV.MAVAL*0.01 AS DISPONIBILE,
+                   MASAINV.MOHTQ*0.01 AS GIACENTE_TOT, MASAINV.MPRPQ*0.01 AS IN_ORDINE_PRD, MASAINV.MPUPQ*0.01 AS IN_ORDINE_ACQ,
+                   MASAINV.MRLD AS ULTIMO_VERSAMENTO, MASAINV.MILD AS ULTIMO_CONSUMO, MASAMSL.MLLOC, MASAMSL.MALOHQT*0.01 AS QTA_GIAC, MASAMSL.MALLOC, DBSAITE.MTYPN
+                   FROM DBSAITE INNER JOIN (MASAMSL INNER JOIN MASAINV ON (MASAMSL.MAHCOSC = MASAINV.MAHCOSC) AND (MASAMSL.MALITEM = MASAINV.MALITEM)) ON (DBSAITE.MCOSC = MASAMSL.MAHCOSC) AND (DBSAITE.MITEM = MASAMSL.MALITEM)
+                   GROUP BY MASAMSL.MLLOC, MASAMSL.MALITEM, DBSAITE.MPDSC, MASAMSL.MALLLQT*0.01, MASAINV.MAVAL*0.01, MASAINV.MOHTQ*0.01, MASAINV.MPRPQ*0.01, MASAINV.MPUPQ*0.01, MASAINV.MRLD, MASAINV.MILD, MASAMSL.MALOHQT*0.01, MASAMSL.MALLOC, MASAMSL.MAHCOSC, DBSAITE.MTYPN, DBSAITE.MUTMS
+                   HAVING MASAMSL.MALOHQT*0.01>0 AND ({condizione}) AND MASAMSL.MAHCOSC=? AND DBSAITE.MTYPN != 'N'
                    ORDER BY {orderBy}",
-                valori.ToArray());
+                valori.Append(societa).ToArray());
 
             return rows.Select(r => new Dictionary<string, object?>
             {
@@ -1353,30 +1333,30 @@ namespace CG.MobileAPI.Models
             }).ToList();
         }
 
-        private bool EsisteMagazzino(string magazzino)
+        private bool EsisteMagazzino(string magazzino, string societa)
         {
             return DbHelper.Query(_conn.Db2,
-                @"SELECT DISTINCT D60STDDB.MASAHED.MAHMAG
-                  FROM D60STDDB.MASAHED
-                  WHERE D60STDDB.MASAHED.MAHCOSC='CSPRO' AND D60STDDB.MASAHED.MAHMAG=?",
-                magazzino).Count > 0;
+                @"SELECT DISTINCT MASAHED.MAHMAG
+                  FROM MASAHED
+                  WHERE MASAHED.MAHCOSC=? AND MASAHED.MAHMAG=?",
+                societa, magazzino).Count > 0;
         }
 
         /// <summary>Ex getMagazzinoVanoPreferenziale di selectSingoloArticolo.php; null se non c'è.</summary>
         private Dictionary<string, object?>? GetMagazzinoVanoPreferenziale(string codiceArticolo, bool soloMisk, string societa)
         {
-            var filtroMisk = soloMisk ? "AND D60STDDB.MASAHED.MAHMAG LIKE 'MISK%'" : "";
+            var filtroMisk = soloMisk ? "AND MASAHED.MAHMAG LIKE 'MISK%'" : "";
             var row = DbHelper.QueryFirst(_conn.Db2,
-                $@"SELECT D60STDDB.MASAHED.MAHMAG, D60STDDB.MASAVAN.MVCELLA
-                   FROM D60STDDB.MASAHED
-                   FULL JOIN D60STDDB.MASAVAN ON D60STDDB.MASAHED.MAHMAG = D60STDDB.MASAVAN.MVLOC
-                   WHERE D60STDDB.MASAHED.MAHCOSC=?
-                   AND D60STDDB.MASAHED.MAHTYMAG='ST'
+                $@"SELECT MASAHED.MAHMAG, MASAVAN.MVCELLA
+                   FROM MASAHED
+                   FULL JOIN MASAVAN ON MASAHED.MAHMAG = MASAVAN.MVLOC
+                   WHERE MASAHED.MAHCOSC=?
+                   AND MASAHED.MAHTYMAG='ST'
                    {filtroMisk}
-                   AND D60STDDB.MASAVAN.MVCELLA NOT LIKE '**%'
-                   AND D60STDDB.MASAHED.MAHDISP = 'Y'
-                   AND D60STDDB.MASAVAN.MVFIRST = '*'
-                   AND D60STDDB.MASAVAN.MVVITEM=?
+                   AND MASAVAN.MVCELLA NOT LIKE '**%'
+                   AND MASAHED.MAHDISP = 'Y'
+                   AND MASAVAN.MVFIRST = '*'
+                   AND MASAVAN.MVVITEM=?
                    LIMIT 1",
                 societa, codiceArticolo);
 
@@ -1389,9 +1369,13 @@ namespace CG.MobileAPI.Models
 
         /// <summary>
         /// Ex query/giacenze/shared/getDisegniPdf.php: PDF dell'archivio disegni il cui nome inizia con il codice disegno
-        /// (fogli -F01, -F02... o foglio con lettera), in ordine di nome.
+        /// (fogli -F01, -F02... o foglio con lettera), in ordine di nome. I file sono letti dall'archivio di rete e gli
+        /// url sono link firmati all'azione giacenze/disegno.
         /// </summary>
-        private static List<Dictionary<string, object?>> GetDisegniPdf(string? codiceDisegno, StorageTool storage)
+        /// <param name="codiceDisegno">Codice disegno.</param>
+        /// <param name="disegni">Accesso all'archivio dei disegni.</param>
+        /// <param name="urlApi">URL base delle azioni giacenze (es. https://host/api/giacenze).</param>
+        private static List<Dictionary<string, object?>> GetDisegniPdf(string? codiceDisegno, DisegniTool disegni, string urlApi)
         {
             var lista = new List<Dictionary<string, object?>>();
             var articoloLink = (codiceDisegno ?? "").Replace("/", "-").Trim();
@@ -1400,14 +1384,9 @@ namespace CG.MobileAPI.Models
                 return lista;
             }
 
-            var files = ElencaFile(storage, CARTELLA_DISEGNI, articoloLink + "*.*")
-                .Where(f => f.EndsWith("pdf", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(f => f, StringComparer.Ordinal)
-                .ToList();
-
-            foreach (var nome in files)
+            foreach (var nome in disegni.Cerca(articoloLink))
             {
-                var url = URL_DISEGNI + nome;
+                var url = disegni.Link(urlApi + "/disegno", nome);
 
                 // Parte del nome dopo il codice disegno, es. "-F01.pdf".
                 var codicePdf = nome.StartsWith(articoloLink, StringComparison.OrdinalIgnoreCase) ? nome.Substring(articoloLink.Length) : nome;
@@ -1428,7 +1407,7 @@ namespace CG.MobileAPI.Models
                 lista.Add(new Dictionary<string, object?>
                 {
                     ["url"] = url,
-                    ["short_url"] = url.Substring(0, url.Length - 4),
+                    ["short_url"] = Path.GetFileNameWithoutExtension(nome),
                     ["numeroFoglioPdf"] = numeroFoglioPdf,
                     ["tipoPdf"] = "disegno",
                     ["numeroFoglioPdfDisplay"] = numeroFoglioPdfDisplay.ToUpperInvariant()
@@ -1471,6 +1450,18 @@ namespace CG.MobileAPI.Models
         /// numeroFoglioPdf è la posizione nell'elenco completo (cartelle comprese), come nel PHP.
         /// </summary>
         private static List<Dictionary<string, object?>> GetArchivioD9(string articoloLink, StorageTool storage)
+        {
+            try
+            {
+                return ElencaArchivioD9(articoloLink, storage);
+            }
+            catch (Exception ex) when (ArchivioNonDisponibile(ex))
+            {
+                return new List<Dictionary<string, object?>>();
+            }
+        }
+
+        private static List<Dictionary<string, object?>> ElencaArchivioD9(string articoloLink, StorageTool storage)
         {
             var lista = new List<Dictionary<string, object?>>();
             var pattern = PatternSicuro(articoloLink);
@@ -1525,14 +1516,56 @@ namespace CG.MobileAPI.Models
         }
 
         /// <summary>
-        /// Foto ARXivar dell'articolo (classe foto ricambi, COMBO6_3 = 'Fotografia', TABLE1_3 = articolo), al massimo 10 jpg:
-        /// vengono copiate nell'archivio foto del tecnico se mancanti; quelle non VALID vengono rimosse e non restituite
-        /// (ex connectArx.php + query su ARCHDB.dbo.DM_PROFILE di selectSingoloArticolo.php).
+        /// Foto ARXivar dell'articolo (classe foto ricambi, COMBO6_3 = 'Fotografia', TABLE1_3 = articolo): i link
+        /// all'azione fotoArxivar dell'API, al massimo 10 jpg VALID. Le foto non vengono più copiate nell'archivio
+        /// del tecnico: l'app le scarica direttamente dall'API (ex connectArx.php + query su ARCHDB.dbo.DM_PROFILE
+        /// di selectSingoloArticolo.php).
         /// </summary>
-        private static async Task<List<string>> GetFotoArxivarAsync(string articoloLink, StorageTool storage)
+        /// <param name="articoloLink">Codice articolo con "/" sostituito da "-".</param>
+        /// <param name="urlFoto">URL dell'azione fotoArxivar (es. https://host/api/giacenze/fotoArxivar).</param>
+        private static async Task<List<string>> GetFotoArxivarAsync(string articoloLink, string urlFoto)
         {
-            var urls = new List<string>();
+            List<int> foto;
+            try
+            {
+                foto = await CercaFotoArxivarAsync(articoloLink);
+            }
+            catch (Exception)
+            {
+                // Come nel PHP: se ARXivar non risponde la scheda viene restituita senza le sue foto.
+                return new List<string>();
+            }
+            return foto.Select(d => $"{urlFoto}/{d}?articolo={Uri.EscapeDataString(articoloLink)}").ToList();
+        }
 
+        /// <summary>
+        /// Contenuto di una foto ARXivar dell'articolo, letto da ARXivar e restituito senza passare dal disco.
+        /// Il documento deve essere tra le foto VALID dell'articolo (non si può leggere un documento qualsiasi).
+        /// </summary>
+        /// <param name="articolo">Codice articolo.</param>
+        /// <param name="docNumber">Numero del documento ARXivar.</param>
+        /// <returns>I byte del jpg.</returns>
+        public async Task<byte[]> GetFotoArxivarFileAsync(string? articolo, int docNumber)
+        {
+            var articoloLink = (articolo ?? "").Trim().Replace("/", "-");
+            if (articoloLink == "")
+            {
+                throw new MobileException("Articolo obbligatorio");
+            }
+            if (!(await CercaFotoArxivarAsync(articoloLink)).Contains(docNumber))
+            {
+                throw new MobileException("Foto non trovata", 404);
+            }
+            return (await ArxHelper.GetArxFiles(docNumber)).FirstOrDefault()
+                ?? throw new MobileException("Foto non disponibile", 404);
+        }
+
+        /// <summary>
+        /// Numeri documento delle foto ARXivar dell'articolo: i primi 10 jpg (in ordine di numero documento),
+        /// di cui solo quelli in stato VALID.
+        /// </summary>
+        private static async Task<List<int>> CercaFotoArxivarAsync(string articoloLink)
+        {
             var content = new Dictionary<string, JsonElement>
             {
                 ["idDocFather"] = JsonSerializer.SerializeToElement(ARX_CLASSE_PADRE_FOTO),
@@ -1552,60 +1585,16 @@ namespace CG.MobileAPI.Models
                 })
             };
 
-            List<List<string>> documenti;
-            try
-            {
-                documenti = await ArxHelper.GetArxData(content);
-            }
-            catch (Exception)
-            {
-                // Come nel PHP: se ARXivar non risponde la scheda viene restituita senza le sue foto.
-                return urls;
-            }
-
-            var trovati = documenti
+            var documenti = await ArxHelper.GetArxData(content);
+            return documenti
                 .Where(d => d.Count >= 3 && int.TryParse(d[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
                 .Select(d => (docNumber: int.Parse(d[0], CultureInfo.InvariantCulture), stato: d[1], fileName: d[2]))
-                .OrderBy(d => d.docNumber);
-
-            var conteggio = 0;
-            foreach (var (docNumber, stato, fileName) in trovati)
-            {
-                var estensione = Path.GetExtension(fileName).ToLowerInvariant();
-                if (estensione != ".jpg" && estensione != ".jpeg")
-                {
-                    continue;
-                }
-                if (++conteggio > 10)
-                {
-                    break;
-                }
-
-                var nomeFoto = articoloLink + "_arx" + docNumber + estensione;
-                if (stato != "VALID")
-                {
-                    EliminaFile(storage, CARTELLA_FOTO_TECNICO, nomeFoto);
-                    continue;
-                }
-
-                if (!EsisteFile(storage, CARTELLA_FOTO_TECNICO, nomeFoto))
-                {
-                    try
-                    {
-                        var contenuto = (await ArxHelper.GetArxFiles(docNumber)).FirstOrDefault();
-                        if (contenuto != null)
-                        {
-                            await storage.SalvaBytesAsync(contenuto, CARTELLA_FOTO_TECNICO, nomeFoto);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // Come la copy() del PHP: se la copia fallisce il link viene comunque restituito.
-                    }
-                }
-                urls.Add(URL_FOTO_TECNICO + nomeFoto);
-            }
-            return urls;
+                .Where(d => Path.GetExtension(d.fileName).ToLowerInvariant() is ".jpg" or ".jpeg")
+                .OrderBy(d => d.docNumber)
+                .Take(10)
+                .Where(d => d.stato == "VALID")
+                .Select(d => d.docNumber)
+                .ToList();
         }
 
         // -------------------------------------------------------------------------------------------------------------
@@ -1723,17 +1712,28 @@ namespace CG.MobileAPI.Models
             {
                 return storage.Elenca(cartella, pattern);
             }
-            catch (ArgumentException)
+            catch (Exception ex) when (ArchivioNonDisponibile(ex) || ex is ArgumentException)
             {
                 return new List<string>();
             }
         }
+
+        /// <summary>
+        /// Archivio di file non utilizzabile (WebRoot non configurato, cartella di rete non raggiungibile o senza
+        /// permessi): come nel PHP la scheda viene restituita senza quei file invece di andare in errore.
+        /// </summary>
+        private static bool ArchivioNonDisponibile(Exception ex) =>
+            ex is InvalidOperationException or IOException or UnauthorizedAccessException;
 
         private static bool EsisteFile(StorageTool storage, string cartella, string nome)
         {
             try
             {
                 return storage.Esiste(cartella, nome);
+            }
+            catch (Exception ex) when (ArchivioNonDisponibile(ex))
+            {
+                return false;
             }
             catch (MobileException)
             {
@@ -1747,6 +1747,10 @@ namespace CG.MobileAPI.Models
             try
             {
                 storage.Elimina(cartella, nome);
+            }
+            catch (Exception ex) when (ArchivioNonDisponibile(ex))
+            {
+                // Archivio non disponibile: niente da eliminare.
             }
             catch (MobileException)
             {

@@ -37,7 +37,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("giacenze/checkMagazzinoExists")]
         public IActionResult CheckMagazzinoExists([FromBody] CheckMagazzinoExistsRequest request)
         {
-            return Esegui("checkMagazzinoExists", () => _db2Connection.DBGENERALE.CheckMagazzinoExists(request));
+            return Esegui("checkMagazzinoExists", () => _db2Connection.DBGENERALE.CheckMagazzinoExists(request, Societa));
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace CG.MobileAPI.Controllers
         [HttpPost("giacenze/checkVanoExists")]
         public IActionResult CheckVanoExists([FromBody] CheckVanoExistsRequest request)
         {
-            return Esegui("checkVanoExists", () => _db2Connection.DBGENERALE.CheckVanoExists(request));
+            return Esegui("checkVanoExists", () => _db2Connection.DBGENERALE.CheckVanoExists(request, Societa));
         }
 
         /// <summary>

@@ -395,7 +395,7 @@ order by data_creazione desc, ora_creazione desc");
         /// Accettazioni (entrate dell'ultimo anno) di un magazzino con i mancanti MIRC collegati (ex selectAccettazioni.php).
         /// Restituisce <c>null</c> se non ci sono movimenti (il PHP rispondeva HTTP 404).
         /// </summary>
-        public Dictionary<string, object?>? SelectAccettazioni(SelectAccettazioniRequest request)
+        public Dictionary<string, object?>? SelectAccettazioni(SelectAccettazioniRequest request, string societa)
         {
             var magazzino = Obbligatorio(request.magazzino, "magazzino");
 
@@ -404,16 +404,16 @@ order by data_creazione desc, ora_creazione desc");
 
             var dataCorrente = Oggi() - 20000; // -1 anno
 
-            var righe = DbHelper.Query(_conn.Db2, @"SELECT D60STDDB.MASATRN.TDTVER, D60STDDB.MASATRN.TTRAN, D60STDDB.MASATRN.TRDATE, D60STDDB.CSDBITA.CSCOLOR, D60STDDB.MASATRN.TCHNU AS FORN, D60STDDB.MASATRN.TNBOL AS BOLLA, D60STDDB.MASAMSL.MALITEM AS ARTICOLO, D60STDDB.DBSAITE.MPDSC AS DESCRIZIONE, D60STDDB.MASAMSL.MLLOC AS MAGAZZINO, D60STDDB.MASAMSL.MALOHQT*0.01 AS QTA_GIAC, D60STDDB.MASAMSL.MALDTVE AS DATA_MOV, D60STDDB.MASATRN.TMACO AS TIPO_MOV, D60STDDB.MASATRN.TUSCO AS MOV, D60STDDB.MASATRN.TQUAN/100 AS QTA_MOV, D60STDDB.MASATRN.TORNUOR AS ORDINE, D60STDDB.ANSADID.ANINCO, D60STDDB.DBSAITE.MPALLET/100 AS PESO_LORDO, D60STDDB.DBSAITE.MWEIGHT/100 AS PESO_NETTO, D60STDDB.DBSAITE.DIPRO, D60STDDB.DBSAITE.MUTMS, D60STDDB.CSDBITA.CSTRASU
-FROM D60STDDB.MASATRN
-INNER JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASATRN.TRNITM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASATRN.TRNSOC
-INNER JOIN D60STDDB.MASAMSL ON D60STDDB.MASATRN.TMAG = D60STDDB.MASAMSL.MLLOC AND D60STDDB.MASATRN.TRNSOC = D60STDDB.MASAMSL.MAHCOSC AND D60STDDB.MASATRN.TRNITM = D60STDDB.MASAMSL.MALITEM
-LEFT JOIN D60STDDB.ANSADID ON D60STDDB.MASATRN.TRNSOC = D60STDDB.ANSADID.ANCOSO AND D60STDDB.MASATRN.TCHNU = D60STDDB.ANSADID.ANCOCO
-LEFT JOIN D60STDDB.CSDBITA ON D60STDDB.DBSAITE.MITEM = D60STDDB.CSDBITA.CSITEMA
-WHERE D60STDDB.MASAMSL.MLLOC=?
-AND D60STDDB.MASATRN.TDTVER > ? AND D60STDDB.MASATRN.TTRAN != 'S' AND D60STDDB.MASATRN.TMACO LIKE 'E%'
-AND D60STDDB.MASAMSL.MAHCOSC='CSPRO' AND D60STDDB.MASATRN.TRNSOC='CSPRO' AND D60STDDB.DBSAITE.MCOSC='CSPRO'
-ORDER BY D60STDDB.MASAMSL.MALITEM ASC, D60STDDB.MASAMSL.MLLOC, D60STDDB.MASATRN.TRDATE DESC", magazzino, dataCorrente);
+            var righe = DbHelper.Query(_conn.Db2, @"SELECT MASATRN.TDTVER, MASATRN.TTRAN, MASATRN.TRDATE, CSDBITA.CSCOLOR, MASATRN.TCHNU AS FORN, MASATRN.TNBOL AS BOLLA, MASAMSL.MALITEM AS ARTICOLO, DBSAITE.MPDSC AS DESCRIZIONE, MASAMSL.MLLOC AS MAGAZZINO, MASAMSL.MALOHQT*0.01 AS QTA_GIAC, MASAMSL.MALDTVE AS DATA_MOV, MASATRN.TMACO AS TIPO_MOV, MASATRN.TUSCO AS MOV, MASATRN.TQUAN/100 AS QTA_MOV, MASATRN.TORNUOR AS ORDINE, ANSADID.ANINCO, DBSAITE.MPALLET/100 AS PESO_LORDO, DBSAITE.MWEIGHT/100 AS PESO_NETTO, DBSAITE.DIPRO, DBSAITE.MUTMS, CSDBITA.CSTRASU
+FROM MASATRN
+INNER JOIN DBSAITE ON DBSAITE.MITEM = MASATRN.TRNITM AND DBSAITE.MCOSC = MASATRN.TRNSOC
+INNER JOIN MASAMSL ON MASATRN.TMAG = MASAMSL.MLLOC AND MASATRN.TRNSOC = MASAMSL.MAHCOSC AND MASATRN.TRNITM = MASAMSL.MALITEM
+LEFT JOIN ANSADID ON MASATRN.TRNSOC = ANSADID.ANCOSO AND MASATRN.TCHNU = ANSADID.ANCOCO
+LEFT JOIN CSDBITA ON DBSAITE.MITEM = CSDBITA.CSITEMA
+WHERE MASAMSL.MLLOC=?
+AND MASATRN.TDTVER > ? AND MASATRN.TTRAN != 'S' AND MASATRN.TMACO LIKE 'E%'
+AND MASAMSL.MAHCOSC=? AND MASATRN.TRNSOC=? AND DBSAITE.MCOSC=?
+ORDER BY MASAMSL.MALITEM ASC, MASAMSL.MLLOC, MASATRN.TRDATE DESC", magazzino, dataCorrente, societa, societa, societa);
 
             if (righe.Count == 0) return null;
 
@@ -497,9 +497,9 @@ AND cs_fabbmanc_odl_dispo.numero = cs_fabbmanc_odl_comp.numero
 AND cs_fabbmanc_odl_dispo.societa = cs_fabbmanc_odl_comp.societa
 INNER JOIN cs_fabbmanc_odl ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_comp.numero)
 AND (cs_fabbmanc_odl_comp.societa = cs_fabbmanc_odl.societa)
-where cs_fabbmanc_odl_comp.iscritico='1' and cs_fabbmanc_odl_comp.statopick = 'Y' and cs_fabbmanc_odl_comp.tipoarticolo != 'N' and cs_fabbmanc_odl_dispo.societa='CSPRO'
+where cs_fabbmanc_odl_comp.iscritico='1' and cs_fabbmanc_odl_comp.statopick = 'Y' and cs_fabbmanc_odl_comp.tipoarticolo != 'N' and cs_fabbmanc_odl_dispo.societa=?
 and cs_fabbmanc_odl_dispo.magdispo=?
-ORDER BY cs_fabbmanc_odl_dispo.articolo, cs_fabbmanc_odl_dispo.magazzino, cs_fabbmanc_odl_dispo.numero, cs_fabbmanc_odl_dispo.fase", magazzino);
+ORDER BY cs_fabbmanc_odl_dispo.articolo, cs_fabbmanc_odl_dispo.magazzino, cs_fabbmanc_odl_dispo.numero, cs_fabbmanc_odl_dispo.fase", societa, magazzino);
 
             return new Dictionary<string, object?>
             {
@@ -515,12 +515,12 @@ ORDER BY cs_fabbmanc_odl_dispo.articolo, cs_fabbmanc_odl_dispo.magazzino, cs_fab
         private const string QUERY_PADRE_DA_ODL = @"SELECT distinct cs_fabbmanc_odl.articolo as codicepadre, cs_fabbmanc_odl.descarticolo as descpadre, cs_fabbmanc_odl.desccolore
 FROM cs_fabbmanc_odl
 FULL JOIN cs_fabbmanc_odl_comp ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_comp.numero) AND (cs_fabbmanc_odl.societa = cs_fabbmanc_odl_comp.societa)
-WHERE cs_fabbmanc_odl_comp.numero=? AND cs_fabbmanc_odl_comp.societa='CSPRO'";
+WHERE cs_fabbmanc_odl_comp.numero=? AND cs_fabbmanc_odl_comp.societa=?";
 
         /// <summary>
         /// Fasi (da stransfer), padre, descrizione padre e colore di un ODL per la stampa verniciatura (ex addInfoOdlStampaVern.php).
         /// </summary>
-        public Dictionary<string, object?> AddInfoOdlStampaVern(AddInfoOdlStampaVernRequest request)
+        public Dictionary<string, object?> AddInfoOdlStampaVern(AddInfoOdlStampaVernRequest request, string societa)
         {
             var odl = Obbligatorio(request.odl, "odl");
             var stampa = new Dictionary<string, object?>();
@@ -531,12 +531,12 @@ WHERE cs_fabbmanc_odl_comp.numero=? AND cs_fabbmanc_odl_comp.societa='CSPRO'";
             stampa["listaFasi"] = DbHelper.Query(conn, null, @"SELECT distinct cs_fabbmanc_odl_stransfer.fasecodl as fase, cs_fabbmanc_odl_fasi.descrizione as descrizionefase
 FROM cs_fabbmanc_odl_stransfer
 JOIN cs_fabbmanc_odl_fasi ON (cs_fabbmanc_odl_stransfer.fasecodl = cs_fabbmanc_odl_fasi.fase) and (cs_fabbmanc_odl_stransfer.numero = cs_fabbmanc_odl_fasi.numero)
-WHERE cs_fabbmanc_odl_stransfer.societa='CSPRO'
+WHERE cs_fabbmanc_odl_stransfer.societa=?
 AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
 AND cs_fabbmanc_odl_stransfer.numero=?
-ORDER BY cs_fabbmanc_odl_stransfer.fasecodl", odl);
+ORDER BY cs_fabbmanc_odl_stransfer.fasecodl", societa, odl);
 
-            AggiungiInfoPadre(stampa, DbHelper.Query(conn, null, QUERY_PADRE_DA_ODL, odl));
+            AggiungiInfoPadre(stampa, DbHelper.Query(conn, null, QUERY_PADRE_DA_ODL, odl, societa));
             if (!stampa.ContainsKey("colore") || stampa["colore"] == null) stampa["colore"] = "";
 
             return stampa;
@@ -546,7 +546,7 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl", odl);
         /// Fasi (da cs_fabbmanc_odl_fasi), padre, descrizione padre e colore di un ODL per la stampa verniciatura libera
         /// (ex addInfoOdlStampaVernLibera.php). Se mancano le fasi o il padre restituisce solo quanto trovato fino a lì.
         /// </summary>
-        public Dictionary<string, object?> AddInfoOdlStampaVernLibera(AddInfoOdlStampaVernLiberaRequest request)
+        public Dictionary<string, object?> AddInfoOdlStampaVernLibera(AddInfoOdlStampaVernLiberaRequest request, string societa)
         {
             var odl = Obbligatorio(request.odl, "odl");
             var stampa = new Dictionary<string, object?> { ["listaFasi"] = new List<Dictionary<string, object?>>() };
@@ -557,15 +557,15 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl", odl);
             var fasi = DbHelper.Query(conn, null, @"SELECT distinct cs_fabbmanc_odl_fasi.fase as fase, cs_fabbmanc_odl_fasi.descrizione as descrizionefase
 FROM cs_fabbmanc_odl
 JOIN cs_fabbmanc_odl_fasi ON cs_fabbmanc_odl.numero = cs_fabbmanc_odl_fasi.numero
-WHERE cs_fabbmanc_odl.societa='CSPRO'
+WHERE cs_fabbmanc_odl.societa=?
 AND cs_fabbmanc_odl.stato > '0010'
 AND cs_fabbmanc_odl.numero=?
-ORDER BY cs_fabbmanc_odl_fasi.fase", odl);
+ORDER BY cs_fabbmanc_odl_fasi.fase", societa, odl);
 
             if (fasi.Count == 0) return stampa;
             stampa["listaFasi"] = fasi;
 
-            var padri = DbHelper.Query(conn, null, QUERY_PADRE_DA_ODL, odl);
+            var padri = DbHelper.Query(conn, null, QUERY_PADRE_DA_ODL, odl, societa);
             if (padri.Count == 0) return stampa;
 
             AggiungiInfoPadre(stampa, padri);
@@ -578,7 +578,7 @@ ORDER BY cs_fabbmanc_odl_fasi.fase", odl);
         /// Padre, descrizione padre e colore dato il codice del padre (ex addInfoPadreStampaVernLibera.php).
         /// Oggetto vuoto se non trovato.
         /// </summary>
-        public Dictionary<string, object?> AddInfoPadreStampaVernLibera(AddInfoPadreStampaVernLiberaRequest request)
+        public Dictionary<string, object?> AddInfoPadreStampaVernLibera(AddInfoPadreStampaVernLiberaRequest request, string societa)
         {
             var padre = Obbligatorio(request.padre, "padre");
             var stampa = new Dictionary<string, object?>();
@@ -586,7 +586,7 @@ ORDER BY cs_fabbmanc_odl_fasi.fase", odl);
             var padri = DbHelper.Query(_conn.PgCasagrande, @"SELECT distinct cs_fabbmanc_odl.articolo as codicepadre, cs_fabbmanc_odl.descarticolo as descpadre, cs_fabbmanc_odl.desccolore
 FROM cs_fabbmanc_odl
 FULL JOIN cs_fabbmanc_odl_comp ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_comp.numero) AND (cs_fabbmanc_odl.societa = cs_fabbmanc_odl_comp.societa)
-WHERE cs_fabbmanc_odl.articolo=? AND cs_fabbmanc_odl_comp.societa='CSPRO'", padre);
+WHERE cs_fabbmanc_odl.articolo=? AND cs_fabbmanc_odl_comp.societa=?", padre, societa);
 
             if (padri.Count == 0) return stampa;
 
@@ -599,14 +599,14 @@ WHERE cs_fabbmanc_odl.articolo=? AND cs_fabbmanc_odl_comp.societa='CSPRO'", padr
         /// <summary>
         /// Codice e descrizione del padre di un ODL (ex addPadreDescrizioneFixToMovimento.php).
         /// </summary>
-        public Dictionary<string, object?> AddPadreDescrizioneFixToMovimento(AddPadreDescrizioneFixToMovimentoRequest request)
+        public Dictionary<string, object?> AddPadreDescrizioneFixToMovimento(AddPadreDescrizioneFixToMovimentoRequest request, string societa)
         {
             var odl = Obbligatorio(request.odl, "odl");
             var oggettoPadre = new Dictionary<string, object?> { ["codicePadre"] = "", ["descrizionePadre"] = "" };
 
             var righe = DbHelper.Query(_conn.PgCasagrande, @"SELECT cs_fabbmanc_odl.articolo as padre, cs_fabbmanc_odl.descarticolo as descpadre
 FROM cs_fabbmanc_odl
-WHERE cs_fabbmanc_odl.numero=? and cs_fabbmanc_odl.societa='CSPRO'", odl);
+WHERE cs_fabbmanc_odl.numero=? and cs_fabbmanc_odl.societa=?", odl, societa);
 
             foreach (var riga in righe)
             {
@@ -623,27 +623,27 @@ WHERE cs_fabbmanc_odl.numero=? and cs_fabbmanc_odl.societa='CSPRO'", odl);
         /// <summary>
         /// Fasi di un ODL con magazzino/vano di destinazione, esclusi i magazzini automatici (ex validateOdlSelectFasi.php).
         /// </summary>
-        public List<Dictionary<string, object?>> ValidateOdlSelectFasi(ValidateOdlSelectFasiRequest request)
+        public List<Dictionary<string, object?>> ValidateOdlSelectFasi(ValidateOdlSelectFasiRequest request, string societa)
         {
             var odl = Obbligatorio(request.odl, "odl");
 
             return DbHelper.Query(_conn.PgCasagrande, @"SELECT distinct cs_fabbmanc_odl_stransfer.fasecodl as fase, cs_fabbmanc_odl_stransfer.magto as mag_des, cs_fabbmanc_odl_stransfer.vanoto as vano_des
 FROM cs_fabbmanc_odl_stransfer
-WHERE cs_fabbmanc_odl_stransfer.societa='CSPRO'
+WHERE cs_fabbmanc_odl_stransfer.societa=?
 AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
 AND cs_fabbmanc_odl_stransfer.numero=?
 AND cs_fabbmanc_odl_stransfer.magto != 'MGAUT00'
 AND cs_fabbmanc_odl_stransfer.magto != 'MGAUT10'
 AND cs_fabbmanc_odl_stransfer.magto != 'MGAUT02'
 AND cs_fabbmanc_odl_stransfer.magto != 'MGAUT03'
-ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto desc", odl);
+ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto desc", societa, odl);
         }
 
         /// <summary>
         /// Righe di trasferimento di un ODL, oppure (se il codice è un padre o un magazzino) la lista degli ODL possibili;
         /// per la ricerca per ODL aggiunge gli altri ODL dello stesso magazzino di destinazione (ex selectCambioOdl.php).
         /// </summary>
-        public Dictionary<string, object?> SelectCambioOdl(SelectCambioOdlRequest request)
+        public Dictionary<string, object?> SelectCambioOdl(SelectCambioOdlRequest request, string societa)
         {
             var codice = Obbligatorio(request.codiceOdl_Padre_Mag, "codiceOdl_Padre_Mag");
             var cambioOdl = new Dictionary<string, object?>();
@@ -652,9 +652,9 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto des
             conn.Open();
 
             // Prima per ODL, poi per padre, poi per magazzino
-            var lista = GetListaCambioOdl(conn, codice, "odl");
-            if (lista.Count == 0) lista = GetListaCambioOdl(conn, codice, "Padre");
-            if (lista.Count == 0) lista = GetListaCambioOdl(conn, codice, "Magazzino");
+            var lista = GetListaCambioOdl(conn, codice, "odl", societa);
+            if (lista.Count == 0) lista = GetListaCambioOdl(conn, codice, "Padre", societa);
+            if (lista.Count == 0) lista = GetListaCambioOdl(conn, codice, "Magazzino", societa);
 
             cambioOdl["listaCambioOdl"] = lista;
 
@@ -663,15 +663,15 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto des
                 cambioOdl["listaPossibiliOdl"] = DbHelper.Query(conn, null, @"SELECT DISTINCT cs_fabbmanc_odl_stransfer.numero AS ODL
     FROM cs_fabbmanc_odl
     FULL JOIN cs_fabbmanc_odl_stransfer ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_stransfer.numero) AND (cs_fabbmanc_odl.societa = cs_fabbmanc_odl_stransfer.societa)
-    WHERE cs_fabbmanc_odl_stransfer.societa='CSPRO' AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
+    WHERE cs_fabbmanc_odl_stransfer.societa=? AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
     AND cs_fabbmanc_odl_stransfer.magto=?
-    ORDER BY cs_fabbmanc_odl_stransfer.numero", (string?)lista[0]["mag_des"] ?? "");
+    ORDER BY cs_fabbmanc_odl_stransfer.numero", societa, (string?)lista[0]["mag_des"] ?? "");
             }
 
             return cambioOdl;
         }
 
-        private static List<Dictionary<string, object?>> GetListaCambioOdl(OdbcConnection conn, string codice, string tipoCodice)
+        private static List<Dictionary<string, object?>> GetListaCambioOdl(OdbcConnection conn, string codice, string tipoCodice, string societa)
         {
             string select, where, extraJoin = "", orderBy = "";
 
@@ -700,8 +700,8 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto des
     FROM cs_fabbmanc_odl
     FULL JOIN cs_fabbmanc_odl_stransfer ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_stransfer.numero) AND (cs_fabbmanc_odl.societa = cs_fabbmanc_odl_stransfer.societa)
     {extraJoin}
-    WHERE cs_fabbmanc_odl_stransfer.societa='CSPRO' AND cs_fabbmanc_odl_stransfer.statocodl > '0010' {where}
-    {orderBy}", codice);
+    WHERE cs_fabbmanc_odl_stransfer.societa=? AND cs_fabbmanc_odl_stransfer.statocodl > '0010' {where}
+    {orderBy}", societa, codice);
 
             var lista = new List<Dictionary<string, object?>>();
 
@@ -748,7 +748,7 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto des
         /// Elenco degli ODL (o, dalla sezione Prelievi, di ODL + ODV) che hanno come destinazione il magazzino indicato
         /// (ex getOdlListFromMagDest.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetOdlListFromMagDest(GetOdlListFromMagDestRequest request)
+        public List<Dictionary<string, object?>> GetOdlListFromMagDest(GetOdlListFromMagDestRequest request, string societa)
         {
             var magazzino = Obbligatorio(request.magazzinoDestinazione, "magazzinoDestinazione");
 
@@ -758,8 +758,8 @@ ORDER BY cs_fabbmanc_odl_stransfer.fasecodl, cs_fabbmanc_odl_stransfer.magto des
                 return DbHelper.Query(_conn.PgCasagrande, @"SELECT distinct cs_fabbmanc_odl.numero AS ODL, cs_fabbmanc_odl.articolo AS PADRE, cs_fabbmanc_odl.descarticolo AS DES_PADRE
 FROM cs_fabbmanc_odl
 FULL JOIN cs_fabbmanc_odl_stransfer ON (cs_fabbmanc_odl.numero = cs_fabbmanc_odl_stransfer.numero) AND (cs_fabbmanc_odl.societa = cs_fabbmanc_odl_stransfer.societa)
-WHERE cs_fabbmanc_odl_stransfer.societa='CSPRO' AND cs_fabbmanc_odl_stransfer.magto = ? AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
-ORDER BY cs_fabbmanc_odl.numero", magazzino);
+WHERE cs_fabbmanc_odl_stransfer.societa=? AND cs_fabbmanc_odl_stransfer.magto = ? AND cs_fabbmanc_odl_stransfer.statocodl > '0010'
+ORDER BY cs_fabbmanc_odl.numero", societa, magazzino);
             }
 
             using var conn = new OdbcConnection(_conn.PgCasagrande);
@@ -770,16 +770,16 @@ ORDER BY cs_fabbmanc_odl.numero", magazzino);
     from cs_fabbmanc_odl
     inner join cs_fabbmanc_odl_comp on cs_fabbmanc_odl.numero = cs_fabbmanc_odl_comp.numero AND cs_fabbmanc_odl_comp.societa = cs_fabbmanc_odl.societa
     inner join cs_fabbmanc_odl_dispo on cs_fabbmanc_odl_dispo.fase = cs_fabbmanc_odl_comp.fase AND cs_fabbmanc_odl_comp.articolo = cs_fabbmanc_odl_dispo.articolo AND cs_fabbmanc_odl_dispo.magazzino = cs_fabbmanc_odl_comp.magazzino AND cs_fabbmanc_odl_dispo.numero = cs_fabbmanc_odl_comp.numero AND cs_fabbmanc_odl_dispo.societa = cs_fabbmanc_odl_comp.societa
-    WHERE cs_fabbmanc_odl_comp.statopick != 'Y' and cs_fabbmanc_odl_comp.statopick != '' and cs_fabbmanc_odl.societa='CSPRO'
+    WHERE cs_fabbmanc_odl_comp.statopick != 'Y' and cs_fabbmanc_odl_comp.statopick != '' and cs_fabbmanc_odl.societa=?
     AND cs_fabbmanc_odl_dispo.magazzino = ? and cs_fabbmanc_odl_comp.tipoarticolo != 'N'
-    ORDER BY cs_fabbmanc_odl.fabbdate", magazzino);
+    ORDER BY cs_fabbmanc_odl.fabbdate", societa, magazzino);
 
             // Lista ODV (una delle due è per forza vuota)
             lista.AddRange(DbHelper.Query(conn, null, @"select distinct cs_fabbmanc_rodv.numero as odl, cs_fabbmanc_odv.cliente as padre, cs_fabbmanc_odv.nomecliente as des_padre
                 from cs_fabbmanc_rodv
                 inner join cs_fabbmanc_odv on cs_fabbmanc_odv.societa = cs_fabbmanc_rodv.societa and cs_fabbmanc_odv.numero = cs_fabbmanc_rodv.numero
                 inner join cs_fabbmanc_rodv_dispo ON (cs_fabbmanc_rodv_dispo.numero = cs_fabbmanc_rodv.numero and cs_fabbmanc_rodv_dispo.pos = cs_fabbmanc_rodv.pos and cs_fabbmanc_rodv_dispo.seq = cs_fabbmanc_rodv.seq and cs_fabbmanc_rodv_dispo.societa = cs_fabbmanc_rodv.societa)
-                where magazzino=? and cs_fabbmanc_rodv.societa='CSPRO' order by cs_fabbmanc_rodv.numero", magazzino));
+                where magazzino=? and cs_fabbmanc_rodv.societa=? order by cs_fabbmanc_rodv.numero", magazzino, societa));
 
             return lista;
         }
@@ -791,7 +791,7 @@ ORDER BY cs_fabbmanc_odl.numero", magazzino);
         /// <summary>
         /// Numero di mancanti critici per magazzino di impegno e ultimo data-log (ex countMancantiSearchPage.php).
         /// </summary>
-        public Dictionary<string, object?> CountMancantiSearchPage()
+        public Dictionary<string, object?> CountMancantiSearchPage(string societa)
         {
             using var conn = new OdbcConnection(_conn.PgCasagrande);
             conn.Open();
@@ -804,7 +804,7 @@ and cs_fabbmanc_odl_dispo.magazzino = cs_fabbmanc_odl_comp.magazzino
 and cs_fabbmanc_odl_dispo.numero = cs_fabbmanc_odl_comp.numero
 and cs_fabbmanc_odl_dispo.societa = cs_fabbmanc_odl_comp.societa
 where cs_fabbmanc_odl_comp.statopick = 'Y'
-  and cs_fabbmanc_odl_dispo.societa='CSPRO'
+  and cs_fabbmanc_odl_dispo.societa=?
 and cs_fabbmanc_odl_dispo.isauto='0'
 and cs_fabbmanc_odl_comp.iscritico = '1'
 and cs_fabbmanc_odl_comp.tipoarticolo != 'N'
@@ -812,7 +812,7 @@ and cs_fabbmanc_odl_dispo.magdispo not like 'MEF%'
 and cs_fabbmanc_odl_dispo.magdispo not like 'MC%'
 and cs_fabbmanc_odl_dispo.magdispo not like 'MN%'
 and cs_fabbmanc_odl_dispo.magdispo not like 'MGFURG%'
-order by cs_fabbmanc_odl_dispo.magazzino");
+order by cs_fabbmanc_odl_dispo.magazzino", societa);
 
             // Raggruppo le righe (già ordinate) per magazzino
             var mancanti = new List<Dictionary<string, object?>>();
@@ -855,7 +855,7 @@ order by cs_fabbmanc_odl_dispo.magazzino");
         /// Mancanti (o prelievi) di un magazzino di impegno, divisi tra magazzini normali e automatici, con l'ultimo
         /// data-log; per gli ODV (OM / OR) nei prelievi legge le righe ODV (ex selectMancantiDaMag.php).
         /// </summary>
-        public Dictionary<string, object?> SelectMancantiDaMag(SelectMancantiDaMagRequest request)
+        public Dictionary<string, object?> SelectMancantiDaMag(SelectMancantiDaMagRequest request, string societa)
         {
             var magazzinoImpegno = Obbligatorio(request.magazzinoImpegno, "magazzinoImpegno");
             var statoPickY = request.statoPickYSelected == true;
@@ -895,19 +895,19 @@ INNER JOIN cs_fabbmanc_odl_fasi ON (cs_fabbmanc_odl_dispo.fase = cs_fabbmanc_odl
     where magazzino=?
     and cs_fabbmanc_rodv_dispo.isauto=?
     and cs_fabbmanc_rodv.numero = ?
-    and cs_fabbmanc_rodv.societa='CSPRO'
+    and cs_fabbmanc_rodv.societa=?
     order by cs_fabbmanc_rodv.numero, cs_fabbmanc_rodv.articolo";
 
-            var parametri = parametriOdl.Append(magazzinoImpegno).ToArray();
+            var parametri = parametriOdl.Append(societa).Append(magazzinoImpegno).ToArray();
 
             using var conn = new OdbcConnection(_conn.PgCasagrande);
             conn.Open();
 
             // QUERY 1: mancanti dei magazzini non automatici
             var listaMancanti = isOdv
-                ? DbHelper.Query(conn, null, selectOdv, magazzinoImpegno, "0", codiceOdl)
+                ? DbHelper.Query(conn, null, selectOdv, magazzinoImpegno, "0", codiceOdl, societa)
                 : DbHelper.Query(conn, null, $@"{selectMancanti}
-WHERE {statoPickYQuery} {codiceOdlQuery} AND cs_fabbmanc_odl_dispo.societa='CSPRO'
+WHERE {statoPickYQuery} {codiceOdlQuery} AND cs_fabbmanc_odl_dispo.societa=?
 AND cs_fabbmanc_odl_dispo.isauto='0'
 AND cs_fabbmanc_odl_dispo.magazzino = ? and cs_fabbmanc_odl_comp.tipoarticolo != 'N'
 and cs_fabbmanc_odl_dispo.magdispo not like 'MEF%'
@@ -918,9 +918,9 @@ ORDER BY {additionalOrderBy} cs_fabbmanc_odl_dispo.magdispo, cs_fabbmanc_odl_dis
 
             // QUERY 2: mancanti dei magazzini automatici
             var listaMancantiAut = isOdv
-                ? DbHelper.Query(conn, null, selectOdv, magazzinoImpegno, "1", codiceOdl)
+                ? DbHelper.Query(conn, null, selectOdv, magazzinoImpegno, "1", codiceOdl, societa)
                 : DbHelper.Query(conn, null, $@"{selectMancanti}
-WHERE {statoPickYQuery} {codiceOdlQuery} AND cs_fabbmanc_odl_dispo.societa='CSPRO'
+WHERE {statoPickYQuery} {codiceOdlQuery} AND cs_fabbmanc_odl_dispo.societa=?
 AND cs_fabbmanc_odl_dispo.isauto='1'
 AND cs_fabbmanc_odl_dispo.magazzino = ? and cs_fabbmanc_odl_comp.tipoarticolo != 'N'
 ORDER BY {additionalOrderBy} cs_fabbmanc_odl_dispo.magdispo, cs_fabbmanc_odl_dispo.numero, cs_fabbmanc_odl_dispo.fase", parametri);
@@ -1106,7 +1106,8 @@ order by data desc, ora desc", request.utente ?? "", Oggi() - 100);
         /// </summary>
         /// <param name="request">Nome e tipo della lista.</param>
         /// <param name="utente">Codice dell'utente autenticato (utente di creazione).</param>
-        public string WriteLista(WriteListaRequest request, string utente)
+        /// <param name="societa">Società del token (controllo magazzino / vano su Diapason).</param>
+        public string WriteLista(WriteListaRequest request, string utente, string societa)
         {
             var nomeLista = Obbligatorio(request.nome_lista, "nome_lista");
             var tipoLista = request.tipo_lista ?? "";
@@ -1123,9 +1124,9 @@ order by data desc, ora desc", request.utente ?? "", Oggi() - 100);
             // Controllo che magazzino / vano esistano (a seconda del tipo lista)
             string? queryControllo = tipoLista switch
             {
-                "magazzino" => "SELECT D60STDDB.MASAHED.MAHMAG FROM D60STDDB.MASAHED WHERE D60STDDB.MASAHED.MAHCOSC='CSPRO' AND D60STDDB.MASAHED.MAHMAG=?",
-                "vano_preciso" => "SELECT DISTINCT D60STDDB.MASAHLO.MLHLOC FROM D60STDDB.MASAHLO WHERE D60STDDB.MASAHLO.MAHCOSC='CSPRO' AND D60STDDB.MASAHLO.MLHLOC=?",
-                "vano_radice" => "SELECT DISTINCT D60STDDB.MASAHLO.MLHLOC FROM D60STDDB.MASAHLO WHERE D60STDDB.MASAHLO.MAHCOSC='CSPRO' AND D60STDDB.MASAHLO.MLHLOC LIKE ?",
+                "magazzino" => "SELECT MASAHED.MAHMAG FROM MASAHED WHERE MASAHED.MAHCOSC=? AND MASAHED.MAHMAG=?",
+                "vano_preciso" => "SELECT DISTINCT MASAHLO.MLHLOC FROM MASAHLO WHERE MASAHLO.MAHCOSC=? AND MASAHLO.MLHLOC=?",
+                "vano_radice" => "SELECT DISTINCT MASAHLO.MLHLOC FROM MASAHLO WHERE MASAHLO.MAHCOSC=? AND MASAHLO.MLHLOC LIKE ?",
                 _ => null
             };
 
@@ -1134,7 +1135,7 @@ order by data desc, ora desc", request.utente ?? "", Oggi() - 100);
 
             var valoreControllo = tipoLista == "vano_radice" ? nomeLista + "%" : nomeLista;
 
-            if (DbHelper.Query(_conn.Db2, queryControllo, valoreControllo).Count == 0)
+            if (DbHelper.Query(_conn.Db2, queryControllo, societa, valoreControllo).Count == 0)
             {
                 return tipoLista + "_not_found";
             }
@@ -1287,7 +1288,7 @@ WHERE cs_fabbmanc_odl_comp.numero=?", odl).LastOrDefault();
         /// Numero, cliente, nome cliente e posizione di un ODV con l'articolo su magazzino automatico; <c>null</c> se non
         /// trovato (ex checkOdvListaPrelievoMgaut.php).
         /// </summary>
-        public Dictionary<string, object?>? CheckOdvListaPrelievoMgaut(CheckOdvListaPrelievoMgautRequest request)
+        public Dictionary<string, object?>? CheckOdvListaPrelievoMgaut(CheckOdvListaPrelievoMgautRequest request, string societa)
         {
             var articolo = Obbligatorio(request.articolo, "articolo");
             var odv = Obbligatorio(request.odv, "odv");
@@ -1298,8 +1299,8 @@ inner join cs_fabbmanc_rodv_dispo ON (cs_fabbmanc_rodv_dispo.numero = cs_fabbman
 inner join cs_fabbmanc_odv ON (cs_fabbmanc_rodv_dispo.numero = cs_fabbmanc_odv.numero and cs_fabbmanc_rodv_dispo.societa = cs_fabbmanc_odv.societa)
 where cs_fabbmanc_rodv.numero=?
 and cs_fabbmanc_rodv_dispo.isauto='1'
-and cs_fabbmanc_rodv.societa='CSPRO'
-and cs_fabbmanc_rodv.articolo=?", odv, articolo).LastOrDefault();
+and cs_fabbmanc_rodv.societa=?
+and cs_fabbmanc_rodv.articolo=?", odv, societa, articolo).LastOrDefault();
         }
 
         /// <summary>
@@ -1377,7 +1378,7 @@ order by prelautoh.rifprel, prelautoh.subrifprel, prelautoh.seqprel, articolo");
         /// True se l'articolo dell'attività 0027 è ancora da visualizzare, cioè non è ancora entrato su MGAUT02 / MGAUT03
         /// per quell'ODL dopo l'avviso (ex getListaPrelievi0027FromAttivitaCheckScript.php).
         /// </summary>
-        public bool GetListaPrelievi0027FromAttivitaCheckScript(GetListaPrelievi0027FromAttivitaCheckScriptRequest request)
+        public bool GetListaPrelievi0027FromAttivitaCheckScript(GetListaPrelievi0027FromAttivitaCheckScriptRequest request, string societa)
         {
             var articolo = Obbligatorio(request.articolo_avviso, "articolo_avviso");
             var odl = Obbligatorio(request.odl_avviso, "odl_avviso");
@@ -1387,13 +1388,13 @@ order by prelautoh.rifprel, prelautoh.subrifprel, prelautoh.seqprel, articolo");
             }
 
             var righe = DbHelper.Query(_conn.Db2, @"SELECT TRNITM
-    FROM D60STDDB.MASATRN
-    WHERE D60STDDB.MASATRN.TRNITM = ?
-    AND D60STDDB.MASATRN.TORNUOR = ?
-    AND D60STDDB.MASATRN.TRDATE > ? AND
-    D60STDDB.MASATRN.TMACO='ET' AND D60STDDB.MASATRN.TUSCO ='A'
-    AND (D60STDDB.MASATRN.TMAG = 'MGAUT02' OR D60STDDB.MASATRN.TMAG = 'MGAUT03')
-    AND D60STDDB.MASATRN.TRNSOC = 'CSPRO'", articolo, odl, timest);
+    FROM MASATRN
+    WHERE MASATRN.TRNITM = ?
+    AND MASATRN.TORNUOR = ?
+    AND MASATRN.TRDATE > ? AND
+    MASATRN.TMACO='ET' AND MASATRN.TUSCO ='A'
+    AND (MASATRN.TMAG = 'MGAUT02' OR MASATRN.TMAG = 'MGAUT03')
+    AND MASATRN.TRNSOC = ?", articolo, odl, timest, societa);
 
             return righe.Count == 0;
         }
@@ -1402,7 +1403,7 @@ order by prelautoh.rifprel, prelautoh.subrifprel, prelautoh.seqprel, articolo");
         /// Righe di prelievo uscite e confermate ma non ancora trasferite (esclusi ODV OR / OM), con i dati della testata
         /// e, per i kanban, la commessa ricavata dalla famiglia dell'articolo (ex getListaTrasferimentiMgis001.php).
         /// </summary>
-        public List<Dictionary<string, object?>> GetListaTrasferimentiMgis001()
+        public List<Dictionary<string, object?>> GetListaTrasferimentiMgis001(string societa)
         {
             using var connPg = new OdbcConnection(_conn.PgCasagrande);
             connPg.Open();
@@ -1434,9 +1435,9 @@ order by case when prelautop.tipoprel  = 'KAN' then '999' else '000' end || prel
                 var commessa = "";
                 if (tipoprel == "KAN")
                 {
-                    foreach (var f in DbHelper.Query(connDb2, null, @"SELECT D60STDDB.DBSAFCA.MCOMMCD
-            FROM D60STDDB.DBSAFCA
-            WHERE D60STDDB.DBSAFCA.MITEM = ? AND D60STDDB.DBSAFCA.MCOSC = 'CSPRO'", articolo ?? ""))
+                    foreach (var f in DbHelper.Query(connDb2, null, @"SELECT DBSAFCA.MCOMMCD
+            FROM DBSAFCA
+            WHERE DBSAFCA.MITEM = ? AND DBSAFCA.MCOSC = ?", articolo ?? "", societa))
                     {
                         switch (Trim(Testo(f, "MCOMMCD")))
                         {
@@ -1510,19 +1511,19 @@ order by case when prelautop.tipoprel  = 'KAN' then '999' else '000' end || prel
         /// <summary>
         /// ODV (OR / OM) contenuti in una prebolla in stato 05 (ex mgaut_prel_immediato_get_odv_from_prebolla.php).
         /// </summary>
-        public List<string> MgautPrelImmediatoGetOdvFromPrebolla(MgautPrelImmediatoGetOdvFromPrebollaRequest request)
+        public List<string> MgautPrelImmediatoGetOdvFromPrebolla(MgautPrelImmediatoGetOdvFromPrebollaRequest request, string societa)
         {
             var prebolla = Obbligatorio(request.prebolla, "prebolla");
             if (!prebolla.StartsWith("PRB/")) prebolla = "PRB/" + prebolla;
 
             return DbHelper.Query(_conn.Db2, @"
-SELECT DISTINCT D60STDDB.SHSAPIK.SHLRIORN
-FROM D60STDDB.SHSAPIK
-INNER JOIN D60STDDB.SHSADAT ON D60STDDB.SHSAPIK.SHTNUM = D60STDDB.SHSADAT.SHTNUM AND D60STDDB.SHSAPIK.SHTCOSOC = D60STDDB.SHSADAT.SHTCOSOC
-WHERE D60STDDB.SHSAPIK.SHTCOSOC='CSPRO'
-AND D60STDDB.SHSADAT.SHTSTAT='05'
-AND D60STDDB.SHSAPIK.SHTNUM=?
-ORDER BY D60STDDB.SHSAPIK.SHLRIORN", prebolla)
+SELECT DISTINCT SHSAPIK.SHLRIORN
+FROM SHSAPIK
+INNER JOIN SHSADAT ON SHSAPIK.SHTNUM = SHSADAT.SHTNUM AND SHSAPIK.SHTCOSOC = SHSADAT.SHTCOSOC
+WHERE SHSAPIK.SHTCOSOC=?
+AND SHSADAT.SHTSTAT='05'
+AND SHSAPIK.SHTNUM=?
+ORDER BY SHSAPIK.SHLRIORN", societa, prebolla)
                 .Select(r => Trim(Testo(r, "SHLRIORN")))
                 .Where(odv => odv != "")
                 .ToList();
@@ -1533,7 +1534,7 @@ ORDER BY D60STDDB.SHSAPIK.SHLRIORN", prebolla)
         /// prelevare (prima MGAUT10, poi MGAUT00) se la giacenza copre la quantità cumulata dell'articolo
         /// (ex mgaut_prel_immediato_get_righe_from_odv.php).
         /// </summary>
-        public List<Dictionary<string, object?>> MgautPrelImmediatoGetRigheFromOdv(MgautPrelImmediatoGetRigheFromOdvRequest request)
+        public List<Dictionary<string, object?>> MgautPrelImmediatoGetRigheFromOdv(MgautPrelImmediatoGetRigheFromOdvRequest request, string societa)
         {
             var odv = Obbligatorio(request.odv, "odv");
 
@@ -1541,17 +1542,17 @@ ORDER BY D60STDDB.SHSAPIK.SHLRIORN", prebolla)
             conn.Open();
 
             var listaRighe = DbHelper.Query(conn, null, @"
-SELECT D60STDDB.SHSAPIK.SHTNUM AS prebolla, D60STDDB.SHSAPIK.SHLCDART AS articolo, D60STDDB.SHSAPIK.SHLQTY*0.01 AS qta, D60STDDB.SHSAPIK.SHLRIORR AS pos,
-D60STDDB.SHSAPIK.SHLRIORS AS seq, D60STDDB.SHSADAT.SHTCDINT AS cliente, D60STDDB.SHSADAT.SHTMGFR AS magazzino,
-D60STDDB.DBSAITE.MPDSC AS descarticolo, D60STDDB.DBSAITE.MUTMS AS umis, D60STDDB.ANSADID.ANINCO as nomecliente
-FROM D60STDDB.SHSAPIK
-INNER JOIN D60STDDB.SHSADAT ON D60STDDB.SHSAPIK.SHTNUM = D60STDDB.SHSADAT.SHTNUM AND D60STDDB.SHSAPIK.SHTCOSOC = D60STDDB.SHSADAT.SHTCOSOC
-INNER JOIN D60STDDB.DBSAITE ON D60STDDB.SHSAPIK.SHLCDART = D60STDDB.DBSAITE.MITEM AND D60STDDB.SHSAPIK.SHTCOSOC = D60STDDB.DBSAITE.MCOSC
-INNER JOIN D60STDDB.ANSADID ON D60STDDB.SHSADAT.SHTCDINT = D60STDDB.ANSADID.ANCOCO AND D60STDDB.SHSADAT.SHTCOSOC = D60STDDB.ANSADID.ANCOSO
-WHERE D60STDDB.SHSAPIK.SHTCOSOC='CSPRO'
-AND D60STDDB.SHSADAT.SHTSTAT='05'
-AND D60STDDB.SHSAPIK.SHLRIORN=?
-order by D60STDDB.SHSAPIK.SHLCDART,D60STDDB.SHSAPIK.SHLQTY desc", odv)
+SELECT SHSAPIK.SHTNUM AS prebolla, SHSAPIK.SHLCDART AS articolo, SHSAPIK.SHLQTY*0.01 AS qta, SHSAPIK.SHLRIORR AS pos,
+SHSAPIK.SHLRIORS AS seq, SHSADAT.SHTCDINT AS cliente, SHSADAT.SHTMGFR AS magazzino,
+DBSAITE.MPDSC AS descarticolo, DBSAITE.MUTMS AS umis, ANSADID.ANINCO as nomecliente
+FROM SHSAPIK
+INNER JOIN SHSADAT ON SHSAPIK.SHTNUM = SHSADAT.SHTNUM AND SHSAPIK.SHTCOSOC = SHSADAT.SHTCOSOC
+INNER JOIN DBSAITE ON SHSAPIK.SHLCDART = DBSAITE.MITEM AND SHSAPIK.SHTCOSOC = DBSAITE.MCOSC
+INNER JOIN ANSADID ON SHSADAT.SHTCDINT = ANSADID.ANCOCO AND SHSADAT.SHTCOSOC = ANSADID.ANCOSO
+WHERE SHSAPIK.SHTCOSOC=?
+AND SHSADAT.SHTSTAT='05'
+AND SHSAPIK.SHLRIORN=?
+order by SHSAPIK.SHLCDART,SHSAPIK.SHLQTY desc", societa, odv)
                 .Select(r => new Dictionary<string, object?>
                 {
                     ["articolo"] = Trim(Testo(r, "ARTICOLO")),
@@ -1587,12 +1588,12 @@ order by D60STDDB.SHSAPIK.SHLCDART,D60STDDB.SHSAPIK.SHLQTY desc", odv)
                 // Prima MGAUT10 poi MGAUT00
                 var giacenze = DbHelper.Query(conn, null, @"
     SELECT
-    D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALOHQT/100 AS GIACENTE
-    FROM D60STDDB.MASAMSL
-    FULL JOIN D60STDDB.DBSAITE ON D60STDDB.DBSAITE.MITEM = D60STDDB.MASAMSL.MALITEM AND D60STDDB.DBSAITE.MCOSC = D60STDDB.MASAMSL.MAHCOSC
-    WHERE D60STDDB.DBSAITE.MITEM=? AND D60STDDB.MASAMSL.MAHCOSC='CSPRO' AND (D60STDDB.MASAMSL.MLLOC='MGAUT00' OR D60STDDB.MASAMSL.MLLOC='MGAUT10')
-    GROUP BY D60STDDB.MASAMSL.MLLOC, D60STDDB.MASAMSL.MALOHQT
-    ORDER BY D60STDDB.MASAMSL.MLLOC DESC", articolo);
+    MASAMSL.MLLOC, MASAMSL.MALOHQT/100 AS GIACENTE
+    FROM MASAMSL
+    FULL JOIN DBSAITE ON DBSAITE.MITEM = MASAMSL.MALITEM AND DBSAITE.MCOSC = MASAMSL.MAHCOSC
+    WHERE DBSAITE.MITEM=? AND MASAMSL.MAHCOSC=? AND (MASAMSL.MLLOC='MGAUT00' OR MASAMSL.MLLOC='MGAUT10')
+    GROUP BY MASAMSL.MLLOC, MASAMSL.MALOHQT
+    ORDER BY MASAMSL.MLLOC DESC", articolo, societa);
 
                 foreach (var g in giacenze)
                 {
@@ -1637,7 +1638,7 @@ inner join  cs_fabbmanc_odl_fasi on cs_fabbmanc_odl_dispo.fase = cs_fabbmanc_odl
         /// Articoli di un ODL/fase disponibili sul magazzino automatico di origine per il magazzino di destinazione
         /// (ex mgaut_prel_odl_get_articoli.php).
         /// </summary>
-        public List<Dictionary<string, object?>> MgautPrelOdlGetArticoli(MgautPrelOdlGetArticoliRequest request)
+        public List<Dictionary<string, object?>> MgautPrelOdlGetArticoli(MgautPrelOdlGetArticoliRequest request, string societa)
         {
             var odl = Obbligatorio(request.odl, "odl");
             var fase = Obbligatorio(request.fase, "fase");
@@ -1651,16 +1652,16 @@ and cs_fabbmanc_odl_comp.fase=?
 and cs_fabbmanc_odl_dispo.magdispo=?
 and cs_fabbmanc_odl_comp.magazzino=?
 and cs_fabbmanc_odl_dispo.isauto='1'
-and cs_fabbmanc_odl_dispo.societa = 'CSPRO'
+and cs_fabbmanc_odl_dispo.societa = ?
 and cs_fabbmanc_odl_comp.magazzino != ':'
-order by cs_fabbmanc_odl_dispo.articolo", odl, fase, origine, destinazione);
+order by cs_fabbmanc_odl_dispo.articolo", odl, fase, origine, destinazione, societa);
         }
 
         /// <summary>
         /// Magazzini di destinazione (ODL) per cui l'articolo è disponibile sul magazzino automatico di origine
         /// (ex mgaut_prel_odl_get_magazzini.php).
         /// </summary>
-        public List<string?> MgautPrelOdlGetMagazzini(MgautPrelOdlGetMagazziniRequest request)
+        public List<string?> MgautPrelOdlGetMagazzini(MgautPrelOdlGetMagazziniRequest request, string societa)
         {
             var articolo = Obbligatorio(request.articolo, "articolo");
             var origine = Obbligatorio(request.magazzino_origine, "magazzino_origine");
@@ -1670,9 +1671,9 @@ order by cs_fabbmanc_odl_dispo.articolo", odl, fase, origine, destinazione);
 where cs_fabbmanc_odl_dispo.articolo=?
 and cs_fabbmanc_odl_dispo.magdispo = ?
 and cs_fabbmanc_odl_dispo.isauto='1'
-and cs_fabbmanc_odl_dispo.societa = 'CSPRO'
+and cs_fabbmanc_odl_dispo.societa = ?
 and cs_fabbmanc_odl_comp.magazzino != ':'
-order by cs_fabbmanc_odl_comp.magazzino", articolo, origine)
+order by cs_fabbmanc_odl_comp.magazzino", articolo, origine, societa)
                 .Select(r => Testo(r, "magazzino")).ToList();
         }
 
@@ -1680,7 +1681,7 @@ order by cs_fabbmanc_odl_comp.magazzino", articolo, origine)
         /// ODL/fasi con articoli (tutti o quello indicato) disponibili sul magazzino automatico di origine per il
         /// magazzino di destinazione (ex mgaut_prel_odl_get_odl.php).
         /// </summary>
-        public List<Dictionary<string, object?>> MgautPrelOdlGetOdl(MgautPrelOdlGetOdlRequest request)
+        public List<Dictionary<string, object?>> MgautPrelOdlGetOdl(MgautPrelOdlGetOdlRequest request, string societa)
         {
             var articolo = request.articolo ?? "";
             var origine = Obbligatorio(request.magazzino_origine, "magazzino_origine");
@@ -1694,6 +1695,7 @@ order by cs_fabbmanc_odl_comp.magazzino", articolo, origine)
                 parametri.Add(articolo);
             }
             parametri.Add(origine);
+            parametri.Add(societa);
 
             return DbHelper.Query(_conn.PgCasagrande, $@"select cs_fabbmanc_odl_comp.numero as odl, cs_fabbmanc_odl_comp.fase, cs_fabbmanc_odl.articolo AS padre, cs_fabbmanc_odl.descarticolo as des_padre, cs_fabbmanc_odl_fasi.descrizione as descrizionefase, cs_fabbmanc_odl_dispo.giacdispo as qta
 {FROM_ODL_DISPO_MGAUT}
@@ -1701,7 +1703,7 @@ where cs_fabbmanc_odl_comp.magazzino=?
 {whereArticolo}
 and cs_fabbmanc_odl_dispo.magdispo = ?
 and cs_fabbmanc_odl_dispo.isauto='1'
-and cs_fabbmanc_odl_dispo.societa = 'CSPRO'
+and cs_fabbmanc_odl_dispo.societa = ?
 order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
         }
 
@@ -1709,7 +1711,7 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
         /// Articoli di un ODV disponibili sul magazzino automatico di origine per il magazzino di destinazione
         /// (ex mgaut_prel_odv_get_articoli.php).
         /// </summary>
-        public List<Dictionary<string, object?>> MgautPrelOdvGetArticoli(MgautPrelOdvGetArticoliRequest request)
+        public List<Dictionary<string, object?>> MgautPrelOdvGetArticoli(MgautPrelOdvGetArticoliRequest request, string societa)
         {
             var odv = Obbligatorio(request.odv, "odv");
             var origine = Obbligatorio(request.magazzino_origine, "magazzino_origine");
@@ -1721,15 +1723,15 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
     and magazzino=?
     and magdispo=?
     and cs_fabbmanc_rodv_dispo.isauto='1'
-    and cs_fabbmanc_rodv.societa='CSPRO'
-    order by cs_fabbmanc_rodv.articolo", odv, destinazione, origine);
+    and cs_fabbmanc_rodv.societa=?
+    order by cs_fabbmanc_rodv.articolo", odv, destinazione, origine, societa);
         }
 
         /// <summary>
         /// Magazzini di destinazione (ODV) per cui l'articolo è disponibile sul magazzino automatico di origine
         /// (ex mgaut_prel_odv_get_magazzini.php).
         /// </summary>
-        public List<string?> MgautPrelOdvGetMagazzini(MgautPrelOdvGetMagazziniRequest request)
+        public List<string?> MgautPrelOdvGetMagazzini(MgautPrelOdvGetMagazziniRequest request, string societa)
         {
             var articolo = Obbligatorio(request.articolo, "articolo");
             var origine = Obbligatorio(request.magazzino_origine, "magazzino_origine");
@@ -1739,8 +1741,8 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
     where cs_fabbmanc_rodv.articolo=?
     and magdispo=?
     and cs_fabbmanc_rodv_dispo.isauto='1'
-    and cs_fabbmanc_rodv.societa='CSPRO'
-    order by magazzino", articolo, origine)
+    and cs_fabbmanc_rodv.societa=?
+    order by magazzino", articolo, origine, societa)
                 .Select(r => Testo(r, "magazzino")).ToList();
         }
 
@@ -1748,7 +1750,7 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
         /// ODV con articoli (tutti o quello indicato) disponibili sul magazzino automatico di origine per il magazzino
         /// di destinazione (ex mgaut_prel_odv_get_odv.php).
         /// </summary>
-        public List<Dictionary<string, object?>> MgautPrelOdvGetOdv(MgautPrelOdvGetOdvRequest request)
+        public List<Dictionary<string, object?>> MgautPrelOdvGetOdv(MgautPrelOdvGetOdvRequest request, string societa)
         {
             var articolo = request.articolo ?? "";
             var origine = Obbligatorio(request.magazzino_origine, "magazzino_origine");
@@ -1761,6 +1763,7 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
                 whereArticolo = "and cs_fabbmanc_rodv.articolo=?";
                 parametri.Add(articolo);
             }
+            parametri.Add(societa);
 
             return DbHelper.Query(_conn.PgCasagrande, $@"select cs_fabbmanc_odv.numero as odv, cs_fabbmanc_odv.cliente, cs_fabbmanc_odv.nomecliente, cs_fabbmanc_rodv.pos, cs_fabbmanc_rodv.seq, cs_fabbmanc_rodv.giacdispo as qta
     {FROM_RODV_DISPO}
@@ -1768,7 +1771,7 @@ order by cs_fabbmanc_odl_dispo.numero", parametri.ToArray());
     and magdispo=?
     {whereArticolo}
     and cs_fabbmanc_rodv_dispo.isauto='1'
-    and cs_fabbmanc_rodv.societa='CSPRO'
+    and cs_fabbmanc_rodv.societa=?
     order by cs_fabbmanc_odv.numero, cs_fabbmanc_rodv.pos", parametri.ToArray());
         }
 

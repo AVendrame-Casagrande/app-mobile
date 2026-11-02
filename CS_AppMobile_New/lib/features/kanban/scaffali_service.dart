@@ -60,6 +60,73 @@ class ScaffaliService {
         .toList();
   }
 
+  /// Verifica che l'articolo esista (Query.js → giacenze/selectSingoloArticolo,
+  /// società della sessione, needCompleteInfo:false). Ritorna il codice articolo
+  /// restituito dal server, oppure null se l'articolo non esiste.
+  /// Rilancia l'eccezione per gli errori di rete/server.
+  Future<String?> verificaArticolo(String codice) async {
+    final dynamic res;
+    try {
+      res = await _api.postJson(
+        '${AppConfig.giacenzeUrl}/selectSingoloArticolo',
+        data: {
+          'codiceArticolo': codice,
+          'societa': AuthToken.societa,
+          'needCompleteInfo': false,
+        },
+      );
+    } on ApiException catch (e) {
+      // HTTP 404 = articolo inesistente.
+      if (e.statusCode == 404) return null;
+      rethrow;
+    }
+    if (res is Map) {
+      final c = (res['codice'] ?? '').toString().trim();
+      if (c.isNotEmpty) return c;
+    }
+    return null;
+  }
+
+  /// Aggiunge un articolo allo scaffale.
+  /// POST /kanban/addArticoloScaffale {scaffale, codiceArticolo}
+  /// → 'error' se l'articolo è già presente nello scaffale, altrimenti 'ok'.
+  /// Ritorna false se l'articolo era già presente.
+  Future<bool> addArticoloScaffale(String scaffale, String codiceArticolo) async {
+    final res = await _api.postText(
+      '${AppConfig.kanbanUrl}/addArticoloScaffale',
+      data: {'scaffale': scaffale, 'codiceArticolo': codiceArticolo},
+    );
+    return res.trim() != 'error';
+  }
+
+  /// Toglie un articolo dallo scaffale.
+  /// POST /kanban/deleteArticoloScaffale {scaffale, codiceArticolo} → 'ok'
+  Future<void> deleteArticoloScaffale(
+      String scaffale, String codiceArticolo) async {
+    await _api.postText(
+      '${AppConfig.kanbanUrl}/deleteArticoloScaffale',
+      data: {'scaffale': scaffale, 'codiceArticolo': codiceArticolo},
+    );
+  }
+
+  /// Elenco degli scaffali in cui è presente un articolo.
+  /// POST /kanban/addElencoScaffaliToArticolo {codiceArticolo}
+  /// → list {codice, descrizione}
+  Future<List<ScaffaloArticolo>> getElencoScaffaliArticolo(
+      String codiceArticolo) async {
+    final res = await _api.postJson(
+      '${AppConfig.kanbanUrl}/addElencoScaffaliToArticolo',
+      data: {'codiceArticolo': codiceArticolo},
+    );
+    if (res is! List) return [];
+    return res.whereType<Map>().map((e) {
+      return ScaffaloArticolo(
+        codice: (e['codice'] ?? '').toString(),
+        descrizione: (e['descrizione'] ?? '').toString(),
+      );
+    }).toList();
+  }
+
   /// Dettaglio articolo Kanban (con scaffali).
   /// POST /kanban/selectSingoloArticolo.php {codiceArticolo, addScaffaliPhp:true}
   Future<ArticoloKanban?> getArticoloKanban(String codice) async {

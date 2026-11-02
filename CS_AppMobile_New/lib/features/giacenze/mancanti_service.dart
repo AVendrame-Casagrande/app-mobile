@@ -254,7 +254,6 @@ class MancantiService {
         'odl': m.odl,
         'commessa': '',
         'nota': '',
-        'ambiente': 'PRODUZIONE',
         'id': utente,
         'societa': societa,
       },

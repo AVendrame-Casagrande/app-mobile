@@ -13,7 +13,7 @@ namespace CG.MobileAPI.Tools
     {
         /// <summary>Causale: TNAV2 (inviata come TNAV3), UR1 o UNA.</summary>
         public string Causale { get; set; } = "";
-        /// <summary>Società (vuota = CSPRO).</summary>
+        /// <summary>Società del token (CSPRO / IMM00): la imposta il controller, mai il client. Vuota o non gestita = CSPRO.</summary>
         public string Societa { get; set; } = "";
         /// <summary>Codice utente Diapason.</summary>
         public string Utente { get; set; } = "";
@@ -37,8 +37,6 @@ namespace CG.MobileAPI.Tools
         public string Nota { get; set; } = "";
         /// <summary>Fase dell'ODL (vuota = ricavata da cs_fabbmanc_odl_comp).</summary>
         public string Fase { get; set; } = "";
-        /// <summary>"TEST" per la porta di test, altrimenti produzione.</summary>
-        public string Ambiente { get; set; } = "";
     }
 
     /// <summary>
@@ -79,7 +77,7 @@ WHERE cs_fabbmanc_odl_comp.articolo = ? AND cs_fabbmanc_odl_comp.societa = ? AND
         /// </summary>
         public async Task<string> EseguiAsync(MovimentoDiapason m)
         {
-            var societa = Campo(m.Societa, "CSPRO");
+            var societa = CodiciSocieta.Normalizza(m.Societa);
             var utente = Campo(m.Utente, "");
             var articolo = Campo(m.Articolo, "");
             var damag = Campo(m.DaMag, "");
@@ -111,7 +109,7 @@ WHERE cs_fabbmanc_odl_comp.articolo = ? AND cs_fabbmanc_odl_comp.societa = ? AND
                 _ => throw new MobileException("Causale non valida")
             };
 
-            var port = string.Equals(m.Ambiente, "TEST", StringComparison.OrdinalIgnoreCase) ? _settings.SocketPortTest : _settings.SocketPortProd;
+            var port = _settings.SocketPort;
             _logger.LogInformation("Movimento Diapason ({Port}): {Comando}", port, comando);
 
             try

@@ -18,8 +18,6 @@ namespace CG.MobileAPI.Models
     /// </summary>
     public class APIMovMagMobileAppRequest
     {
-        /// <summary>TEST o PRODUZIONE.</summary>
-        public string? ambiente { get; set; }
         /// <summary>Articolo.</summary>
         public string? articolo { get; set; }
         /// <summary>Causale: TNAV2, UR1 o UNA.</summary>
@@ -42,7 +40,7 @@ namespace CG.MobileAPI.Models
         public string? nota { get; set; }
         /// <summary>Fase dell'ODL (vuota = ricavata dall'ODL).</summary>
         public string? fase { get; set; }
-        /// <summary>Società.</summary>
+        /// <summary>Ignorato: la società del movimento è quella del token (ex campo societa di APIMovMagMobileApp[IMM].php).</summary>
         public string? societa { get; set; }
     }
 
@@ -77,8 +75,6 @@ namespace CG.MobileAPI.Models
     /// </summary>
     public class WriteListaMagazzinoAutomaticoRequest
     {
-        /// <summary>TEST o PRODUZIONE.</summary>
-        public string? ambiente { get; set; }
         /// <summary>PRELMAN, PRELODL, PRELODV, PRELKAN, CAR o CARPRT.</summary>
         public string? tipo_interfaccia { get; set; }
         /// <summary>Magazzino di origine.</summary>
@@ -119,7 +115,7 @@ namespace CG.MobileAPI.Models
     {
         /// <summary>Causale (TNAV2, UR1, UNA).</summary>
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? causale { get; set; }
-        /// <summary>Società.</summary>
+        /// <summary>Ignorato: la società del movimento è quella del token.</summary>
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? societa { get; set; }
         /// <summary>Articolo.</summary>
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? articolo { get; set; }
@@ -137,8 +133,6 @@ namespace CG.MobileAPI.Models
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? odl { get; set; }
         /// <summary>Commessa.</summary>
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? commessa { get; set; }
-        /// <summary>TEST o PRODUZIONE.</summary>
-        [JsonConverter(typeof(MovimentiValoreConverter))] public string? ambiente { get; set; }
         /// <summary>Nota.</summary>
         [JsonConverter(typeof(MovimentiValoreConverter))] public string? nota { get; set; }
 
@@ -269,15 +263,16 @@ namespace CG.MobileAPI.Models
         /// </summary>
         /// <param name="request">Dati del movimento.</param>
         /// <param name="utente">Codice Diapason dell'utente che esegue il movimento.</param>
+        /// <param name="societa">Società del token (CSPRO / IMM00; sostituisce anche APIMovMagMobileAppIMM.php).</param>
         /// <param name="socket">Client del socket Diapason.</param>
-        public async Task<string> APIMovMagMobileAppAsync(APIMovMagMobileAppRequest request, string utente, DiapasonSocket socket)
+        public async Task<string> APIMovMagMobileAppAsync(APIMovMagMobileAppRequest request, string utente, string societa, DiapasonSocket socket)
         {
             if (request == null) throw new MobileException("Richiesta non valida");
 
             var risposta = await socket.EseguiAsync(new MovimentoDiapason
             {
                 Causale = (request.causale ?? "").Trim(),
-                Societa = request.societa ?? "",
+                Societa = societa,
                 Utente = utente,
                 Articolo = request.articolo ?? "",
                 Qta = request.qta ?? "",
@@ -288,8 +283,7 @@ namespace CG.MobileAPI.Models
                 Odl = (request.odl ?? "").Trim(),
                 Commessa = (request.commessa ?? "").Trim(),
                 Nota = (request.nota ?? "").Trim(),
-                Fase = (request.fase ?? "").Trim(),
-                Ambiente = request.ambiente ?? ""
+                Fase = (request.fase ?? "").Trim()
             });
             return risposta.Trim();
         }
@@ -338,14 +332,15 @@ WHERE TBLARM.DATACR > ?";
         /// </summary>
         /// <param name="request">Dati della lista.</param>
         /// <param name="utente">Codice Diapason dell'utente che crea la lista.</param>
+        /// <param name="societa">Società del token.</param>
         /// <param name="settings">Impostazioni del socket Diapason.</param>
         /// <param name="logger">Logger (al posto del file PrelieviLogs).</param>
         public async Task<string> WriteListaMagazzinoAutomaticoAsync(WriteListaMagazzinoAutomaticoRequest request, string utente,
-            DiapasonSettings settings, ILogger logger)
+            string societa, DiapasonSettings settings, ILogger logger)
         {
             if (request == null) throw new MobileException("Richiesta non valida");
 
-            const string societa = "CSPRO";
+            societa = CampoSocket(societa, "societa");
             var tipo = request.tipo_interfaccia ?? "";
             var nota = request.nota ?? "";
             var lista = request.listaPrelievi ?? new List<RigaListaMagazzinoAutomatico>();
@@ -358,10 +353,7 @@ WHERE TBLARM.DATACR > ?";
             var fase = CampoSocket(request.fase, "fase");
             if (nota.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0) throw new MobileException("La nota contiene caratteri non validi");
 
-            int port;
-            if (request.ambiente == "TEST") port = settings.SocketPortTest;
-            else if (request.ambiente == "PRODUZIONE") port = settings.SocketPortProd;
-            else return "500 socket_create() failed: reason: ambiente non valido\n";
+            var port = settings.SocketPort;
 
             // --- STARTUP + HEADER ---
             var sb = new StringBuilder();
@@ -513,10 +505,11 @@ WHERE TBLARM.DATACR > ?";
         /// </summary>
         /// <param name="request">Dati generali e movimenti.</param>
         /// <param name="utente">Codice Diapason dell'utente che esegue i movimenti.</param>
+        /// <param name="societa">Società del token (catturata prima di avviare il job in background).</param>
         /// <param name="socket">Client del socket Diapason.</param>
         /// <param name="logger">Logger per gli errori dei singoli movimenti.</param>
         public async Task WriteMovimentiMultipliAPIAsync(WriteMovimentiMultipliAPIRequest request, string utente,
-            DiapasonSocket socket, ILogger logger)
+            string societa, DiapasonSocket socket, ILogger logger)
         {
             var d = request.dataObject!;
             var idApi = d.id_api ?? "";
@@ -595,7 +588,7 @@ where articolo = ? and rifprel = ? and subrifprel = ? and seqprel = ? and seq = 
                     rispostaApi = (await socket.EseguiAsync(new MovimentoDiapason
                     {
                         Causale = m.causale ?? "",
-                        Societa = m.societa ?? "",
+                        Societa = societa,
                         Utente = utente,
                         Articolo = articolo,
                         Qta = m.qta ?? "",
@@ -605,7 +598,6 @@ where articolo = ? and rifprel = ? and subrifprel = ? and seqprel = ? and seq = 
                         AVano = m.avano ?? "",
                         Odl = m.odl ?? "",
                         Commessa = m.commessa ?? "",
-                        Ambiente = m.ambiente ?? "",
                         Nota = m.nota ?? "",
                         Fase = m.subrifprel ?? "" // 20260216 - errore TNAV3: manca abbinamento fase
                     })).Trim();
